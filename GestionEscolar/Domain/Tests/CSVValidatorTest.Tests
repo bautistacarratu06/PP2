@@ -1,0 +1,29 @@
+using Xunit;
+using Domain;
+
+// * dotnet test Domain.Tests
+namespace Domain.UnitTests
+{
+    public class CSVValidatorTests
+    {
+        [Fact]
+        public void IsValid_WhenFileIsNotCsv_ReturnsFalse()
+        {
+            var validator = new CSVValidator();
+
+            var result = validator.IsValid("file.txt");
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void IsValid_WhenFilePathIsNull_ReturnsFalse()
+        {
+            var validator = new CSVValidator();
+
+            var result = validator.IsValid(null);
+
+            Assert.False(result);
+        }
+    }
+}
