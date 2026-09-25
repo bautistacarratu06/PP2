@@ -57,6 +57,30 @@ El dominio preliminar está compuesto por los siguientes conceptos principales:
                                             └──────────────┘
 ```
 
+## Arquitectura preliminar
+
+Por ahora seguimos la arquitectura que recomienda la cátedra: tres capas lógicas (presentación, dominio y datos) en un solo proceso, con el cálculo de riesgo aislado detrás de una interfaz. Igual que el modelado de dominio, es preliminar y **puede cambiar** cuando tengamos más claro el producto final.
+
+```text
+  ┌───────────────────────────────────────────────────────────┐
+  │  PRESENTACIÓN (UI)                                        │
+  │  pantallas de registro, panel, detalle del estudiante     │
+  └───────────────────────────┬───────────────────────────────┘
+                              │
+                              ▼
+  ┌───────────────────────────────────────────────────────────┐
+  │  DOMINIO                                                  │
+  │  reglas de asistencia, entregas e intervenciones          │
+  │  ►► cálculo de riesgo ◄◄  (detrás de una interfaz)        │
+  └───────────────────────────┬───────────────────────────────┘
+                              │
+                              ▼
+  ┌───────────────────────────────────────────────────────────┐
+  │  DATOS                                                    │
+  │  repositorios ──► almacenamiento relacional SQL           │
+  └───────────────────────────────────────────────────────────┘
+```
+
 ## Nota
 
 Este documento representa únicamente una **primera aproximación al dominio**. Los conceptos, relaciones y responsabilidades aquí definidos son preliminares y **pueden cambiar** durante el desarrollo del análisis, la validación con los requerimientos y la implementación.
