@@ -71,13 +71,13 @@ Por ahora seguimos la arquitectura que recomienda la cátedra: tres capas lógic
   ┌───────────────────────────────────────────────────────────┐
   │  DOMINIO                                                  │
   │  reglas de asistencia, entregas e intervenciones          │
-  │  ►► cálculo de riesgo ◄◄  (detrás de una interfaz)        │
+  │  cálculo de riesgo (detrás de una interfaz)               │
   └───────────────────────────┬───────────────────────────────┘
                               │
                               ▼
   ┌───────────────────────────────────────────────────────────┐
   │  DATOS                                                    │
-  │  repositorios ──► almacenamiento relacional SQL           │
+  │  almacenamiento relacional SQL                            │
   └───────────────────────────────────────────────────────────┘
 ```
 
