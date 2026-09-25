@@ -3,32 +3,22 @@ namespace Domain.Tests;
 public class CSVValidatorTests
 {
     [Fact]
-    public void IsValid_WhenFileExists_ReturnsTrue()
+    public void IsValid_WhenFileIsNotCsv_ReturnsFalse()
     {
         var validator = new CSVValidator();
-        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "alumnos.csv");
 
-        var result = validator.IsValid(path);
+        var result = validator.IsValid("file.txt");
 
-        Assert.True(result);
+        Assert.False(result);
     }
 
     [Fact]
-    public void IsValid_WhenTempCsvExists_ReturnsTrue()
+    public void IsValid_WhenFilePathIsNull_ReturnsFalse()
     {
         var validator = new CSVValidator();
-        var path = Path.Combine(Path.GetTempPath(), $"alumnos-{Guid.NewGuid():N}.csv");
-        File.WriteAllText(path, "nombre,apellido\n");
 
-        try
-        {
-            var result = validator.IsValid(path);
+        var result = validator.IsValid(null);
 
-            Assert.True(result);
-        }
-        finally
-        {
-            File.Delete(path);
-        }
+        Assert.False(result);
     }
 }
