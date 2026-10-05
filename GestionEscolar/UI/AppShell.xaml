@@ -4,7 +4,20 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:UI"
-    Title="UI">
+    xmlns:views="clr-namespace:UI.Views"
+    Title="Gestión Escolar"
+    FlyoutBehavior="Flyout"
+    FlyoutBackgroundColor="White"
+    Shell.BackgroundColor="#F4F6F8"
+    Shell.ForegroundColor="#1A1D23"
+    Shell.TitleColor="#1A1D23"
+    Shell.UnselectedColor="#5E6772"
+    Shell.NavBarHasShadow="False">
+
+    <ShellContent
+        Title="Seguimiento"
+        ContentTemplate="{DataTemplate views:TrackingPage}"
+        Route="TrackingPage" />
 
     <ShellContent
         Title="Home"
