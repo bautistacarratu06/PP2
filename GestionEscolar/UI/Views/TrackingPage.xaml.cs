@@ -2,6 +2,9 @@ using UI.ViewModels;
 
 namespace UI.Views
 {
+    // TODO: Abstraer la lógica de tamaño de la tabla en un control customizado, para que no esté en la página.
+    // Todos este código de tamaño de la tabla es un hack para que la tabla se vea bien en la UI, y no debería estar en la página.
+    // El código está 100% hecho por IA
     public partial class TrackingPage : ContentPage
     {
         public TrackingPage()
