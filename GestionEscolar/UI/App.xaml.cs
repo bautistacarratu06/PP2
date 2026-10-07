@@ -11,7 +11,12 @@ namespace UI
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            return new Window(new AppShell());
+            return new Window(new AppShell())
+            {
+                Title = "Gestión Escolar",
+                Width = 1360,
+                Height = 900
+            };
         }
     }
 }
