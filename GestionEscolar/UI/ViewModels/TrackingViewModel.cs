@@ -86,7 +86,7 @@ namespace UI.ViewModels
         // No desperdiciamos trabajo.
         private void GetMockedStudentsRowRenameThisMethodUponDbImplementation()
         {
-            foreach (var student in StudentSeeder.GetMockedStudents())
+            foreach (var student in StudentSeeder.GetMockedStudentsForRiskGridView())
             {
                 // TODO: El ID está hardcodeado, debería ser generado por la base de datos. Esto es solo para poder mostrar la UI.
                 student.Id = _nextId++;

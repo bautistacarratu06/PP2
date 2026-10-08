@@ -9,13 +9,19 @@ namespace UI.Models
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string StudentNumber { get; set; } = string.Empty;
+        // TODO: remover riskLevel y riskScore. son campos calculados que deberían ser parte de un ViewModel.
+        // El Student debería ser solo datos de la DB.
         public string RiskLevel { get; set; } = string.Empty;
         public int RiskScore { get; set; }
+        public string Phone { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         public int AttendedClasses { get; set; }
+        // TODO: Remover TotalClasses. no es parte del estudiante, es parte de la configuración del curso.
         public int TotalClasses { get; set; }
         public int SubmittedAssignments { get; set; }
         public int TotalAssignments { get; set; }
         public DateTime? LastContact { get; set; }
+
 
         // TODO: Implemntar algoritmo de riesgo de Bautista, que debería estar en otra clase.
         // Por ahora esto queda como placeholder para que la UI pueda mostrar algo. 

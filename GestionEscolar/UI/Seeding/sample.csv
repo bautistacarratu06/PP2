@@ -1,0 +1,6 @@
+Id,Nombre,NumeroEstudiante,Telefono,Correo,ClasesAsistidas,TareasEntregadas,TareasTotales,UltimoContacto
+1,María Fernández,EST-2024-001,+54 11 5555-0101,maria.fernandez@ejemplo.com,28,9,10,2026-09-15
+2,Juan Pérez,EST-2024-002,+54 11 5555-0102,juan.perez@ejemplo.com,22,7,10,2026-09-02
+3,Lucía Gómez,EST-2024-003,+54 11 5555-0103,lucia.gomez@ejemplo.com,30,10,10,2026-10-01
+4,Santiago Rodríguez,EST-2024-004,+54 11 5555-0104,santiago.rodriguez@ejemplo.com,15,4,10,
+5,Valentina Díaz,EST-2024-005,+54 11 5555-0105,valentina.diaz@ejemplo.com,25,8,10,2026-08-20

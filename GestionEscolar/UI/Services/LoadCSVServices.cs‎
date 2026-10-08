@@ -1,0 +1,64 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace UI.Services
+{
+    public static class LoadCSVServices
+    {
+        public static void SetCsvValue(Student student, string propertyName, string value)
+        {
+            var property = typeof(Student).GetProperty(propertyName)
+                ?? throw new InvalidOperationException($"No existe la propiedad '{propertyName}' en Student.");
+            var targetType = Nullable.GetUnderlyingType(property.PropertyType);
+
+            if (string.IsNullOrEmpty(value) && targetType is not null)
+            {
+                property.SetValue(student, null);
+                return;
+            }
+
+            targetType ??= property.PropertyType;
+            var convertedValue = targetType == typeof(string)
+                ? value
+                : Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+            property.SetValue(student, convertedValue);
+        }
+
+        public static List<string> ParseCsvLine(string line)
+        {
+            var fields = new List<string>();
+            var field = new StringBuilder();
+            var insideQuotes = false;
+
+            for (var i = 0; i < line.Length; i++)
+            {
+                var character = line[i];
+                if (character == '"')
+                {
+                    if (insideQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                    {
+                        field.Append('"');
+                        i++;
+                    }
+                    else
+                    {
+                        insideQuotes = !insideQuotes;
+                    }
+                }
+                else if (character == ',' && !insideQuotes)
+                {
+                    fields.Add(field.ToString());
+                    field.Clear();
+                }
+                else
+                {
+                    field.Append(character);
+                }
+            }
+
+            fields.Add(field.ToString());
+            return fields;
+        }
+    }
+}

@@ -13,7 +13,10 @@ namespace UI
         {
             return new Window(new AppShell())
             {
-                Title = "Gestión Escolar",
+                // * este es nuestro entrypoint que monta las shells
+                // Shell muestra el primer ShellContent. tenemos q tenerlo en cuenta 
+                // para la navegación. Investigar como hacer 1 sidebar
+                Title = "Gestión Escolar PP2",
                 Width = 1360,
                 Height = 900
             };
