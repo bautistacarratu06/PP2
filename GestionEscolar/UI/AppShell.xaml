@@ -6,14 +6,20 @@
     xmlns:local="clr-namespace:UI"
     xmlns:views="clr-namespace:UI.Views"
     Title="Gestión Escolar"
-    FlyoutBehavior="Flyout"
+    FlyoutBehavior="Locked"
     FlyoutBackgroundColor="White"
     Shell.BackgroundColor="#F4F6F8"
     Shell.ForegroundColor="#1A1D23"
     Shell.TitleColor="#1A1D23"
     Shell.UnselectedColor="#5E6772"
     Shell.NavBarHasShadow="False">
+    <!-- Ruta de la nómina -->
+    <ShellContent
+        Title="Nómina"
+        ContentTemplate="{DataTemplate views:StudentListPage}"
+        Route="StudentListPage" />
 
+    <!-- Ruta de la grid de seguimiento -->
     <ShellContent
         Title="Seguimiento"
         ContentTemplate="{DataTemplate views:TrackingPage}"
