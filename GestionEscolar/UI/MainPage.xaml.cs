@@ -20,5 +20,13 @@
 
             SemanticScreenReader.Announce(CounterBtn.Text);
         }
+
+        // TODO: El botón "Panel de seguimiento" de Home llama a esto.
+        // Shell.Current.GoToAsync("//TrackingPage") abre la ruta registrada en AppShell.
+        // Las // son ruta absoluta: reemplazan Home, no apilan TrackingPage encima.
+        private async void OnOpenTrackingClicked(object? sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync("//TrackingPage");
+        }
     }
 }
