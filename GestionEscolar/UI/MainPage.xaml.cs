@@ -26,7 +26,7 @@
         // Las // son ruta absoluta: reemplazan Home, no apilan TrackingPage encima.
         private async void OnOpenTrackingClicked(object? sender, EventArgs e)
         {
-            await Shell.Current.GoToAsync("//TrackingPage");
+            await Shell.Current.GoToAsync("//StudentListPage");
         }
     }
 }
