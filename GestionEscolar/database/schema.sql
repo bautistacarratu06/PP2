@@ -13,12 +13,12 @@ GO
 ---------------------------
 CREATE TABLE Student
 (
-id int IDENTITY(1,1),
-dni varchar(20) PRIMARY KEY,
-first_name varchar(50),
-last_name varchar(50),
-email varchar(120),
-phone varchar(30),
-created_at datetime default GETDATE()
-)
+	id int IDENTITY(1,1),
+	dni varchar(20) PRIMARY KEY,
+	first_name varchar(50),
+	last_name varchar(50),
+	email varchar(120),
+	phone varchar(30),
+	created_at datetime default GETDATE()
+);
 

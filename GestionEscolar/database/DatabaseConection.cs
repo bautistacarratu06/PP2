@@ -5,14 +5,15 @@ using GestionEscolar.Domain.Data; // allows to use DatabaseInstance class
 
 class ExecuteDataBase
 {
-    static void Main(string[] args)
+    // Method to create student table that another class will call
+    public void CreateStudentTable()
     {
-        // Pull singletone instance of DatabaseInstance
-        DatabaseInstance db = DatabaseInstance.GetInstance("PrincipalConexion");
+        // Pull singletone instance of DatabaseInstance, creates "db" instance,
+        DatabaseInstance db = DatabaseInstance.GetInstance("MainConnection");
 
-        // SQL query to create the Student table if it doesn't exist
-        string createTableSql = @"
-            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name='Student')
+        // Create string variable called "createTableSql" with the SQL query to create the Student table if it doesn't exist
+        string createTableSql =
+            @"IF NOT EXISTS (SELECT * FROM sys.tables WHERE name='Student')
             BEGIN
                 CREATE TABLE Student
                 (
@@ -36,5 +37,10 @@ class ExecuteDataBase
                 Console.WriteLine("Singleton conected and 'Student' table created.");
             }
         }
+
+                
+
     }
+     
+    
 }
