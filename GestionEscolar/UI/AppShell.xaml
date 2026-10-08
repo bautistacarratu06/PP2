@@ -13,6 +13,15 @@
     Shell.TitleColor="#1A1D23"
     Shell.UnselectedColor="#5E6772"
     Shell.NavBarHasShadow="False">
+
+    <Shell.Resources>
+        <Style TargetType="Label" Class="FlyoutItemLabelStyle">
+            <Setter Property="TextColor" Value="#1A1D23" />
+            <Setter Property="FontFamily" Value="OpenSansRegular" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+    </Shell.Resources>
+
     <!-- Ruta de la nómina -->
     <ShellContent
         Title="Nómina"
