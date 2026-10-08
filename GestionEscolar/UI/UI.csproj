@@ -73,4 +73,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	<EmbeddedResource Include="Seeding\sample.csv" LogicalName="sample.csv" />
+	</ItemGroup>
 </Project>

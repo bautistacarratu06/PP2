@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Linq;
+using UI.Seeding;
 
 namespace UI.ViewModels
 {
@@ -10,30 +12,15 @@ namespace UI.ViewModels
 
         public StudentListViewModel()
         {
-            FilteredStudents = new ObservableCollection<StudentRow2>
-            {
-                new StudentRow2
-                {
-                    LegajoLabel = "A1004",
-                    Name = "Acosta, Elena",
-                    Phone = "11 5555-1004",
-                    Email = "estudiante4@ejemplo.edu.ar"
-                },
-                new StudentRow2
-                {
-                    LegajoLabel = "A1009",
-                    Name = "Benítez, Martín",
-                    Phone = "11 5555-1009",
-                    Email = "estudiante9@ejemplo.edu.ar"
-                },
-                new StudentRow2
-                {
-                    LegajoLabel = "A1014",
-                    Name = "Gómez, Lucía",
-                    Phone = "11 5555-1014",
-                    Email = "estudiante14@ejemplo.edu.ar"
-                }
-            };
+            FilteredStudents = new ObservableCollection<StudentRow2>(
+                StudentSeeder.GetMockedStudentsForListGridView()
+                    .Select(student => new StudentRow2
+                    {
+                        LegajoLabel = student.LegajoLabel,
+                        Name = student.Name,
+                        Phone = student.Phone,
+                        Email = student.Email
+                    }));
         }
     }
 

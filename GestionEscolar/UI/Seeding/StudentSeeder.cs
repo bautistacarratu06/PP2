@@ -1,68 +1,131 @@
+using System.Globalization;
+using System.Reflection;
+using System.Text;
 using UI.Models;
 
 namespace UI.Seeding;
 
-// TODO: Agustín Vera podría hacer algo parecido para crear CSVs. foreach (var student in StudentSeeder.GetMockedStudents()) 
-// y crear las rows del CSV. ALgo a tener en cuenta es que este Student es mas un parcial de Student (fabricación pura) con solo campos de UI
-// El tipo Student debería ser más parecido a StudentRow para que se pueda usar en la UI.
-// En otro PR podemos corregirlo.
 public static class StudentSeeder
 {
-    public static IReadOnlyList<Student> GetMockedStudents()
+    private const string CsvResourceName = "sample.csv";
+
+    // Datos que no vienen del CSV (hardcodeados por ahora)
+    private const int TotalClasses = 30;
+    private const string DefaultRiskLevel = "Medio";
+    private const int DefaultRiskScore = 40;
+
+    public static IReadOnlyList<Student> GetMockedStudentsForRiskGridView() => LoadStudents();
+
+    public static IReadOnlyList<Student> GetMockedStudentsForListGridView() => LoadStudents();
+
+    private static List<Student> LoadStudents()
     {
-        return
-        [
-            Create("Gómez, Ana", "A1020", "Alto", 100, 0, 0, null),
-            Create("Acosta, Elena", "A1004", "Alto", 60, 0, 4, null),
-            Create("Acosta, Elena", "A1024", "Alto", 60, 0, 4, null),
-            Create("Pérez, Bruno", "A1016", "Alto", 60, 0, 4, null),
-            Create("Rossi, Diego", "A1008", "Alto", 60, 0, 4, null),
-            Create("Rossi, Diego", "A1028", "Alto", 60, 0, 4, null),
-            Create("Sosa, Camila", "A1012", "Alto", 60, 0, 4, null),
-            Create("Gómez, Ana", "A1005", "Medio", 40, 8, 0, null),
-            Create("Gómez, Ana", "A1010", "Medio", 40, 8, 0, null),
-            Create("Torres, Valentina", "A1033", "Medio", 40, 8, 0, null),
-            Create("Ruiz, Joaquín", "A1035", "Medio", 40, 8, 0, new DateTime(2026, 9, 15)),
-            Create("Molina, Sofía", "A1037", "Medio", 40, 8, 0, null),
-            Create("Navarro, Lucía", "A1041", "Bajo", 10, 8, 4, new DateTime(2026, 9, 18)),
-            Create("Castro, Mateo", "A1043", "Bajo", 12, 8, 3, null),
-            Create("Romero, Juana", "A1045", "Bajo", 15, 7, 4, new DateTime(2026, 9, 22)),
-            Create("Vargas, Nicolás", "A1047", "Bajo", 10, 8, 4, null),
-            Create("Herrera, Camila", "A1049", "Bajo", 18, 8, 3, new DateTime(2026, 9, 5)),
-            Create("Medina, Thiago", "A1051", "Bajo", 14, 7, 4, null),
-            Create("Ortiz, Valentina", "A1053", "Bajo", 12, 8, 4, new DateTime(2026, 8, 28)),
-            Create("Silva, Benjamín", "A1055", "Bajo", 16, 8, 3, null),
-            Create("Ibáñez, Martina", "A1057", "Bajo", 20, 7, 4, new DateTime(2026, 9, 15)),
-            Create("Cabrera, Santiago", "A1059", "Bajo", 10, 8, 4, null),
-            Create("Rojas, Emilia", "A1061", "Bajo", 15, 8, 3, null),
-            Create("Paredes, Facundo", "A1063", "Bajo", 18, 7, 4, new DateTime(2026, 9, 1)),
-            Create("Aguirre, Renata", "A1065", "Bajo", 11, 8, 4, null),
-            Create("Figueroa, Lautaro", "A1067", "Bajo", 14, 8, 3, new DateTime(2026, 9, 20)),
-            Create("Benítez, Catalina", "A1069", "Bajo", 17, 7, 4, null),
-            Create("Morales, Ignacio", "A1071", "Bajo", 10, 8, 4, null),
-            Create("Delgado, Paula", "A1073", "Bajo", 19, 8, 3, new DateTime(2026, 8, 30)),
-            Create("Vega, Tomás", "A1075", "Bajo", 13, 7, 4, null)
-        ];
+        var assembly = Assembly.GetExecutingAssembly();
+
+        using var stream = assembly.GetManifestResourceStream(CsvResourceName)
+            ?? throw new FileNotFoundException(
+                $"No se encontró el recurso embebido '{CsvResourceName}'. " +
+                "Verificá que esté marcado como EmbeddedResource en el .csproj.");
+
+        using var reader = new StreamReader(stream);
+
+        var headers = ParseCsvLine(reader.ReadLine() ?? string.Empty);
+        var headerIndexes = headers
+            .Select((header, index) => (header, index))
+            .ToDictionary(item => item.header, item => item.index, StringComparer.Ordinal);
+        var columns = new[]
+        {
+            (Property: nameof(Student.Id), Header: "Id"),
+            (Property: nameof(Student.Name), Header: "Nombre"),
+            (Property: nameof(Student.StudentNumber), Header: "NumeroEstudiante"),
+            (Property: nameof(Student.Phone), Header: "Telefono"),
+            (Property: nameof(Student.Email), Header: "Correo"),
+            (Property: nameof(Student.AttendedClasses), Header: "ClasesAsistidas"),
+            (Property: nameof(Student.SubmittedAssignments), Header: "TareasEntregadas"),
+            (Property: nameof(Student.TotalAssignments), Header: "TareasTotales"),
+            (Property: nameof(Student.LastContact), Header: "UltimoContacto")
+        };
+
+        var students = new List<Student>();
+        string? line;
+        while ((line = reader.ReadLine()) is not null)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+
+            var values = ParseCsvLine(line);
+            var student = new Student();
+            foreach (var (propertyName, header) in columns)
+            {
+                if (headerIndexes.TryGetValue(header, out var index) && index < values.Count)
+                    SetCsvValue(student, propertyName, values[index]);
+            }
+
+            students.Add(student);
+        }
+
+        foreach (var student in students)
+        {
+            student.TotalClasses = TotalClasses;
+            student.RiskLevel = DefaultRiskLevel;
+            student.RiskScore = DefaultRiskScore;
+        }
+
+        return students;
     }
 
-    private static Student Create(
-        string name,
-        string studentNumber,
-        string riskLevel,
-        int riskScore,
-        int attendedClasses,
-        int submittedAssignments,
-        DateTime? lastContact) =>
-        new()
+    private static void SetCsvValue(Student student, string propertyName, string value)
+    {
+        var property = typeof(Student).GetProperty(propertyName)
+            ?? throw new InvalidOperationException($"No existe la propiedad '{propertyName}' en Student.");
+        var targetType = Nullable.GetUnderlyingType(property.PropertyType);
+
+        if (string.IsNullOrEmpty(value) && targetType is not null)
         {
-            Name = name,
-            StudentNumber = studentNumber,
-            RiskLevel = riskLevel,
-            RiskScore = riskScore,
-            AttendedClasses = attendedClasses,
-            TotalClasses = 8,
-            SubmittedAssignments = submittedAssignments,
-            TotalAssignments = 4,
-            LastContact = lastContact
-        };
+            property.SetValue(student, null);
+            return;
+        }
+
+        targetType ??= property.PropertyType;
+        var convertedValue = targetType == typeof(string)
+            ? value
+            : Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+        property.SetValue(student, convertedValue);
+    }
+
+    private static List<string> ParseCsvLine(string line)
+    {
+        var fields = new List<string>();
+        var field = new StringBuilder();
+        var insideQuotes = false;
+
+        for (var i = 0; i < line.Length; i++)
+        {
+            var character = line[i];
+            if (character == '"')
+            {
+                if (insideQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                {
+                    field.Append('"');
+                    i++;
+                }
+                else
+                {
+                    insideQuotes = !insideQuotes;
+                }
+            }
+            else if (character == ',' && !insideQuotes)
+            {
+                fields.Add(field.ToString());
+                field.Clear();
+            }
+            else
+            {
+                field.Append(character);
+            }
+        }
+
+        fields.Add(field.ToString());
+        return fields;
+    }
 }
