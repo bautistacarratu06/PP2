@@ -8,12 +8,12 @@ namespace UI.ViewModels
     public partial class TrackingViewModel : ObservableObject
     {
         
-        // TODO: Los totales están fijos. A futuro vendrán de la base de datos.
-        private readonly ScoringRiskServices _scoringRiskServices = new()
-        {
-            TotalClasses = 8,
-            TotalAssignments = 4
-        };
+        // // TODO: Los totales están fijos. A futuro vendrán de la base de datos.
+        // private readonly ScoringRiskServices _scoringRiskServices = new()
+        // {
+        //     TotalClasses = 8,
+        //     TotalAssignments = 4
+        // };
 
         public TrackingViewModel()
         {
