@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <Shell
     x:Class="UI.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -33,6 +33,11 @@
         Title="Seguimiento"
         ContentTemplate="{DataTemplate views:TrackingPage}"
         Route="TrackingPage" />
+
+    <ShellContent
+        Title="Ajustes"
+        ContentTemplate="{DataTemplate views:SettingsViewPage}"
+        Route="SettingsPage" />
 
     <ShellContent
         Title="Home"
