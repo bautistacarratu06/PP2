@@ -1,15 +1,12 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using UI.Models;
-using UI.Seeding;
 using UI.Services;
 
 namespace UI.ViewModels
 {
     public partial class TrackingViewModel : ObservableObject
     {
-        // TODO: Sacar esto una vez que tengamos la base de datos, y que el ID sea generado por la base de datos.
-        private int _nextId = 1;
         
         // TODO: Los totales están fijos. A futuro vendrán de la base de datos.
         private readonly ScoringRiskServices _scoringRiskServices = new()
@@ -87,26 +84,29 @@ namespace UI.ViewModels
             OnPropertyChanged(nameof(FilteredCount));
         }
 
-        // TODO: Vera va a implementar otra fuente basada en .csv, por ahora se hace un seed de datos para poder mostrar la vista.
-        // Fase 1: importar el CSV de la carga manual
-        // Fase 2: realizar query a la base de datos
-        // La fase 1 sirve de todos modos, ya que populamos masivamente la base de datos a partir de un CSV.
-        // No desperdiciamos trabajo.
+        // TODO: la comisión está fija en 1 hasta que haya un selector de comisión en la UI.
+        private const int SectionId = 1;
+
+        // Carga las filas desde la base (reemplaza al seeder del CSV).
+        // Si la base no responde dejamos la grilla vacía: una excepción en el constructor
+        // de la página deja el Shell en blanco.
         private void GetMockedStudentsRowRenameThisMethodUponDbImplementation()
         {
-            foreach (var student in StudentSeeder.GetMockedStudentsForRiskGridView())
+            List<Student> students;
+            try
             {
-                // TODO: El ID está hardcodeado, debería ser generado por la base de datos. Esto es solo para poder mostrar la UI.
-                student.Id = _nextId++;
-                // Los totales vienen de cada estudiante (CSV/seeder); los fijos 8/4 hacian que Validate tirara excepcion.
-                _scoringRiskServices.TotalClasses = student.TotalClasses;
-                _scoringRiskServices.TotalAssignments = student.TotalAssignments;
-                _scoringRiskServices.ApplyRisk(student);   
-                Students.Add(student);
+                students = GetTrakingRowsBySection.GetRows(SectionId);
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"No se pudieron cargar los alumnos: {ex.Message}");
+                return;
+            }
+
+            foreach (var student in students)
+                Students.Add(student);
         }
     }
-
     public sealed class StudentRow
     {
         public StudentRow(Student student, int rowNumber)

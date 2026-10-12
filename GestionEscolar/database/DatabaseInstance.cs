@@ -9,7 +9,7 @@ namespace GestionEscolar.Domain.Data
     {
         // 1. Connection string pointing to your local SQL Server instance
         private readonly string _connectionString =
-            "Server=.\\SQLEXPRESS;Database=StudentManagementDB;Trusted_Connection=True;TrustServerCertificate=True;";
+            "Server=.\\SQLEXPRESS;Database=course_tracking;Trusted_Connection=True;TrustServerCertificate=True;";
 
         // Private constructor: prevents direct instantiation with "new DatabaseInstance()" from outside
         private DatabaseInstance() { }
