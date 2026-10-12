@@ -11,7 +11,7 @@ namespace UI.ViewModels
         // TODO: Sacar esto una vez que tengamos la base de datos, y que el ID sea generado por la base de datos.
         private int _nextId = 1;
         
-        // TODO: Los totales están fijos y coinciden con los del seeder. A futuro vendrán de la base de datos.
+        // TODO: Los totales están fijos. A futuro vendrán de la base de datos.
         private readonly ScoringRiskServices _scoringRiskServices = new()
         {
             TotalClasses = 8,
