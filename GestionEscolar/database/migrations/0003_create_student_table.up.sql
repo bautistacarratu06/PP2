@@ -3,7 +3,7 @@ GO
 IF OBJECT_ID(N'dbo.student', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.student (
-        id INT IDENTITY(1,1) NOT NULL CONSTRAINT pk_student PRIMARY KEY,
+        dni VARCHAR(20) NOT NULL CONSTRAINT pk_student PRIMARY KEY,
         section_id INT NOT NULL,
         student_number NVARCHAR(20) NOT NULL,
         last_name NVARCHAR(80) NOT NULL,

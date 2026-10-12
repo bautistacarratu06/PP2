@@ -65,35 +65,35 @@ VALUES
 GO
 
 -- 2. Insertar Students (20 estudiantes distribuidos en las 4 comisiones)
-INSERT INTO dbo.student (section_id, student_number, last_name, first_name, phone, email) 
+INSERT INTO dbo.student (dni, section_id, student_number, last_name, first_name, phone, email) 
 VALUES 
     -- Comisión 1A (Mañana) - IDs 1 al 5
-    (1, N'LEG-1001', N'Doncic', N'Luka', N'1122334455', N'ldoncic@email.com'),
-    (1, N'LEG-1002', N'Irving', N'Kyrie', N'1133445566', N'kirving@email.com'),
-    (1, N'LEG-1003', N'Nowitzki', N'Dirk', N'1144556677', N'dnowitzki@email.com'),
-    (1, N'LEG-1004', N'Lively', N'Dereck', N'1155667788', N'dlively@email.com'),
-    (1, N'LEG-1005', N'Terry', N'Jason', N'1166778899', N'jterry@email.com'),
+    ('410000', 1, N'LEG-1001', N'Doncic', N'Luka', N'1122334455', N'ldoncic@email.com'),
+    ('420000', 1, N'LEG-1002', N'Irving', N'Kyrie', N'1133445566', N'kirving@email.com'),
+    ('430000', 1, N'LEG-1003', N'Nowitzki', N'Dirk', N'1144556677', N'dnowitzki@email.com'),
+    ('440000', 1, N'LEG-1004', N'Lively', N'Dereck', N'1155667788', N'dlively@email.com'),
+    ('450000', 1, N'LEG-1005', N'Terry', N'Jason', N'1166778899', N'jterry@email.com'),
     
     -- Comisión 1B (Tarde) - IDs 6 al 10
-    (2, N'LEG-2001', N'García', N'Zagreus', N'1177889900', N'zgarcia@email.com'),
-    (2, N'LEG-2002', N'López', N'Melinoe', N'1188990011', N'mlopez@email.com'),
-    (2, N'LEG-2003', N'Martínez', N'Nyx', N'1199001122', N'nmartinez@email.com'),
-    (2, N'LEG-2004', N'Sánchez', N'Caronte', N'1100112233', N'csanchez@email.com'),
-    (2, N'LEG-2005', N'Gómez', N'Aquiles', N'1111223344', N'agomez@email.com'),
+    ('410300', 2, N'LEG-2001', N'García', N'Zagreus', N'1177889900', N'zgarcia@email.com'),
+    ('424000', 2, N'LEG-2002', N'López', N'Melinoe', N'1188990011', N'mlopez@email.com'),
+    ('435000', 2, N'LEG-2003', N'Martínez', N'Nyx', N'1199001122', N'nmartinez@email.com'),
+    ('446000', 2, N'LEG-2004', N'Sánchez', N'Caronte', N'1100112233', N'csanchez@email.com'),
+    ('452300', 2, N'LEG-2005', N'Gómez', N'Aquiles', N'1111223344', N'agomez@email.com'),
     
     -- Comisión 1C (Noche) - IDs 11 al 15
-    (3, N'LEG-3001', N'Thompson', N'Klay', N'1122112211', N'kthompson@email.com'),
-    (3, N'LEG-3002', N'Washington', N'PJ', N'1133223322', N'pwashington@email.com'),
-    (3, N'LEG-3003', N'Gafford', N'Daniel', N'1144334433', N'dgafford@email.com'),
-    (3, N'LEG-3004', N'Exum', N'Dante', N'1155445544', N'dexum@email.com'),
-    (3, N'LEG-3005', N'Kidd', N'Jason', N'1166556655', N'jkidd@email.com'),
+    ('411200', 3, N'LEG-3001', N'Thompson', N'Klay', N'1122112211', N'kthompson@email.com'),
+    ('420300', 3, N'LEG-3002', N'Washington', N'PJ', N'1133223322', N'pwashington@email.com'),
+    ('430700', 3, N'LEG-3003', N'Gafford', N'Daniel', N'1144334433', N'dgafford@email.com'),
+    ('440900', 3, N'LEG-3004', N'Exum', N'Dante', N'1155445544', N'dexum@email.com'),
+    ('450800', 3, N'LEG-3005', N'Kidd', N'Jason', N'1166556655', N'jkidd@email.com'),
     
     -- Comisión 1D (Sábados) - IDs 16 al 20
-    (4, N'LEG-4001', N'Silva', N'Marcos', N'1177667766', N'msilva@email.com'),
-    (4, N'LEG-4002', N'Herrera', N'Camila', N'1188778877', N'cherrera@email.com'),
-    (4, N'LEG-4003', N'Castro', N'Valentina', N'1199889988', N'vcastro@email.com'),
-    (4, N'LEG-4004', N'Romero', N'Lucas', N'1100990099', N'lromero@email.com'),
-    (4, N'LEG-4005', N'Díaz', N'Mateo', N'1110001000', N'mdiaz@email.com');
+    ('410999', 4, N'LEG-4001', N'Silva', N'Marcos', N'1177667766', N'msilva@email.com'),
+    ('420088', 4, N'LEG-4002', N'Herrera', N'Camila', N'1188778877', N'cherrera@email.com'),
+    ('430077', 4, N'LEG-4003', N'Castro', N'Valentina', N'1199889988', N'vcastro@email.com'),
+    ('445006', 4, N'LEG-4004', N'Romero', N'Lucas', N'1100990099', N'lromero@email.com'),
+    ('450808', 4, N'LEG-4005', N'Díaz', N'Mateo', N'1110001000', N'mdiaz@email.com');
 GO
 
 -- 3. Insertar Class Sessions (3 clases por comisión)
