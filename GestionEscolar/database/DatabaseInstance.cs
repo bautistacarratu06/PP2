@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Data.SqlClient; // Requiere instalar NuGet Microsoft.Data.SqlClient
 
@@ -45,6 +46,40 @@ namespace GestionEscolar.Domain.Data
         public SqlConnection GetConnection()
         {
             return new SqlConnection(_connectionString);
+        }
+        // Returns true if a connection can be opened against the database
+        public bool TestConnection()
+        {
+            try
+            {
+                using SqlConnection conn = GetConnection();
+                conn.Open();
+                return true;
+            }
+            catch (SqlException)
+            {
+                return false;
+            }
+        }
+
+        // Lists the user tables of the database as "schema.table"
+        public List<string> ListTables()
+        {
+            var tables = new List<string>();
+            const string sql =
+                @"SELECT TABLE_SCHEMA, TABLE_NAME
+                  FROM INFORMATION_SCHEMA.TABLES
+                  WHERE TABLE_TYPE = 'BASE TABLE'
+                  ORDER BY TABLE_SCHEMA, TABLE_NAME";
+
+            using SqlConnection conn = GetConnection();
+            conn.Open();
+            using var cmd = new SqlCommand(sql, conn);
+            using SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+                tables.Add($"{reader.GetString(0)}.{reader.GetString(1)}");
+
+            return tables;
         }
     }
 }

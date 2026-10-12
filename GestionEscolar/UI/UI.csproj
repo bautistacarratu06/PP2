@@ -69,11 +69,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 	<EmbeddedResource Include="Seeding\sample.csv" LogicalName="sample.csv" />
+	<Compile Include="..\database\*.cs" Link="database\%(Filename)%(Extension)" />
 	</ItemGroup>
 </Project>
