@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="UI.Views.TrackingPage"
     x:DataType="vm:TrackingViewModel"
@@ -185,6 +185,9 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="vm:StudentRow">
                                 <VerticalStackLayout BackgroundColor="{AppThemeBinding Light=White, Dark=#111827}">
+                                    <VerticalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnStudentRowTapped" />
+                                    </VerticalStackLayout.GestureRecognizers>
                                     <Grid
                                         Padding="16,14"
                                         ColumnDefinitions="44,176,120,72,96,96,*,150"

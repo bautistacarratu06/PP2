@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="UI.Views.StudentDetailPage"
+    x:DataType="vm:StudentDetailViewModel"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:UI.ViewModels"
+    Title="Detalle del alumno"
+    BackgroundColor="{AppThemeBinding Light=#F4F6F8, Dark=#0F172A}"
+    Shell.NavBarHasShadow="False">
+
+    <ContentPage.Resources>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Padding" Value="14,16" />
+            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#111827}" />
+            <Setter Property="Stroke" Value="{AppThemeBinding Light=#E6E9F0, Dark=#334155}" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 12" />
+            <Setter Property="StrokeThickness" Value="1" />
+        </Style>
+        <Style x:Key="CardTitle" TargetType="Label">
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light=#0B0F1A, Dark=#F8FAFC}" />
+        </Style>
+        <Style x:Key="Caption" TargetType="Label">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light=#5E6772, Dark=#94A3B8}" />
+        </Style>
+        <Style x:Key="Value" TargetType="Label">
+            <Setter Property="FontFamily" Value="OpenSansSemibold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light=#0B0F1A, Dark=#F8FAFC}" />
+        </Style>
+        <Style x:Key="LinkValue" TargetType="Label" BasedOn="{StaticResource Value}">
+            <Setter Property="FontFamily" Value="OpenSansRegular" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" />
+        </Style>
+
+        <DataTemplate x:Key="HistoryRow" x:DataType="vm:HistoryItem">
+            <Grid Padding="0,6" ColumnDefinitions="*,Auto">
+                <Label
+                    FontSize="13"
+                    Text="{Binding Label}"
+                    TextColor="{AppThemeBinding Light=#1A1D23, Dark=#E2E8F0}" />
+                <Label
+                    Grid.Column="1"
+                    FontFamily="OpenSansSemibold"
+                    FontSize="13"
+                    Text="{Binding Status}"
+                    TextColor="{AppThemeBinding Light=#0B0F1A, Dark=#F8FAFC}" />
+            </Grid>
+        </DataTemplate>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <Grid Padding="8,4,36,16" RowDefinitions="Auto,*" RowSpacing="18">
+
+            <Grid ColumnDefinitions="*,Auto">
+                <Label
+                    FontAttributes="Bold"
+                    FontSize="22"
+                    Text="{Binding Name}"
+                    TextColor="{AppThemeBinding Light=#0B0F1A, Dark=#F8FAFC}"
+                    VerticalOptions="Center" />
+                <Button
+                    Grid.Column="1"
+                    Padding="14,8"
+                    BackgroundColor="{AppThemeBinding Light=#0F766E, Dark=#14B8A6}"
+                    Clicked="OnRegisterContactClicked"
+                    CornerRadius="10"
+                    FontFamily="OpenSansSemibold"
+                    FontSize="13"
+                    Text="✆  Registrar contacto"
+                    TextColor="White" />
+            </Grid>
+
+            <Grid Grid.Row="1" ColumnDefinitions="190,*" ColumnSpacing="14">
+
+                <!-- Ficha del alumno -->
+                <Border Style="{StaticResource Card}" VerticalOptions="Fill">
+                    <VerticalStackLayout Spacing="2">
+                        <Label
+                            Margin="0,0,0,14"
+                            FontSize="26"
+                            Text="👤"
+                            TextColor="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" />
+
+                        <Label Style="{StaticResource Caption}" Text="Legajo" />
+                        <Label Style="{StaticResource Value}" Text="{Binding StudentNumber}" />
+                        <Label Style="{StaticResource Caption}" Text="Comisión" />
+                        <Label Style="{StaticResource Value}" Text="{Binding Commission}" />
+                        <Label Style="{StaticResource Caption}" Text="Teléfono" />
+                        <Label Style="{StaticResource LinkValue}" Text="{Binding Phone}" />
+                        <Label Style="{StaticResource Caption}" Text="Correo" />
+                        <Label
+                            LineBreakMode="CharacterWrap"
+                            Style="{StaticResource LinkValue}"
+                            Text="{Binding Email}" />
+
+                        <Border
+                            Margin="0,16,0,6"
+                            Padding="8,3"
+                            BackgroundColor="{Binding BadgeBackground}"
+                            HorizontalOptions="Start"
+                            StrokeShape="RoundRectangle 6"
+                            StrokeThickness="0">
+                            <Label
+                                FontFamily="OpenSansSemibold"
+                                FontSize="11"
+                                Text="{Binding RiskLevel, StringFormat='ⓘ {0}'}"
+                                TextColor="{Binding BadgeForeground}" />
+                        </Border>
+                        <Label
+                            FontFamily="OpenSansSemibold"
+                            FontSize="22"
+                            Text="{Binding RiskScore}"
+                            TextColor="{AppThemeBinding Light=#0B0F1A, Dark=#F8FAFC}" />
+                        <Label
+                            FontSize="11"
+                            LineHeight="1.3"
+                            Text="{Binding Justification}"
+                            TextColor="{AppThemeBinding Light=#5E6772, Dark=#94A3B8}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Historiales -->
+                <VerticalStackLayout Grid.Column="1" Spacing="14">
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout>
+                            <Label Style="{StaticResource CardTitle}" Text="Historial de asistencia" />
+                            <VerticalStackLayout
+                                BindableLayout.ItemTemplate="{StaticResource HistoryRow}"
+                                BindableLayout.ItemsSource="{Binding Attendance}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout>
+                            <Label Style="{StaticResource CardTitle}" Text="Historial de entregas" />
+                            <VerticalStackLayout
+                                BindableLayout.ItemTemplate="{StaticResource HistoryRow}"
+                                BindableLayout.ItemsSource="{Binding Submissions}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout>
+                            <Label Style="{StaticResource CardTitle}" Text="Intervenciones" />
+                            <VerticalStackLayout
+                                BindableLayout.ItemTemplate="{StaticResource HistoryRow}"
+                                BindableLayout.ItemsSource="{Binding Interventions}" />
+                            <Label
+                                IsVisible="{Binding HasNoInterventions}"
+                                Style="{StaticResource Caption}"
+                                Text="Sin contactos registrados." />
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Grid>
+        </Grid>
+    </ScrollView>
+</ContentPage>

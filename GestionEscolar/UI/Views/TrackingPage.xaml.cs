@@ -1,4 +1,4 @@
-using UI.ViewModels;
+﻿using UI.ViewModels;
 
 namespace UI.Views
 {
@@ -44,6 +44,20 @@ namespace UI.Views
             var targetHeight = Math.Max(0, TableCard.Height - 2);
             if (targetHeight > 0 && Math.Abs(TableRoot.HeightRequest - targetHeight) > 0.5)
                 TableRoot.HeightRequest = targetHeight;
+        }
+
+        // Navega al detalle del alumno de la fila tocada.
+        // La ruta "StudentDetailPage" se registra en AppShell.xaml.cs y es relativa,
+        // así se apila sobre Seguimiento y se puede volver atrás.
+        private async void OnStudentRowTapped(object? sender, TappedEventArgs e)
+        {
+            if (sender is not BindableObject { BindingContext: StudentRow row })
+                return;
+
+            await Shell.Current.GoToAsync(nameof(StudentDetailPage), new Dictionary<string, object>
+            {
+                ["Student"] = row.Student
+            });
         }
     }
 }

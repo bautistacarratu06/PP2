@@ -111,6 +111,7 @@ namespace UI.ViewModels
     {
         public StudentRow(Student student, int rowNumber)
         {
+            Student = student;
             RowNumber = rowNumber;
             Name = student.Name;
             LegajoLabel = student.LegajoLabel;
@@ -132,6 +133,8 @@ namespace UI.ViewModels
             };
         }
 
+        // Alumno original, se pasa a la vista de detalle al tocar la fila.
+        public Student Student { get; }
         public int RowNumber { get; }
         public string Name { get; }
         public string LegajoLabel { get; }
