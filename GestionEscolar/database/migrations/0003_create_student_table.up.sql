@@ -1,5 +1,10 @@
 USE course_tracking;
 GO
+
+IF OBJECT_ID(N'dbo.student', N'U') IS NOT NULL
+    DROP TABLE dbo.student;
+GO
+
 IF OBJECT_ID(N'dbo.student', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.student (

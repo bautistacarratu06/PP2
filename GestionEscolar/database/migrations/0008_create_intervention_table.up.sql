@@ -1,5 +1,10 @@
 USE course_tracking;
 GO
+
+IF OBJECT_ID(N'dbo.intervention', N'U') IS NOT NULL
+    DROP TABLE dbo.intervention;
+GO
+
 IF OBJECT_ID(N'dbo.intervention', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.intervention (

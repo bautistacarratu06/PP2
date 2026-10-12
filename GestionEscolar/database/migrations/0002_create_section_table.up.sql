@@ -1,5 +1,10 @@
 USE course_tracking;
 GO
+
+IF OBJECT_ID(N'dbo.section', N'U') IS NOT NULL
+    DROP TABLE dbo.section;
+GO
+
 IF OBJECT_ID(N'dbo.section', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.section (

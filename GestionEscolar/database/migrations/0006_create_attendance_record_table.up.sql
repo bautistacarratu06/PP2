@@ -1,5 +1,10 @@
 USE course_tracking;
 GO
+
+IF OBJECT_ID(N'dbo.attendance_record', N'U') IS NOT NULL
+    DROP TABLE dbo.attendance_record;
+GO
+
 IF OBJECT_ID(N'dbo.attendance_record', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.attendance_record (

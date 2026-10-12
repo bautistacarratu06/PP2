@@ -1,5 +1,10 @@
 USE course_tracking;
 GO
+
+IF OBJECT_ID(N'dbo.submission', N'U') IS NOT NULL
+    DROP TABLE dbo.submission;
+GO
+
 IF OBJECT_ID(N'dbo.submission', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.submission (

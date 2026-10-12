@@ -1,3 +1,7 @@
+IF DB_ID(N'course_tracking') IS NOT NULL
+    DROP DATABASE course_tracking;
+GO
+
 IF DB_ID(N'course_tracking') IS NULL
 BEGIN
     CREATE DATABASE course_tracking;
