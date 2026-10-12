@@ -18,8 +18,11 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- TODO: Investigar esta metadata del proyecto -->
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
+    <ProjectReference Include="..\UI\UI.csproj" />
+    <ProjectReference Include="..\Services\Services.csproj" />
   </ItemGroup>
 
 </Project>

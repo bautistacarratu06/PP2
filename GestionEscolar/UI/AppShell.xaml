@@ -7,16 +7,16 @@
     xmlns:views="clr-namespace:UI.Views"
     Title="Gestión Escolar"
     FlyoutBehavior="Locked"
-    FlyoutBackgroundColor="White"
-    Shell.BackgroundColor="#F4F6F8"
-    Shell.ForegroundColor="#1A1D23"
-    Shell.TitleColor="#1A1D23"
-    Shell.UnselectedColor="#5E6772"
+    FlyoutBackgroundColor="{AppThemeBinding Light=White, Dark=#111827}"
+    Shell.BackgroundColor="{AppThemeBinding Light=#F4F6F8, Dark=#0F172A}"
+    Shell.ForegroundColor="{AppThemeBinding Light=#1A1D23, Dark=#E2E8F0}"
+    Shell.TitleColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}"
+    Shell.UnselectedColor="{AppThemeBinding Light=#5E6772, Dark=#CBD5E1}"
     Shell.NavBarHasShadow="False">
 
     <Shell.Resources>
         <Style TargetType="Label" Class="FlyoutItemLabelStyle">
-            <Setter Property="TextColor" Value="#1A1D23" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light=#1A1D23, Dark=#E2E8F0}" />
             <Setter Property="FontFamily" Value="OpenSansRegular" />
             <Setter Property="FontSize" Value="14" />
         </Style>
