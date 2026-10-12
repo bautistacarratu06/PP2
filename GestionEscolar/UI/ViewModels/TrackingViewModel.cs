@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using UI.Models;
 using UI.Seeding;
@@ -98,6 +98,9 @@ namespace UI.ViewModels
             {
                 // TODO: El ID está hardcodeado, debería ser generado por la base de datos. Esto es solo para poder mostrar la UI.
                 student.Id = _nextId++;
+                // Los totales vienen de cada estudiante (CSV/seeder); los fijos 8/4 hacian que Validate tirara excepcion.
+                _scoringRiskServices.TotalClasses = student.TotalClasses;
+                _scoringRiskServices.TotalAssignments = student.TotalAssignments;
                 _scoringRiskServices.ApplyRisk(student);   
                 Students.Add(student);
             }
