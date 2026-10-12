@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>GestionEscolar.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!--
+    UI es una app MAUI (net10.0-android/ios/windows...) y no se puede referenciar
+    desde un proyecto de tests net10.0 (error NU1201). Por eso compilamos aca los
+    archivos de logica pura de UI, que no dependen de MAUI.
+    TODO: mover esta logica a una class library net10.0 (ej. GestionEscolar.Core)
+    referenciada por UI y por los tests, y reemplazar estos links.
+  -->
+  <ItemGroup>
+    <Compile Include="..\UI\Models\Student.cs" Link="Linked\Models\Student.cs" />
+    <Compile Include="..\UI\Models\RiskConfig.cs" Link="Linked\Models\RiskConfig.cs" />
+    <Compile Include="..\UI\Services\CsvParser.cs" Link="Linked\Services\CsvParser.cs" />
+    <Compile Include="..\UI\Services\StudentCsvImporter.cs" Link="Linked\Services\StudentCsvImporter.cs" />
+    <Compile Include="..\UI\Services\ScoringRiskServices.cs" Link="Linked\Services\ScoringRiskServices.cs" />
+  </ItemGroup>
+
+</Project>

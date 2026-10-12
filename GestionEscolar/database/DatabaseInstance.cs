@@ -15,7 +15,7 @@ namespace GestionEscolar.Domain.Data
         private DatabaseInstance() { }
 
         // Static variable with Singleton type, that holds the only instance of the class "_instance"
-        private static DatabaseInstance _instance;
+        private static DatabaseInstance? _instance;
 
         // Creates an instance called "_lock" with "object" type, which is used for locking the critical section of code that creates the instance of the class.
         private static readonly object _lock = new object();
@@ -40,7 +40,7 @@ namespace GestionEscolar.Domain.Data
         }
 
         // Property used to store an instance identifier
-        public string Value { get; set; }
+        public string Value { get; set; } = string.Empty;
 
         // Method that returns a new SqlConnection object for executing queries
         public SqlConnection GetConnection()

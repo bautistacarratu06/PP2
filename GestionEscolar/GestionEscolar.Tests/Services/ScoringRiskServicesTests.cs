@@ -1,5 +1,6 @@
-/*
-using UI.Services;
+﻿using UI.Services;
+
+namespace GestionEscolar.Tests.Services;
 
 public class ScoringRiskServicesTests
 {
@@ -20,4 +21,3 @@ public class ScoringRiskServicesTests
         Assert.Equal(32, risk);
     }
 }
-*/

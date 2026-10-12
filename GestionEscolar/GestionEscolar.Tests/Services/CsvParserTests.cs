@@ -1,5 +1,6 @@
-namespace Domain.Tests;
-using System.Text;
+﻿using UI.Services;
+
+namespace GestionEscolar.Tests.Services;
 
 public class CsvParserTests
 {

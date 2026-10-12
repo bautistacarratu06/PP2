@@ -1,5 +1,4 @@
 <Solution>
-  <Project Path="Domain.Tests/Domain.Tests.csproj" />
-  <Project Path="Domain/Domain.csproj" />
+  <Project Path="GestionEscolar.Tests/GestionEscolar.Tests.csproj" />
   <Project Path="UI/UI.csproj" />
 </Solution>
