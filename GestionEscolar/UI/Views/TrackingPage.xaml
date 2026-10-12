@@ -5,9 +5,9 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:vm="clr-namespace:UI.ViewModels"
-    BackgroundColor="#F4F6F8"
-    Shell.BackgroundColor="#F4F6F8"
-    Shell.ForegroundColor="#1A1D23"
+    BackgroundColor="{AppThemeBinding Light=#F4F6F8, Dark=#0F172A}"
+    Shell.BackgroundColor="{AppThemeBinding Light=#F4F6F8, Dark=#0F172A}"
+    Shell.ForegroundColor="{AppThemeBinding Light=#1A1D23, Dark=#E2E8F0}"
     Shell.NavBarIsVisible="False"
     Shell.NavBarHasShadow="False"
     SizeChanged="OnPageSizeChanged">
@@ -15,7 +15,7 @@
     <ContentPage.Resources>
         <Style x:Key="ColHeader" TargetType="Label">
             <Setter Property="FontSize" Value="11" />
-            <Setter Property="TextColor" Value="#8B93A7" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light=#8B93A7, Dark=#94A3B8}" />
             <Setter Property="CharacterSpacing" Value="0.6" />
             <Setter Property="FontFamily" Value="OpenSansRegular" />
             <Setter Property="VerticalOptions" Value="Center" />
@@ -44,11 +44,11 @@
             <Border
                 Margin="6"
                 Padding="18,16"
-                BackgroundColor="#FDECEC"
+                BackgroundColor="{AppThemeBinding Light=#FDECEC, Dark=#3B1F1F}"
                 FlexLayout.Basis="31%"
                 FlexLayout.Grow="1"
                 MinimumWidthRequest="210"
-                Stroke="#F3C7C7"
+                Stroke="{AppThemeBinding Light=#F3C7C7, Dark=#7F3A3A}"
                 StrokeShape="RoundRectangle 14"
                 StrokeThickness="1">
                 <VerticalStackLayout Spacing="6">
@@ -56,23 +56,23 @@
                         FontFamily="OpenSansRegular"
                         FontSize="13"
                         Text="Riesgo Alto"
-                        TextColor="#8B93A7" />
+                        TextColor="{AppThemeBinding Light=#8B93A7, Dark=#CBD5E1}" />
                     <Label
                         FontFamily="OpenSansSemibold"
                         FontSize="34"
                         Text="{Binding HighRiskCount}"
-                        TextColor="#1A1D23" />
+                        TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
                 </VerticalStackLayout>
             </Border>
 
             <Border
                 Margin="6"
                 Padding="18,16"
-                BackgroundColor="#FFF8E6"
+                BackgroundColor="{AppThemeBinding Light=#FFF8E6, Dark=#3A2E1F}"
                 FlexLayout.Basis="31%"
                 FlexLayout.Grow="1"
                 MinimumWidthRequest="210"
-                Stroke="#F0E0B0"
+                Stroke="{AppThemeBinding Light=#F0E0B0, Dark=#8C6B2E}"
                 StrokeShape="RoundRectangle 14"
                 StrokeThickness="1">
                 <VerticalStackLayout Spacing="6">
@@ -80,23 +80,23 @@
                         FontFamily="OpenSansRegular"
                         FontSize="13"
                         Text="Riesgo Medio"
-                        TextColor="#8B93A7" />
+                        TextColor="{AppThemeBinding Light=#8B93A7, Dark=#CBD5E1}" />
                     <Label
                         FontFamily="OpenSansSemibold"
                         FontSize="34"
                         Text="{Binding MediumRiskCount}"
-                        TextColor="#1A1D23" />
+                        TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
                 </VerticalStackLayout>
             </Border>
 
             <Border
                 Margin="6"
                 Padding="18,16"
-                BackgroundColor="#E9F8EF"
+                BackgroundColor="{AppThemeBinding Light=#E9F8EF, Dark=#183D2B}"
                 FlexLayout.Basis="31%"
                 FlexLayout.Grow="1"
                 MinimumWidthRequest="210"
-                Stroke="#C8EBD4"
+                Stroke="{AppThemeBinding Light=#C8EBD4, Dark=#2B6A57}"
                 StrokeShape="RoundRectangle 14"
                 StrokeThickness="1">
                 <VerticalStackLayout Spacing="6">
@@ -104,12 +104,12 @@
                         FontFamily="OpenSansRegular"
                         FontSize="13"
                         Text="Riesgo Bajo"
-                        TextColor="#8B93A7" />
+                        TextColor="{AppThemeBinding Light=#8B93A7, Dark=#CBD5E1}" />
                     <Label
                         FontFamily="OpenSansSemibold"
                         FontSize="34"
                         Text="{Binding LowRiskCount}"
-                        TextColor="#1A1D23" />
+                        TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
                 </VerticalStackLayout>
             </Border>
         </FlexLayout>
@@ -118,9 +118,9 @@
             x:Name="TableCard"
             Grid.Row="1"
             Padding="0"
-            BackgroundColor="White"
+            BackgroundColor="{AppThemeBinding Light=White, Dark=#111827}"
             SizeChanged="OnTableViewportChanged"
-            Stroke="#E6E9F0"
+            Stroke="{AppThemeBinding Light=#E6E9F0, Dark=#334155}"
             StrokeShape="RoundRectangle 16"
             StrokeThickness="1"
             VerticalOptions="Fill">
@@ -132,7 +132,7 @@
                 VerticalScrollBarVisibility="Never">
                 <Grid
                     x:Name="TableRoot"
-                    BackgroundColor="White"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#111827}"
                     HorizontalOptions="Start"
                     MinimumWidthRequest="1120"
                     RowDefinitions="Auto,*"
@@ -159,13 +159,13 @@
                                 Style="{StaticResource ColHeader}"
                                 Text="ÚLTIMO CONTACTO" />
                         </Grid>
-                        <BoxView HeightRequest="1" Color="#EEF0F3" />
+                        <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#EEF0F3, Dark=#334155}" />
                     </VerticalStackLayout>
 
                     <CollectionView
                         x:Name="RowsView"
                         Grid.Row="1"
-                        BackgroundColor="White"
+                        BackgroundColor="{AppThemeBinding Light=White, Dark=#111827}"
                         HorizontalOptions="Fill"
                         ItemSizingStrategy="MeasureAllItems"
                         ItemsSource="{Binding FilteredStudents}"
@@ -180,11 +180,11 @@
                                 FontSize="14"
                                 HorizontalOptions="Center"
                                 Text="No hay estudiantes para este filtro."
-                                TextColor="#8B93A7" />
+                                TextColor="{AppThemeBinding Light=#8B93A7, Dark=#94A3B8}" />
                         </CollectionView.EmptyView>
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="vm:StudentRow">
-                                <VerticalStackLayout BackgroundColor="White">
+                                <VerticalStackLayout BackgroundColor="{AppThemeBinding Light=White, Dark=#111827}">
                                     <Grid
                                         Padding="16,14"
                                         ColumnDefinitions="44,176,120,72,96,96,*,150"
@@ -196,7 +196,7 @@
                                             Grid.Column="0"
                                             FontSize="13"
                                             Text="{Binding RowNumber}"
-                                            TextColor="#98A2B3"
+                                            TextColor="{AppThemeBinding Light=#98A2B3, Dark=#94A3B8}"
                                             VerticalOptions="Center" />
                                         <VerticalStackLayout
                                             Grid.Column="1"
@@ -208,13 +208,13 @@
                                                 LineBreakMode="TailTruncation"
                                                 MaxLines="1"
                                                 Text="{Binding Name}"
-                                                TextColor="#1A1D23" />
+                                                TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
                                             <Label
                                                 FontSize="12"
                                                 LineBreakMode="TailTruncation"
                                                 MaxLines="1"
                                                 Text="{Binding LegajoLabel}"
-                                                TextColor="#98A2B3" />
+                                                TextColor="{AppThemeBinding Light=#98A2B3, Dark=#94A3B8}" />
                                         </VerticalStackLayout>
                                         <Border
                                             Grid.Column="2"
@@ -244,19 +244,19 @@
                                             FontFamily="OpenSansSemibold"
                                             FontSize="20"
                                             Text="{Binding RiskScore}"
-                                            TextColor="#1A1D23"
+                                            TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}"
                                             VerticalOptions="Center" />
                                         <Label
                                             Grid.Column="4"
                                             FontSize="14"
                                             Text="{Binding AttendanceText}"
-                                            TextColor="#1A1D23"
+                                            TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}"
                                             VerticalOptions="Center" />
                                         <Label
                                             Grid.Column="5"
                                             FontSize="14"
                                             Text="{Binding DeliveryText}"
-                                            TextColor="#1A1D23"
+                                            TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}"
                                             VerticalOptions="Center" />
                                         <Label
                                             Grid.Column="6"
@@ -265,17 +265,17 @@
                                             LineHeight="1.25"
                                             MaxLines="2"
                                             Text="{Binding Justification}"
-                                            TextColor="#8B93A7"
+                                            TextColor="{AppThemeBinding Light=#8B93A7, Dark=#94A3B8}"
                                             VerticalOptions="Center" />
                                         <Label
                                             Grid.Column="7"
                                             FontSize="13"
                                             HorizontalTextAlignment="End"
                                             Text="{Binding ContactLabel}"
-                                            TextColor="#8B93A7"
+                                            TextColor="{AppThemeBinding Light=#8B93A7, Dark=#94A3B8}"
                                             VerticalOptions="Center" />
                                     </Grid>
-                                    <BoxView HeightRequest="1" Color="#EEF0F3" />
+                                    <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#EEF0F3, Dark=#334155}" />
                                 </VerticalStackLayout>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>

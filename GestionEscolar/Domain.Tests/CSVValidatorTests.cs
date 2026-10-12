@@ -6,9 +6,7 @@ public class CSVValidatorTests
     public void IsValid_WhenFileIsNotCsv_ReturnsFalse()
     {
         var validator = new CSVValidator();
-
         var result = validator.IsValid("file.txt");
-
         Assert.False(result);
     }
 
@@ -16,9 +14,7 @@ public class CSVValidatorTests
     public void IsValid_WhenFilePathIsNull_ReturnsFalse()
     {
         var validator = new CSVValidator();
-
         var result = validator.IsValid(null);
-
         Assert.False(result);
     }
 }
