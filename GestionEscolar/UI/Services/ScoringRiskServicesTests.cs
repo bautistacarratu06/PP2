@@ -1,8 +1,6 @@
 /*
 using UI.Services;
 
-namespace Domain.Tests;
-
 public class ScoringRiskServicesTests
 {
     [Fact]
