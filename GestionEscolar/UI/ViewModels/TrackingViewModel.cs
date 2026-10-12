@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using UI.Models;
 using UI.Seeding;
+using UI.Services;
 
 namespace UI.ViewModels
 {
@@ -9,6 +10,13 @@ namespace UI.ViewModels
     {
         // TODO: Sacar esto una vez que tengamos la base de datos, y que el ID sea generado por la base de datos.
         private int _nextId = 1;
+        
+        // TODO: Los totales están fijos. A futuro vendrán de la base de datos.
+        private readonly ScoringRiskServices _scoringRiskServices = new()
+        {
+            TotalClasses = 8,
+            TotalAssignments = 4
+        };
 
         public TrackingViewModel()
         {
@@ -90,6 +98,7 @@ namespace UI.ViewModels
             {
                 // TODO: El ID está hardcodeado, debería ser generado por la base de datos. Esto es solo para poder mostrar la UI.
                 student.Id = _nextId++;
+                _scoringRiskServices.ApplyRisk(student);   
                 Students.Add(student);
             }
         }
