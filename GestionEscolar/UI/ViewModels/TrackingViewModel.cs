@@ -1,46 +1,55 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using UI.Models;
-using UI.Services;
+using CommunityToolkit.Mvvm.Input;
+using GestionEscolar.Core.Enums;
+using GestionEscolar.Core.Models;
+using GestionEscolar.Core.Services;
 
 namespace UI.ViewModels
 {
     public partial class TrackingViewModel : ObservableObject
     {
-        
-        // // TODO: Los totales están fijos. A futuro vendrán de la base de datos.
-        // private readonly ScoringRiskServices _scoringRiskServices = new()
-        // {
-        //     TotalClasses = 8,
-        //     TotalAssignments = 4
-        // };
+        // TODO: la comisión está fija en 1 hasta que haya un selector de comisión en la UI.
+        private const int SectionId = 1;
 
-        public TrackingViewModel()
+        private const string AllFilter = "Todos";
+
+        // Opción del filtro -> nivel de riesgo (null = todos)
+        private static readonly IReadOnlyDictionary<string, RiskLevel?> RiskFilters = new Dictionary<string, RiskLevel?>
         {
-            GetMockedStudentsRowRenameThisMethodUponDbImplementation();
-            SelectedRisk = "Todos";
+            [AllFilter] = null,
+            ["Riesgo Alto"] = RiskLevel.Alto,
+            ["Riesgo Medio"] = RiskLevel.Medio,
+            ["Riesgo Bajo"] = RiskLevel.Bajo
+        };
+
+        private readonly TrackingService _trackingService;
+
+        public TrackingViewModel(TrackingService trackingService)
+        {
+            _trackingService = trackingService;
+            SelectedRisk = AllFilter;
         }
 
-        public ObservableCollection<Student> Students { get; } = new();
+        public ObservableCollection<StudentRiskResult> Students { get; } = new();
 
         public ObservableCollection<StudentRow> FilteredStudents { get; } = new();
 
-        public IReadOnlyList<string> RiskFilterOptions { get; } =
-        [
-            // TODO: Esta lista de estados se repite, quizás debería estar en un archivo de configuración, o en un enum, o en algún lugar centralizado.
-            "Todos",
-            "Riesgo Alto",
-            "Riesgo Medio",
-            "Riesgo Bajo"
-        ];
+        public IReadOnlyList<string> RiskFilterOptions { get; } = RiskFilters.Keys.ToList();
 
-        public int HighRiskCount => Students.Count(student => student.RiskLevel == "Alto");
+        public int HighRiskCount => Students.Count(s => s.RiskLevel == RiskLevel.Alto);
 
-        public int MediumRiskCount => Students.Count(student => student.RiskLevel == "Medio");
+        public int MediumRiskCount => Students.Count(s => s.RiskLevel == RiskLevel.Medio);
 
-        public int LowRiskCount => Students.Count(student => student.RiskLevel == "Bajo");
+        public int LowRiskCount => Students.Count(s => s.RiskLevel == RiskLevel.Bajo);
 
         public int FilteredCount => FilteredStudents.Count;
+
+        [ObservableProperty]
+        public partial bool IsBusy { get; set; }
+
+        [ObservableProperty]
+        public partial string ErrorMessage { get; set; } = string.Empty;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(FilteredCount))]
@@ -60,20 +69,49 @@ namespace UI.ViewModels
             ApplyFilter();
         }
 
+        // Se dispara desde TrackingPage.OnAppearing. Si la base no responde, la grilla queda vacía
+        // y el error se loguea (no se tira excepción: rompería el Shell).
+        [RelayCommand]
+        private async Task LoadAsync()
+        {
+            if (IsBusy)
+                return;
+
+            IsBusy = true;
+            ErrorMessage = string.Empty;
+            try
+            {
+                var results = await _trackingService.GetSectionRiskAsync(SectionId);
+
+                Students.Clear();
+                foreach (var result in results)
+                    Students.Add(result);
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = "No se pudieron cargar los alumnos.";
+                System.Diagnostics.Debug.WriteLine($"No se pudieron cargar los alumnos: {ex}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+
+            OnPropertyChanged(nameof(HighRiskCount));
+            OnPropertyChanged(nameof(MediumRiskCount));
+            OnPropertyChanged(nameof(LowRiskCount));
+            ApplyFilter();
+        }
+
         private void ApplyFilter()
         {
-            IEnumerable<Student> query = Students;
+            IEnumerable<StudentRiskResult> query = Students;
 
             if (OnlyWithoutContact)
-                query = query.Where(student => student.LastContact is null);
+                query = query.Where(s => s.Data.LastContact is null);
 
-            query = SelectedRisk switch
-            {
-                "Riesgo Alto" => query.Where(student => student.RiskLevel == "Alto"),
-                "Riesgo Medio" => query.Where(student => student.RiskLevel == "Medio"),
-                "Riesgo Bajo" => query.Where(student => student.RiskLevel == "Bajo"),
-                _ => query
-            };
+            if (SelectedRisk is not null && RiskFilters.TryGetValue(SelectedRisk, out var level) && level is not null)
+                query = query.Where(s => s.RiskLevel == level);
 
             FilteredStudents.Clear();
 
@@ -83,69 +121,5 @@ namespace UI.ViewModels
 
             OnPropertyChanged(nameof(FilteredCount));
         }
-
-        // TODO: la comisión está fija en 1 hasta que haya un selector de comisión en la UI.
-        private const int SectionId = 1;
-
-        // Carga las filas desde la base (reemplaza al seeder del CSV).
-        // Si la base no responde dejamos la grilla vacía: una excepción en el constructor
-        // de la página deja el Shell en blanco.
-        private void GetMockedStudentsRowRenameThisMethodUponDbImplementation()
-        {
-            List<Student> students;
-            try
-            {
-                students = GetTrakingRowsBySection.GetRows(SectionId);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"No se pudieron cargar los alumnos: {ex.Message}");
-                return;
-            }
-
-            foreach (var student in students)
-                Students.Add(student);
-        }
-    }
-    public sealed class StudentRow
-    {
-        public StudentRow(Student student, int rowNumber)
-        {
-            Student = student;
-            RowNumber = rowNumber;
-            Name = student.Name;
-            LegajoLabel = student.LegajoLabel;
-            RiskLevel = student.RiskLevel;
-            RiskScore = student.RiskScore;
-            AttendanceText = student.AttendanceText;
-            DeliveryText = student.DeliveryText;
-            Justification = student.Justification;
-            ContactLabel = student.ContactLabel;
-
-            (BadgeBackground, BadgeForeground, BadgeGlyph) = student.RiskLevel switch
-            {
-                // TODO: Estos colores deberían estar en un archivo de configuración, no hardcodeados. 
-                // Debería ser parte del diseño de la UI, no de la lógica de negocio.
-                "Alto" => (Color.FromArgb("#FDECEC"), Color.FromArgb("#E23D3D"), "●"),
-                "Medio" => (Color.FromArgb("#FFF3D6"), Color.FromArgb("#C9841A"), "▲"),
-                "Bajo" => (Color.FromArgb("#E5F6EC"), Color.FromArgb("#1E9D57"), "●"),
-                _ => (Color.FromArgb("#F2F4F7"), Color.FromArgb("#5C6570"), "●")
-            };
-        }
-
-        // Alumno original, se pasa a la vista de detalle al tocar la fila.
-        public Student Student { get; }
-        public int RowNumber { get; }
-        public string Name { get; }
-        public string LegajoLabel { get; }
-        public string RiskLevel { get; }
-        public int RiskScore { get; }
-        public string AttendanceText { get; }
-        public string DeliveryText { get; }
-        public string Justification { get; }
-        public string ContactLabel { get; }
-        public Color BadgeBackground { get; }
-        public Color BadgeForeground { get; }
-        public string BadgeGlyph { get; }
     }
 }

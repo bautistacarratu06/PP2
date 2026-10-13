@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Lógica pura del dominio: modelos, enums, servicios e interfaces.
+       No depende de MAUI ni de SQL, así la pueden referenciar UI, Data y los tests. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>GestionEscolar.Core</RootNamespace>
+  </PropertyGroup>
+
+</Project>

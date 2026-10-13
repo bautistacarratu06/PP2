@@ -1,14 +1,13 @@
-using UI.ViewModels;
+﻿using UI.ViewModels;
 
 namespace UI.Views
 {
     public partial class StudentListPage : ContentPage
     {
-        public StudentListPage()
+        public StudentListPage(StudentListViewModel viewModel)
         {
             InitializeComponent();
-
-            BindingContext = new StudentListViewModel();
+            BindingContext = viewModel;
         }
     }
 }

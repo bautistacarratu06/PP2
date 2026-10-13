@@ -4,10 +4,10 @@ namespace UI.Views
 {
     public partial class SettingsViewPage : ContentPage
     {
-        public SettingsViewPage()
+        public SettingsViewPage(SettingsViewModel viewModel)
         {
             InitializeComponent();
-            BindingContext = new SettingsViewModel();
+            BindingContext = viewModel;
         }
     }
 }

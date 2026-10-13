@@ -1,14 +1,16 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using UI.Models;
+using GestionEscolar.Core.Enums;
 
 namespace UI.ViewModels
 {
-    // Recibe el alumno desde Seguimiento por parámetro de navegación ("Student").
+    // Recibe la fila desde Seguimiento por parámetro de navegación ("Student", un StudentRow).
     // TODO: Los historiales y la comisión están hardcodeados. A futuro vendrán de la base de datos
     // (attendance_record, submission, intervention).
     public partial class StudentDetailViewModel : ObservableObject, IQueryAttributable
     {
+        public const string StudentQueryKey = "Student";
+
         [ObservableProperty]
         public partial string Name { get; set; } = "Gómez, Ana";
 
@@ -25,7 +27,7 @@ namespace UI.ViewModels
         public partial string Email { get; set; } = "estudiante20@ejemplo.edu.ar";
 
         [ObservableProperty]
-        public partial string RiskLevel { get; set; } = "Alto";
+        public partial string RiskLevel { get; set; } = nameof(GestionEscolar.Core.Enums.RiskLevel.Alto);
 
         [ObservableProperty]
         public partial int RiskScore { get; set; } = 100;
@@ -35,10 +37,10 @@ namespace UI.ViewModels
             "Asistió a 0 de 8 clases (0%) · Entregó 0 de 4 trabajos (0%) · Score 0 → Riesgo 100";
 
         [ObservableProperty]
-        public partial Color BadgeBackground { get; set; } = Color.FromArgb("#FDECEC");
+        public partial Color BadgeBackground { get; set; } = RiskBadge.For(GestionEscolar.Core.Enums.RiskLevel.Alto).Background;
 
         [ObservableProperty]
-        public partial Color BadgeForeground { get; set; } = Color.FromArgb("#E23D3D");
+        public partial Color BadgeForeground { get; set; } = RiskBadge.For(GestionEscolar.Core.Enums.RiskLevel.Alto).Foreground;
 
         public ObservableCollection<HistoryItem> Attendance { get; } =
         [
@@ -54,10 +56,10 @@ namespace UI.ViewModels
 
         public ObservableCollection<HistoryItem> Submissions { get; } =
         [
-            new("Trabajo práctico 1", "no entregó"),
-            new("Trabajo práctico 2", "no entregó"),
-            new("Trabajo práctico 3", "no entregó"),
-            new("Trabajo práctico 4", "no entregó")
+            new("Trabajo práctico 1", SubmissionStatus.NoEntrego.ToDbValue()),
+            new("Trabajo práctico 2", SubmissionStatus.NoEntrego.ToDbValue()),
+            new("Trabajo práctico 3", SubmissionStatus.NoEntrego.ToDbValue()),
+            new("Trabajo práctico 4", SubmissionStatus.NoEntrego.ToDbValue())
         ];
 
         public ObservableCollection<HistoryItem> Interventions { get; } = new();
@@ -66,25 +68,18 @@ namespace UI.ViewModels
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
-            if (!query.TryGetValue("Student", out var value) || value is not Student student)
+            if (!query.TryGetValue(StudentQueryKey, out var value) || value is not StudentRow row)
                 return;
 
-            Name = student.Name;
-            StudentNumber = student.StudentNumber;
-            Phone = student.Phone;
-            Email = student.Email;
-            RiskLevel = student.RiskLevel;
-            RiskScore = student.RiskScore;
-            Justification = student.Justification;
-
-            // TODO: mismos colores que StudentRow en TrackingViewModel; centralizarlos.
-            (BadgeBackground, BadgeForeground) = student.RiskLevel switch
-            {
-                "Alto" => (Color.FromArgb("#FDECEC"), Color.FromArgb("#E23D3D")),
-                "Medio" => (Color.FromArgb("#FFF3D6"), Color.FromArgb("#C9841A")),
-                "Bajo" => (Color.FromArgb("#E5F6EC"), Color.FromArgb("#1E9D57")),
-                _ => (Color.FromArgb("#F2F4F7"), Color.FromArgb("#5C6570"))
-            };
+            Name = row.Name;
+            StudentNumber = row.StudentNumber;
+            Phone = row.Phone;
+            Email = row.Email;
+            RiskLevel = row.RiskLevel;
+            RiskScore = row.RiskScore;
+            Justification = row.Justification;
+            BadgeBackground = row.BadgeBackground;
+            BadgeForeground = row.BadgeForeground;
         }
     }
 

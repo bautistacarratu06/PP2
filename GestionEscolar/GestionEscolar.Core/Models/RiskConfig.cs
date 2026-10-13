@@ -1,5 +1,6 @@
-namespace UI.Models;
+﻿namespace GestionEscolar.Core.Models;
 
+// Umbrales de riesgo. TODO: leerlos de dbo.setting (high_threshold / medium_threshold).
 public class RiskConfig
 {
     // Riesgo igual o mayor a este valor = Alto

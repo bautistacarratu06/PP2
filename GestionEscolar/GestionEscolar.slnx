@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="GestionEscolar.Core/GestionEscolar.Core.csproj" />
+  <Project Path="GestionEscolar.Data/GestionEscolar.Data.csproj" />
   <Project Path="GestionEscolar.Tests/GestionEscolar.Tests.csproj" />
   <Project Path="UI/UI.csproj" />
 </Solution>

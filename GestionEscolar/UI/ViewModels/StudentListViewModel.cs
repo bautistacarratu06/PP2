@@ -1,37 +1,20 @@
-using System.Collections.ObjectModel;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
 using UI.Seeding;
 
 namespace UI.ViewModels
 {
+    // TODO: Nómina todavía lee del CSV embebido. Pasarla a un repositorio como Seguimiento.
     public class StudentListViewModel
     {
-        public ObservableCollection<StudentRow2> FilteredStudents { get; }
+        public ObservableCollection<StudentRow> FilteredStudents { get; }
 
         public int FilteredCount => FilteredStudents.Count;
 
         public StudentListViewModel()
         {
-            FilteredStudents = new ObservableCollection<StudentRow2>(
-                StudentSeeder.GetMockedStudentsForListGridView()
-                    .Select(student => new StudentRow2
-                    {
-                        LegajoLabel = student.LegajoLabel,
-                        Name = student.Name,
-                        Phone = student.Phone,
-                        Email = student.Email
-                    }));
+            var rowNumber = 1;
+            FilteredStudents = new ObservableCollection<StudentRow>(
+                StudentSeeder.GetStudents().Select(student => new StudentRow(student, rowNumber++)));
         }
-    }
-
-    public class StudentRow2
-    {
-        public string LegajoLabel { get; set; } = string.Empty;
-
-        public string Name { get; set; } = string.Empty;
-
-        public string Phone { get; set; } = string.Empty;
-
-        public string Email { get; set; } = string.Empty;
     }
 }

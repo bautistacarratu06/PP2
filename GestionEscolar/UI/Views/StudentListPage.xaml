@@ -110,7 +110,7 @@
                         </CollectionView.EmptyView>
 
                         <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="vm:StudentRow2">
+                            <DataTemplate x:DataType="vm:StudentRow">
                                 <VerticalStackLayout
                                     BackgroundColor="{AppThemeBinding Light=White, Dark=#111827}"
                                     Spacing="0">

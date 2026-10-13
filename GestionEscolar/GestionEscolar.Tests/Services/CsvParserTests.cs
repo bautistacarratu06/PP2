@@ -1,4 +1,4 @@
-﻿using UI.Services;
+﻿using GestionEscolar.Core.Services;
 
 namespace GestionEscolar.Tests.Services;
 

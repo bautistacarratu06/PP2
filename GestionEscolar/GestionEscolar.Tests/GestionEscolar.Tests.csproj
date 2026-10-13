@@ -19,19 +19,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <!--
-    UI es una app MAUI (net10.0-android/ios/windows...) y no se puede referenciar
-    desde un proyecto de tests net10.0 (error NU1201). Por eso compilamos aca los
-    archivos de logica pura de UI, que no dependen de MAUI.
-    TODO: mover esta logica a una class library net10.0 (ej. GestionEscolar.Core)
-    referenciada por UI y por los tests, y reemplazar estos links.
-  -->
+  <!-- La lógica pura vive en GestionEscolar.Core (net10.0), así que se referencia directo. -->
   <ItemGroup>
-    <Compile Include="..\UI\Models\Student.cs" Link="Linked\Models\Student.cs" />
-    <Compile Include="..\UI\Models\RiskConfig.cs" Link="Linked\Models\RiskConfig.cs" />
-    <Compile Include="..\UI\Services\CsvParser.cs" Link="Linked\Services\CsvParser.cs" />
-    <Compile Include="..\UI\Services\StudentCsvImporter.cs" Link="Linked\Services\StudentCsvImporter.cs" />
-    <Compile Include="..\UI\Services\ScoringRiskServices.cs" Link="Linked\Services\ScoringRiskServices.cs" />
+    <ProjectReference Include="..\GestionEscolar.Core\GestionEscolar.Core.csproj" />
   </ItemGroup>
 
 </Project>

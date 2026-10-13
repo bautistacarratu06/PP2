@@ -1,25 +1,39 @@
-﻿using GestionEscolar.Domain.Data;
+﻿using GestionEscolar.Data;
 
 namespace UI
 {
     public partial class MainPage : ContentPage
     {
+        private readonly DatabaseInstance _db;
         int count = 0;
         bool isConnected = false;
 
-        public MainPage()
+        public MainPage(DatabaseInstance db)
         {
             InitializeComponent();
-            CheckDatabaseConnection();
+            _db = db;
         }
 
-        private void CheckDatabaseConnection()
+        protected override async void OnAppearing()
         {
-            var db = DatabaseInstance.GetInstance("MainConnection");
-            isConnected = db.TestConnection();
+            base.OnAppearing();
+            await CheckDatabaseConnectionAsync();
+        }
 
-            if (isConnected)
-                System.Diagnostics.Debug.WriteLine("Tablas: " + string.Join(", ", db.ListTables()));
+        private async Task CheckDatabaseConnectionAsync()
+        {
+            try
+            {
+                isConnected = await _db.TestConnectionAsync();
+
+                if (isConnected)
+                    System.Diagnostics.Debug.WriteLine("Tablas: " + string.Join(", ", await _db.ListTablesAsync()));
+            }
+            catch (Exception ex)
+            {
+                isConnected = false;
+                System.Diagnostics.Debug.WriteLine($"Error al conectar con la base: {ex.Message}");
+            }
         }
 
         private void OnCounterClicked(object? sender, EventArgs e)

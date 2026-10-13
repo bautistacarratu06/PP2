@@ -1,6 +1,6 @@
-using System.Text;
+﻿using System.Text;
 
-namespace UI.Services;
+namespace GestionEscolar.Core.Services;
 
 public static class CsvParser
 {

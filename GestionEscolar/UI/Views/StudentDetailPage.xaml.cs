@@ -4,10 +4,10 @@ namespace UI.Views
 {
     public partial class StudentDetailPage : ContentPage
     {
-        public StudentDetailPage()
+        public StudentDetailPage(StudentDetailViewModel viewModel)
         {
             InitializeComponent();
-            BindingContext = new StudentDetailViewModel();
+            BindingContext = viewModel;
         }
 
         // TODO: abrir el formulario de intervención cuando exista.

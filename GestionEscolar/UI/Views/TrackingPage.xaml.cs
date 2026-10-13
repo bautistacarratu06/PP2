@@ -7,10 +7,20 @@ namespace UI.Views
     // El código está 100% hecho por IA
     public partial class TrackingPage : ContentPage
     {
-        public TrackingPage()
+        private readonly TrackingViewModel _viewModel;
+
+        public TrackingPage(TrackingViewModel viewModel)
         {
             InitializeComponent();
-            BindingContext = new TrackingViewModel();
+            _viewModel = viewModel;
+            BindingContext = viewModel;
+        }
+
+        // Carga (o refresca) los datos cada vez que se muestra la página; no en el constructor.
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await _viewModel.LoadCommand.ExecuteAsync(null);
         }
 
         private void OnPageSizeChanged(object? sender, EventArgs e)
@@ -56,7 +66,7 @@ namespace UI.Views
 
             await Shell.Current.GoToAsync(nameof(StudentDetailPage), new Dictionary<string, object>
             {
-                ["Student"] = row.Student
+                [StudentDetailViewModel.StudentQueryKey] = row
             });
         }
     }
