@@ -4,7 +4,7 @@ chcp 65001 >nul
 
 set "SERVER=.\SQLEXPRESS"
 set "DB=course_tracking"
-set "DIR=%~dp0..\GestionEscolar\database\migrations"
+set "DIR=%~dp0..\GestionEscolar\GestionEscolar.Data\Database\Migrations"
 
 if not exist "%DIR%" (
     echo.
