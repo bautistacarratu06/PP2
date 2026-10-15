@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionEscolar.Core.Enums;
+using GestionEscolar.Core.Interfaces;
 using GestionEscolar.Core.Models;
 using GestionEscolar.Core.Services;
 
@@ -24,10 +25,12 @@ namespace UI.ViewModels
         };
 
         private readonly TrackingService _trackingService;
+        private readonly IRiskSummaryRepository _riskSummaryRepository;
 
-        public TrackingViewModel(TrackingService trackingService)
+        public TrackingViewModel(TrackingService trackingService, IRiskSummaryRepository riskSummaryRepository)
         {
             _trackingService = trackingService;
+            _riskSummaryRepository = riskSummaryRepository;
             SelectedRisk = AllFilter;
         }
 
@@ -37,11 +40,16 @@ namespace UI.ViewModels
 
         public IReadOnlyList<string> RiskFilterOptions { get; } = RiskFilters.Keys.ToList();
 
-        public int HighRiskCount => Students.Count(s => s.RiskLevel == RiskLevel.Alto);
+        // Tarjetas Alto / Medio / Bajo: vienen de SqlRiskSummaryRepository (misma fórmula y umbrales que la grilla).
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HighRiskCount), nameof(MediumRiskCount), nameof(LowRiskCount))]
+        public partial RiskSummary Summary { get; set; } = RiskSummary.Empty;
 
-        public int MediumRiskCount => Students.Count(s => s.RiskLevel == RiskLevel.Medio);
+        public int HighRiskCount => Summary.High;
 
-        public int LowRiskCount => Students.Count(s => s.RiskLevel == RiskLevel.Bajo);
+        public int MediumRiskCount => Summary.Medium;
+
+        public int LowRiskCount => Summary.Low;
 
         public int FilteredCount => FilteredStudents.Count;
 
@@ -81,7 +89,18 @@ namespace UI.ViewModels
             ErrorMessage = string.Empty;
             try
             {
-                var results = await _trackingService.GetSectionRiskAsync(SectionId);
+                var resultsTask = _trackingService.GetSectionRiskAsync(SectionId);
+                var summaryTask = _riskSummaryRepository.GetSummaryBySectionAsync(SectionId);
+                await Task.WhenAll(resultsTask, summaryTask);
+                var results = resultsTask.Result;
+                Summary = summaryTask.Result;
+
+#if DEBUG
+                // Chequeo de consistencia: el resumen SQL debe coincidir con los niveles de la grilla.
+                var expected = RiskSummary.FromResults(results);
+                if (expected != Summary)
+                    System.Diagnostics.Debug.WriteLine($"[RiskSummary] SQL {Summary} != grilla {expected}");
+#endif
 
                 Students.Clear();
                 foreach (var result in results)
@@ -97,9 +116,6 @@ namespace UI.ViewModels
                 IsBusy = false;
             }
 
-            OnPropertyChanged(nameof(HighRiskCount));
-            OnPropertyChanged(nameof(MediumRiskCount));
-            OnPropertyChanged(nameof(LowRiskCount));
             ApplyFilter();
         }
 

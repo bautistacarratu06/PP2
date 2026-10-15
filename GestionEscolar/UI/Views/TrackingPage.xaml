@@ -33,21 +33,15 @@
         VerticalOptions="Fill"
         MaximumWidthRequest="1240">
 
-        <FlexLayout
+        <!-- Tarjetas de resumen: 3 columnas iguales (Alto / Medio / Bajo) -->
+        <Grid
             Grid.Row="0"
-            Margin="-6,0,-6,0"
-            AlignContent="Start"
-            AlignItems="Stretch"
-            Direction="Row"
-            JustifyContent="SpaceBetween"
-            Wrap="Wrap">
+            ColumnDefinitions="*,*,*"
+            ColumnSpacing="12">
             <Border
-                Margin="6"
+                Grid.Column="0"
                 Padding="18,16"
                 BackgroundColor="{AppThemeBinding Light=#FDECEC, Dark=#3B1F1F}"
-                FlexLayout.Basis="31%"
-                FlexLayout.Grow="1"
-                MinimumWidthRequest="210"
                 Stroke="{AppThemeBinding Light=#F3C7C7, Dark=#7F3A3A}"
                 StrokeShape="RoundRectangle 14"
                 StrokeThickness="1">
@@ -56,7 +50,7 @@
                         FontFamily="OpenSansRegular"
                         FontSize="13"
                         Text="Riesgo Alto"
-                        TextColor="{AppThemeBinding Light=#8B93A7, Dark=#CBD5E1}" />
+                        TextColor="#E23D3D" />
                     <Label
                         FontFamily="OpenSansSemibold"
                         FontSize="34"
@@ -66,12 +60,9 @@
             </Border>
 
             <Border
-                Margin="6"
+                Grid.Column="1"
                 Padding="18,16"
                 BackgroundColor="{AppThemeBinding Light=#FFF8E6, Dark=#3A2E1F}"
-                FlexLayout.Basis="31%"
-                FlexLayout.Grow="1"
-                MinimumWidthRequest="210"
                 Stroke="{AppThemeBinding Light=#F0E0B0, Dark=#8C6B2E}"
                 StrokeShape="RoundRectangle 14"
                 StrokeThickness="1">
@@ -80,7 +71,7 @@
                         FontFamily="OpenSansRegular"
                         FontSize="13"
                         Text="Riesgo Medio"
-                        TextColor="{AppThemeBinding Light=#8B93A7, Dark=#CBD5E1}" />
+                        TextColor="#C9841A" />
                     <Label
                         FontFamily="OpenSansSemibold"
                         FontSize="34"
@@ -90,12 +81,9 @@
             </Border>
 
             <Border
-                Margin="6"
+                Grid.Column="2"
                 Padding="18,16"
                 BackgroundColor="{AppThemeBinding Light=#E9F8EF, Dark=#183D2B}"
-                FlexLayout.Basis="31%"
-                FlexLayout.Grow="1"
-                MinimumWidthRequest="210"
                 Stroke="{AppThemeBinding Light=#C8EBD4, Dark=#2B6A57}"
                 StrokeShape="RoundRectangle 14"
                 StrokeThickness="1">
@@ -104,7 +92,7 @@
                         FontFamily="OpenSansRegular"
                         FontSize="13"
                         Text="Riesgo Bajo"
-                        TextColor="{AppThemeBinding Light=#8B93A7, Dark=#CBD5E1}" />
+                        TextColor="#1E9D57" />
                     <Label
                         FontFamily="OpenSansSemibold"
                         FontSize="34"
@@ -112,7 +100,7 @@
                         TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
                 </VerticalStackLayout>
             </Border>
-        </FlexLayout>
+        </Grid>
 
         <Border
             x:Name="TableCard"

@@ -34,6 +34,7 @@ namespace UI
             // Datos
             builder.Services.AddSingleton<DatabaseInstance>();
             builder.Services.AddSingleton<ITrackingRepository, SqlTrackingRepository>();
+            builder.Services.AddSingleton<IRiskSummaryRepository, SqlRiskSummaryRepository>();
 
             // New Student
             builder.Services.AddSingleton<IStudentRepository, SqlStudentRepository>();
