@@ -10,9 +10,6 @@ namespace UI.ViewModels
 {
     public partial class TrackingViewModel : ObservableObject
     {
-        // TODO: la comisión está fija en 1 hasta que haya un selector de comisión en la UI.
-        private const int SectionId = 1;
-
         private const string AllFilter = "Todos";
 
         // Opción del filtro -> nivel de riesgo (null = todos)
@@ -26,13 +23,24 @@ namespace UI.ViewModels
 
         private readonly TrackingService _trackingService;
         private readonly IRiskSummaryRepository _riskSummaryRepository;
+        private readonly SectionService _sectionService;
 
-        public TrackingViewModel(TrackingService trackingService, IRiskSummaryRepository riskSummaryRepository)
+        public TrackingViewModel(TrackingService trackingService, IRiskSummaryRepository riskSummaryRepository, SectionService sectionService)
         {
             _trackingService = trackingService;
             _riskSummaryRepository = riskSummaryRepository;
+            _sectionService = sectionService;
             SelectedRisk = AllFilter;
         }
+
+        // Comisiones para el selector del encabezado.
+        public ObservableCollection<Section> Sections { get; } = new();
+
+        [ObservableProperty]
+        public partial Section? SelectedSection { get; set; }
+
+        private bool _suppressSectionReload;
+        private bool _reloadPending;
 
         public ObservableCollection<StudentRiskResult> Students { get; } = new();
 
@@ -77,46 +85,104 @@ namespace UI.ViewModels
             ApplyFilter();
         }
 
-        // Se dispara desde TrackingPage.OnAppearing. Si la base no responde, la grilla queda vacía
-        // y el error se loguea (no se tira excepción: rompería el Shell).
+        // Se dispara desde TrackingPage.OnAppearing: carga las comisiones (la primera vez) y los datos
+        // de la comisión seleccionada. Si la base no responde, la grilla queda vacía y se loguea.
         [RelayCommand]
         private async Task LoadAsync()
         {
-            if (IsBusy)
+            if (Sections.Count == 0)
+            {
+                try
+                {
+                    var sections = await _sectionService.GetAllAsync();
+                    foreach (var section in sections)
+                        Sections.Add(section);
+
+                    // Asignación inicial sin disparar OnSelectedSectionChanged (evita doble carga).
+                    _suppressSectionReload = true;
+                    SelectedSection = SectionService.PickDefault(sections);
+                    _suppressSectionReload = false;
+                }
+                catch (Exception ex)
+                {
+                    ErrorMessage = "No se pudieron cargar las comisiones.";
+                    System.Diagnostics.Debug.WriteLine($"No se pudieron cargar las comisiones: {ex}");
+                    return;
+                }
+            }
+
+            await LoadSectionDataAsync();
+        }
+
+        partial void OnSelectedSectionChanged(Section? value)
+        {
+            if (_suppressSectionReload || value is null)
                 return;
 
+            _ = LoadSectionDataAsync();
+        }
+
+        // Carga grilla + resumen de la comisión seleccionada. Si se cambia de comisión mientras
+        // hay una carga en curso, se marca como pendiente y se recarga al terminar (sin cargas paralelas).
+        private async Task LoadSectionDataAsync()
+        {
+            if (IsBusy)
+            {
+                _reloadPending = true;
+                return;
+            }
+
             IsBusy = true;
-            ErrorMessage = string.Empty;
             try
             {
-                var resultsTask = _trackingService.GetSectionRiskAsync(SectionId);
-                var summaryTask = _riskSummaryRepository.GetSummaryBySectionAsync(SectionId);
-                await Task.WhenAll(resultsTask, summaryTask);
-                var results = resultsTask.Result;
-                Summary = summaryTask.Result;
+                do
+                {
+                    _reloadPending = false;
+                    var section = SelectedSection;
+                    if (section is null)
+                        break;
+
+                    ErrorMessage = string.Empty;
+                    try
+                    {
+                        var resultsTask = _trackingService.GetSectionRiskAsync(section.Id);
+                        var summaryTask = _riskSummaryRepository.GetSummaryBySectionAsync(section.Id);
+                        await Task.WhenAll(resultsTask, summaryTask);
+                        var results = resultsTask.Result;
+
+                        // Si mientras tanto cambió la comisión, descartamos este resultado.
+                        if (_reloadPending)
+                            continue;
+
+                        Summary = summaryTask.Result;
 
 #if DEBUG
-                // Chequeo de consistencia: el resumen SQL debe coincidir con los niveles de la grilla.
-                var expected = RiskSummary.FromResults(results);
-                if (expected != Summary)
-                    System.Diagnostics.Debug.WriteLine($"[RiskSummary] SQL {Summary} != grilla {expected}");
+                        // Chequeo de consistencia: el resumen SQL debe coincidir con los niveles de la grilla.
+                        var expected = RiskSummary.FromResults(results);
+                        if (expected != Summary)
+                            System.Diagnostics.Debug.WriteLine($"[RiskSummary] SQL {Summary} != grilla {expected}");
 #endif
 
-                Students.Clear();
-                foreach (var result in results)
-                    Students.Add(result);
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = "No se pudieron cargar los alumnos.";
-                System.Diagnostics.Debug.WriteLine($"No se pudieron cargar los alumnos: {ex}");
+                        Students.Clear();
+                        foreach (var result in results)
+                            Students.Add(result);
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorMessage = "No se pudieron cargar los alumnos.";
+                        System.Diagnostics.Debug.WriteLine($"No se pudieron cargar los alumnos: {ex}");
+                        Summary = RiskSummary.Empty;
+                        Students.Clear();
+                    }
+
+                    ApplyFilter();
+                }
+                while (_reloadPending);
             }
             finally
             {
                 IsBusy = false;
             }
-
-            ApplyFilter();
         }
 
         private void ApplyFilter()

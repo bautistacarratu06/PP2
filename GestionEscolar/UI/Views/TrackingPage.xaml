@@ -5,6 +5,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:vm="clr-namespace:UI.ViewModels"
+    xmlns:conv="clr-namespace:UI.Converters"
+    xmlns:models="clr-namespace:GestionEscolar.Core.Models;assembly=GestionEscolar.Core"
     BackgroundColor="{AppThemeBinding Light=#F4F6F8, Dark=#0F172A}"
     Shell.BackgroundColor="{AppThemeBinding Light=#F4F6F8, Dark=#0F172A}"
     Shell.ForegroundColor="{AppThemeBinding Light=#1A1D23, Dark=#E2E8F0}"
@@ -13,6 +15,7 @@
     SizeChanged="OnPageSizeChanged">
 
     <ContentPage.Resources>
+        <conv:InvertBoolConverter x:Key="InvertBool" />
         <Style x:Key="ColHeader" TargetType="Label">
             <Setter Property="FontSize" Value="11" />
             <Setter Property="TextColor" Value="{AppThemeBinding Light=#8B93A7, Dark=#94A3B8}" />
@@ -27,15 +30,66 @@
     <Grid
         x:Name="ContentHost"
         Padding="24,18,24,14"
-        RowDefinitions="Auto,*"
+        RowDefinitions="Auto,Auto,*"
         RowSpacing="16"
         HorizontalOptions="Center"
         VerticalOptions="Fill"
         MaximumWidthRequest="1240">
 
-        <!-- Tarjetas de resumen: 3 columnas iguales (Alto / Medio / Bajo) -->
+        <!-- Encabezado: título + selector de comisión -->
         <Grid
             Grid.Row="0"
+            ColumnDefinitions="*,Auto"
+            ColumnSpacing="12">
+            <Label
+                Grid.Column="0"
+                FontFamily="OpenSansSemibold"
+                FontSize="22"
+                Text="Panel de seguimiento"
+                TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}"
+                VerticalOptions="Center" />
+            <HorizontalStackLayout
+                Grid.Column="1"
+                Spacing="10"
+                VerticalOptions="Center">
+                <Label
+                    FontFamily="OpenSansRegular"
+                    FontSize="13"
+                    Text="Comisión"
+                    TextColor="{AppThemeBinding Light=#5E6772, Dark=#94A3B8}"
+                    VerticalOptions="Center" />
+                <Border
+                    Padding="10,0"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#111827}"
+                    Stroke="{AppThemeBinding Light=#E6E9F0, Dark=#334155}"
+                    StrokeShape="RoundRectangle 10"
+                    StrokeThickness="1">
+                    <Picker
+                        x:Name="SectionPicker"
+                        MinimumWidthRequest="200"
+                        BackgroundColor="Transparent"
+                        FontFamily="OpenSansRegular"
+                        FontSize="14"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBool}}"
+                        ItemDisplayBinding="{Binding Name, x:DataType=models:Section}"
+                        ItemsSource="{Binding Sections}"
+                        SelectedItem="{Binding SelectedSection}"
+                        TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}"
+                        Title="Elegí una comisión"
+                        TitleColor="{AppThemeBinding Light=#8B93A7, Dark=#94A3B8}" />
+                </Border>
+                <ActivityIndicator
+                    HeightRequest="18"
+                    WidthRequest="18"
+                    IsRunning="{Binding IsBusy}"
+                    IsVisible="{Binding IsBusy}"
+                    Color="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <!-- Tarjetas de resumen: 3 columnas iguales (Alto / Medio / Bajo) -->
+        <Grid
+            Grid.Row="1"
             ColumnDefinitions="*,*,*"
             ColumnSpacing="12">
             <Border
@@ -104,7 +158,7 @@
 
         <Border
             x:Name="TableCard"
-            Grid.Row="1"
+            Grid.Row="2"
             Padding="0"
             BackgroundColor="{AppThemeBinding Light=White, Dark=#111827}"
             SizeChanged="OnTableViewportChanged"
@@ -217,11 +271,6 @@
                                             StrokeThickness="0"
                                             VerticalOptions="Center">
                                             <HorizontalStackLayout Spacing="5">
-                                                <Label
-                                                    FontSize="9"
-                                                    Text="{Binding BadgeGlyph}"
-                                                    TextColor="{Binding BadgeForeground}"
-                                                    VerticalOptions="Center" />
                                                 <Label
                                                     FontFamily="OpenSansSemibold"
                                                     FontSize="12"

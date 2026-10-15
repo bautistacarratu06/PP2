@@ -12,6 +12,7 @@ namespace UI.ViewModels
     public partial class StudentDetailViewModel : ObservableObject, IQueryAttributable
     {
         public const string StudentQueryKey = "Student";
+        public const string SectionQueryKey = "SectionName";
 
 
         [ObservableProperty]
@@ -73,6 +74,9 @@ namespace UI.ViewModels
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
+            if (query.TryGetValue(SectionQueryKey, out var section) && section is string sectionName && sectionName.Length > 0)
+                Commission = sectionName;
+
             if (!query.TryGetValue(StudentQueryKey, out var value) || value is not StudentRow row)
                 return;
 

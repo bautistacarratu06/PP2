@@ -13,7 +13,7 @@ namespace UI.ViewModels
         {
             Student = student ?? throw new ArgumentNullException(nameof(student));
             RowNumber = rowNumber;
-            (BadgeBackground, BadgeForeground, BadgeGlyph) = RiskBadge.For(null);
+            (BadgeBackground, BadgeForeground) = RiskBadge.For(null);
         }
 
         // Fila de Seguimiento: datos + riesgo calculado.
@@ -21,7 +21,7 @@ namespace UI.ViewModels
             : this(risk.Data.Student, rowNumber)
         {
             Risk = risk;
-            (BadgeBackground, BadgeForeground, BadgeGlyph) = RiskBadge.For(risk.RiskLevel);
+            (BadgeBackground, BadgeForeground) = RiskBadge.For(risk.RiskLevel);
         }
 
         public Student Student { get; }
@@ -65,6 +65,5 @@ namespace UI.ViewModels
 
         public Color BadgeBackground { get; }
         public Color BadgeForeground { get; }
-        public string BadgeGlyph { get; }
     }
 }

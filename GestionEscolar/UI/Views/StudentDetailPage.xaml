@@ -109,7 +109,7 @@
                             <Label
                                 FontFamily="OpenSansSemibold"
                                 FontSize="11"
-                                Text="{Binding RiskLevel, StringFormat='ⓘ {0}'}"
+                                Text="{Binding RiskLevel}"
                                 TextColor="{Binding BadgeForeground}" />
                         </Border>
                         <Label
