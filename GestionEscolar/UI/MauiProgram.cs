@@ -35,8 +35,14 @@ namespace UI
             builder.Services.AddSingleton<DatabaseInstance>();
             builder.Services.AddSingleton<ITrackingRepository, SqlTrackingRepository>();
 
+            // New Student
+            builder.Services.AddSingleton<IStudentRepository, SqlStudentRepository>();
+
             // Servicios
             builder.Services.AddTransient<TrackingService>();
+
+            // New Student
+            builder.Services.AddTransient<StudentService>();
 
             // ViewModels
             builder.Services.AddTransient<TrackingViewModel>();
