@@ -35,6 +35,16 @@
         Route="TrackingPage" />
 
     <ShellContent
+        Title="Entregas"
+        ContentTemplate="{DataTemplate views:SubmissionsPage}"
+        Route="Submissions" />
+
+    <ShellContent
+        Title="Asistencia"
+        ContentTemplate="{DataTemplate views:AttendancePage}"
+        Route="Attendance" />
+
+    <ShellContent
         Title="Ajustes"
         ContentTemplate="{DataTemplate views:SettingsViewPage}"
         Route="SettingsPage" />

@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- Placeholder: la vista de Entregas todavía no está implementada. -->
+<ContentPage
+    x:Class="UI.Views.SubmissionsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Entregas"
+    BackgroundColor="{AppThemeBinding Light=#F4F6F8, Dark=#0F172A}"
+    Shell.NavBarIsVisible="False"
+    Shell.NavBarHasShadow="False">
+
+    <VerticalStackLayout
+        Padding="24,18"
+        Spacing="6">
+        <Label
+            FontFamily="OpenSansSemibold"
+            FontSize="22"
+            Text="Entregas"
+            TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
+        <Label
+            FontFamily="OpenSansRegular"
+            FontSize="14"
+            Text="Próximamente"
+            TextColor="{AppThemeBinding Light=#5E6772, Dark=#94A3B8}" />
+    </VerticalStackLayout>
+
+</ContentPage>
