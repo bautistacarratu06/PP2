@@ -127,12 +127,26 @@
 
                 <!-- Historiales -->
                 <VerticalStackLayout Grid.Column="1" Spacing="14">
+                    <ActivityIndicator
+                        HeightRequest="20"
+                        HorizontalOptions="Start"
+                        IsRunning="{Binding IsBusy}"
+                        IsVisible="{Binding IsBusy}"
+                        Color="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" />
+                    <Label
+                        IsVisible="{Binding HasError}"
+                        Text="{Binding ErrorMessage}"
+                        TextColor="#E23D3D" />
                     <Border Style="{StaticResource Card}">
                         <VerticalStackLayout>
                             <Label Style="{StaticResource CardTitle}" Text="Historial de asistencia" />
                             <VerticalStackLayout
                                 BindableLayout.ItemTemplate="{StaticResource HistoryRow}"
                                 BindableLayout.ItemsSource="{Binding Attendance}" />
+                            <Label
+                                IsVisible="{Binding HasNoAttendance}"
+                                Style="{StaticResource Caption}"
+                                Text="Sin clases registradas." />
                         </VerticalStackLayout>
                     </Border>
 
@@ -142,6 +156,10 @@
                             <VerticalStackLayout
                                 BindableLayout.ItemTemplate="{StaticResource HistoryRow}"
                                 BindableLayout.ItemsSource="{Binding Submissions}" />
+                            <Label
+                                IsVisible="{Binding HasNoSubmissions}"
+                                Style="{StaticResource Caption}"
+                                Text="Sin trabajos registrados." />
                         </VerticalStackLayout>
                     </Border>
 

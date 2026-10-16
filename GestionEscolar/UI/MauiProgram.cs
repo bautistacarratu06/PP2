@@ -36,6 +36,7 @@ namespace UI
             builder.Services.AddSingleton<ITrackingRepository, SqlTrackingRepository>();
             builder.Services.AddSingleton<IRiskSummaryRepository, SqlRiskSummaryRepository>();
             builder.Services.AddSingleton<ISectionRepository, SqlSectionRepository>();
+            builder.Services.AddSingleton<IStudentDetailsRepository, SqlStudentDetailsRepository>();
 
             // New Student
             builder.Services.AddSingleton<IStudentRepository, SqlStudentRepository>();
@@ -43,6 +44,7 @@ namespace UI
             // Servicios
             builder.Services.AddTransient<TrackingService>();
             builder.Services.AddTransient<SectionService>();
+            builder.Services.AddTransient<StudentDetailsService>();
 
             // New Student
             builder.Services.AddTransient<StudentService>();

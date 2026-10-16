@@ -67,7 +67,8 @@ namespace UI.Views
             await Shell.Current.GoToAsync(nameof(StudentDetailPage), new Dictionary<string, object>
             {
                 [StudentDetailViewModel.StudentQueryKey] = row,
-                [StudentDetailViewModel.SectionQueryKey] = _viewModel.SelectedSection?.Name ?? string.Empty
+                [StudentDetailViewModel.SectionQueryKey] = _viewModel.SelectedSection?.Name ?? string.Empty,
+                [StudentDetailViewModel.SectionIdQueryKey] = _viewModel.SelectedSection?.Id ?? 0
             });
         }
     }

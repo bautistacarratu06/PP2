@@ -1,76 +1,82 @@
 ﻿using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using GestionEscolar.Core.Enums;
-
+using GestionEscolar.Core.Models;
+using GestionEscolar.Core.Services;
 
 namespace UI.ViewModels
 {
-    // Recibe el alumno desde Seguimiento por parámetro de navegación ("Student").
-
-    // TODO: Los historiales y la comisión están hardcodeados. A futuro vendrán de la base de datos
-    // (attendance_record, submission, intervention).
+    // Recibe la fila de Seguimiento ("Student", un StudentRow) y la comisión elegida ("SectionId"/"SectionName").
+    // El nivel y el score de riesgo vienen de la fila (iguales a la grilla); contacto, comisión e
+    // historiales se leen de la base con StudentDetailsService.
     public partial class StudentDetailViewModel : ObservableObject, IQueryAttributable
     {
         public const string StudentQueryKey = "Student";
         public const string SectionQueryKey = "SectionName";
+        public const string SectionIdQueryKey = "SectionId";
 
+        private const string DateFormat = "dd'/'MM'/'yyyy";
 
-        [ObservableProperty]
-        public partial string Name { get; set; } = "Gómez, Ana";
+        private readonly StudentDetailsService _detailsService;
 
-        [ObservableProperty]
-        public partial string StudentNumber { get; set; } = "A1020";
-
-        [ObservableProperty]
-        public partial string Commission { get; set; } = "1°A";
-
-        [ObservableProperty]
-        public partial string Phone { get; set; } = "11 5555-1020";
+        public StudentDetailViewModel(StudentDetailsService detailsService)
+        {
+            _detailsService = detailsService;
+        }
 
         [ObservableProperty]
-        public partial string Email { get; set; } = "estudiante20@ejemplo.edu.ar";
+        public partial string Name { get; set; } = string.Empty;
 
         [ObservableProperty]
-        public partial string RiskLevel { get; set; } = nameof(GestionEscolar.Core.Enums.RiskLevel.Alto);
+        public partial string StudentNumber { get; set; } = string.Empty;
 
         [ObservableProperty]
-        public partial int RiskScore { get; set; } = 100;
+        public partial string Commission { get; set; } = string.Empty;
 
         [ObservableProperty]
-        public partial string Justification { get; set; } =
-            "Asistió a 0 de 8 clases (0%) · Entregó 0 de 4 trabajos (0%) · Score 0 → Riesgo 100";
+        public partial string Phone { get; set; } = string.Empty;
 
         [ObservableProperty]
-        public partial Color BadgeBackground { get; set; } = RiskBadge.For(GestionEscolar.Core.Enums.RiskLevel.Alto).Background;
+        public partial string Email { get; set; } = string.Empty;
 
         [ObservableProperty]
-        public partial Color BadgeForeground { get; set; } = RiskBadge.For(GestionEscolar.Core.Enums.RiskLevel.Alto).Foreground;
+        public partial string RiskLevel { get; set; } = string.Empty;
 
-        public ObservableCollection<HistoryItem> Attendance { get; } =
-        [
-            new("Clase · 02/09/2026", "Ausente"),
-            new("Clase · 03/09/2026", "Ausente"),
-            new("Clase · 04/09/2026", "Ausente"),
-            new("Clase · 05/09/2026", "Ausente"),
-            new("Clase · 06/09/2026", "Ausente"),
-            new("Clase · 07/09/2026", "Ausente"),
-            new("Clase · 08/09/2026", "Ausente"),
-            new("Clase · 09/09/2026", "Ausente")
-        ];
+        [ObservableProperty]
+        public partial int RiskScore { get; set; }
 
-        public ObservableCollection<HistoryItem> Submissions { get; } =
-        [
-            new("Trabajo práctico 1", SubmissionStatus.NoEntrego.ToDbValue()),
-            new("Trabajo práctico 2", SubmissionStatus.NoEntrego.ToDbValue()),
-            new("Trabajo práctico 3", SubmissionStatus.NoEntrego.ToDbValue()),
-            new("Trabajo práctico 4", SubmissionStatus.NoEntrego.ToDbValue())
-        ];
+        [ObservableProperty]
+        public partial string Justification { get; set; } = string.Empty;
+
+        [ObservableProperty]
+        public partial Color BadgeBackground { get; set; } = RiskBadge.For(null).Background;
+
+        [ObservableProperty]
+        public partial Color BadgeForeground { get; set; } = RiskBadge.For(null).Foreground;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasNoAttendance), nameof(HasNoSubmissions), nameof(HasNoInterventions))]
+        public partial bool IsBusy { get; set; }
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasError))]
+        public partial string ErrorMessage { get; set; } = string.Empty;
+
+        public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+        public ObservableCollection<HistoryItem> Attendance { get; } = new();
+
+        public ObservableCollection<HistoryItem> Submissions { get; } = new();
 
         public ObservableCollection<HistoryItem> Interventions { get; } = new();
 
-        public bool HasNoInterventions => Interventions.Count == 0;
+        // Estados vacíos: solo cuando ya terminó de cargar.
+        public bool HasNoAttendance => !IsBusy && Attendance.Count == 0;
 
+        public bool HasNoSubmissions => !IsBusy && Submissions.Count == 0;
 
+        public bool HasNoInterventions => !IsBusy && Interventions.Count == 0;
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
@@ -80,6 +86,7 @@ namespace UI.ViewModels
             if (!query.TryGetValue(StudentQueryKey, out var value) || value is not StudentRow row)
                 return;
 
+            // Datos de la fila: se muestran enseguida y el riesgo queda igual que en la grilla.
             Name = row.Name;
             StudentNumber = row.StudentNumber;
             Phone = row.Phone;
@@ -89,9 +96,68 @@ namespace UI.ViewModels
             Justification = row.Justification;
             BadgeBackground = row.BadgeBackground;
             BadgeForeground = row.BadgeForeground;
-            
 
+            int? sectionId = query.TryGetValue(SectionIdQueryKey, out var id) && id is int sid && sid > 0 ? sid : null;
+            _ = LoadAsync(row.Student.Id, sectionId);
         }
+
+        private async Task LoadAsync(int studentId, int? sectionId)
+        {
+            IsBusy = true;
+            ErrorMessage = string.Empty;
+            Attendance.Clear();
+            Submissions.Clear();
+            Interventions.Clear();
+            try
+            {
+                var detail = await _detailsService.GetAsync(studentId, sectionId);
+                if (detail is null)
+                {
+                    ErrorMessage = "No se encontró el alumno.";
+                    return;
+                }
+
+                Phone = detail.PhoneNumber;
+                Email = detail.Email;
+                StudentNumber = detail.StudentNumber;
+                if (string.IsNullOrEmpty(Commission) || sectionId is null || sectionId == detail.SectionId)
+                    Commission = detail.SectionName;
+
+                foreach (var a in detail.AttendanceRecords)
+                    Attendance.Add(new HistoryItem($"Clase · {Format(a.Date)}", AttendanceText(a.Status)));
+
+                foreach (var s in detail.Submissions)
+                    Submissions.Add(new HistoryItem($"{s.AssignmentName} · vence {Format(s.DueDate)}", SubmissionText(s.Status)));
+
+                foreach (var i in detail.Interventions)
+                    Interventions.Add(new HistoryItem($"{Format(i.Date)} · {i.Channel}", i.Description));
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = "No se pudo cargar el detalle del alumno.";
+                System.Diagnostics.Debug.WriteLine($"No se pudo cargar el detalle del alumno {studentId}: {ex}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private static string Format(DateTime date) => date.ToString(DateFormat, CultureInfo.InvariantCulture);
+
+        private static string AttendanceText(AttendanceStatus? status) => status switch
+        {
+            AttendanceStatus.Presente => "Presente",
+            AttendanceStatus.Ausente => "Ausente",
+            _ => "Sin registro"
+        };
+
+        private static string SubmissionText(SubmissionStatus? status) => status switch
+        {
+            SubmissionStatus.Entrego => "Entregó",
+            SubmissionStatus.NoEntrego => "No entregó",
+            _ => "Sin registro"
+        };
     }
 
     public sealed record HistoryItem(string Label, string Status);
