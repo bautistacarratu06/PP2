@@ -84,3 +84,12 @@ Por ahora seguimos la arquitectura que recomienda la cátedra: tres capas lógic
 ## Nota
 
 Este documento representa únicamente una **primera aproximación al dominio**. Los conceptos, relaciones y responsabilidades aquí definidos son preliminares y **pueden cambiar** durante el desarrollo del análisis, la validación con los requerimientos y la implementación.
+## Git hooks (Husky.Net)
+
+Los hooks se instalan solos la primera vez que se restaura o compila la solución (target `Husky` en `GestionEscolar.Core.csproj`, que corre `dotnet tool restore` + `dotnet husky install`). También se pueden instalar a mano desde la raíz del repo: `dotnet tool restore` y luego `dotnet husky install`.
+
+- **pre-commit**: `dotnet format --verify-no-changes`, solo sobre los `.cs` en stage. Si falla, corré `dotnet format GestionEscolar/GestionEscolar.slnx` y volvé a agregar los archivos.
+- **pre-push**: `scripts\hooks\pre-push.cmd` compila `UI.csproj` (`net10.0-windows10.0.19041.0`) y corre `scripts\run-tests.cmd`. Si `UI.exe` está abierto, avisa y cancela el push (bloquea las DLL): cerrá la app y reintentá.
+- Saltear en una emergencia: `git commit --no-verify` / `git push --no-verify`.
+- En CI o para desactivar la instalación automática: variable de entorno `HUSKY=0`.
+- Configuración: `.husky/task-runner.json`; versión de la herramienta: `dotnet-tools.json`.

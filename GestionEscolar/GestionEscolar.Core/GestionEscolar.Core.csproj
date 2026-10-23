@@ -9,4 +9,16 @@
     <RootNamespace>GestionEscolar.Core</RootNamespace>
   </PropertyGroup>
 
+  <!-- Husky.Net: instala los git hooks (.husky) al restaurar/compilar, asi cada integrante los tiene
+       sin pasos manuales. Va en Core porque todos los proyectos lo referencian.
+       Se saltea con HUSKY=0 (CI) o si no hay repo git (p. ej. un zip). -->
+  <PropertyGroup>
+    <HuskyRepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</HuskyRepoRoot>
+  </PropertyGroup>
+  <Target Name="Husky" BeforeTargets="Restore;CollectPackageReferences"
+          Condition="'$(HUSKY)' != '0' And Exists('$(HuskyRepoRoot).git')">
+    <Exec Command="dotnet tool restore" WorkingDirectory="$(HuskyRepoRoot)" StandardOutputImportance="Low" StandardErrorImportance="High" />
+    <Exec Command="dotnet husky install" WorkingDirectory="$(HuskyRepoRoot)" StandardOutputImportance="Low" StandardErrorImportance="High" />
+  </Target>
+
 </Project>
