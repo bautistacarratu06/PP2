@@ -41,6 +41,11 @@ namespace UI
             // New Student
             builder.Services.AddSingleton<IStudentRepository, SqlStudentRepository>();
 
+            // Calendario, Asistencia y Entregas
+            builder.Services.AddSingleton<ICalendarRepository, SqlCalendarRepository>();
+            builder.Services.AddSingleton<IAttendanceRepository, SqlAttendanceRepository>();
+            builder.Services.AddSingleton<ISubmissionRepository, SqlSubmissionRepository>();
+
             // Servicios
             builder.Services.AddTransient<TrackingService>();
             builder.Services.AddTransient<SectionService>();
@@ -48,18 +53,25 @@ namespace UI
 
             // New Student
             builder.Services.AddTransient<StudentService>();
+            builder.Services.AddTransient<CalendarService>();
+            builder.Services.AddTransient<AttendanceService>();
+            builder.Services.AddTransient<SubmissionService>();
 
             // ViewModels
             builder.Services.AddTransient<TrackingViewModel>();
             builder.Services.AddTransient<StudentDetailViewModel>();
             builder.Services.AddTransient<StudentListViewModel>();
             builder.Services.AddTransient<SettingsViewModel>();
+            builder.Services.AddTransient<AttendanceViewModel>();
+            builder.Services.AddTransient<SubmissionsViewModel>();
+            builder.Services.AddTransient<CalendarViewModel>();
 
             // Páginas (Shell las resuelve por DI, tanto en ShellContent como en rutas registradas)
             builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<TrackingPage>();
             builder.Services.AddTransient<SubmissionsPage>();
             builder.Services.AddTransient<AttendancePage>();
+            builder.Services.AddTransient<CalendarPage>();
             builder.Services.AddTransient<StudentDetailPage>();
             builder.Services.AddTransient<StudentListPage>();
             builder.Services.AddTransient<SettingsViewPage>();

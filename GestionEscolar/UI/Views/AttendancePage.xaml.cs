@@ -1,11 +1,23 @@
-﻿namespace UI.Views
+﻿using UI.ViewModels;
+
+namespace UI.Views
 {
-    // Placeholder sin ViewModel: la vista de Asistencia se implementa más adelante.
     public partial class AttendancePage : ContentPage
     {
-        public AttendancePage()
+        private readonly AttendanceViewModel _viewModel;
+
+        public AttendancePage(AttendanceViewModel viewModel)
         {
             InitializeComponent();
+            _viewModel = viewModel;
+            BindingContext = viewModel;
+        }
+
+        // Carga (o refresca) cada vez que se muestra la página.
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await _viewModel.LoadCommand.ExecuteAsync(null);
         }
     }
 }

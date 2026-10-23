@@ -1,11 +1,23 @@
-﻿namespace UI.Views
+﻿using UI.ViewModels;
+
+namespace UI.Views
 {
-    // Placeholder sin ViewModel: la vista de Entregas se implementa más adelante.
     public partial class SubmissionsPage : ContentPage
     {
-        public SubmissionsPage()
+        private readonly SubmissionsViewModel _viewModel;
+
+        public SubmissionsPage(SubmissionsViewModel viewModel)
         {
             InitializeComponent();
+            _viewModel = viewModel;
+            BindingContext = viewModel;
+        }
+
+        // Carga (o refresca) cada vez que se muestra la página.
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await _viewModel.LoadCommand.ExecuteAsync(null);
         }
     }
 }

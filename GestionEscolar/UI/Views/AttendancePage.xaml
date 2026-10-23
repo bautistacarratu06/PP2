@@ -1,27 +1,127 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<!-- Placeholder: la vista de Asistencia todavía no está implementada. -->
 <ContentPage
     x:Class="UI.Views.AttendancePage"
+    x:DataType="vm:AttendanceViewModel"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Asistencia"
+    xmlns:vm="clr-namespace:UI.ViewModels"
+    xmlns:conv="clr-namespace:UI.Converters"
+    xmlns:models="clr-namespace:GestionEscolar.Core.Models;assembly=GestionEscolar.Core"
     BackgroundColor="{AppThemeBinding Light=#F4F6F8, Dark=#0F172A}"
     Shell.NavBarIsVisible="False"
     Shell.NavBarHasShadow="False">
 
-    <VerticalStackLayout
-        Padding="24,18"
-        Spacing="6">
-        <Label
-            FontFamily="OpenSansSemibold"
-            FontSize="22"
-            Text="Asistencia"
-            TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
-        <Label
-            FontFamily="OpenSansRegular"
-            FontSize="14"
-            Text="Próximamente"
-            TextColor="{AppThemeBinding Light=#5E6772, Dark=#94A3B8}" />
-    </VerticalStackLayout>
+    <ContentPage.Resources>
+        <conv:InvertBoolConverter x:Key="InvertBool" />
+        <Style x:Key="PickerBox" TargetType="Border">
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#111827}" />
+            <Setter Property="Stroke" Value="{AppThemeBinding Light=#E6E9F0, Dark=#334155}" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+            <Setter Property="StrokeThickness" Value="1" />
+        </Style>
+        <Style x:Key="ThemedPicker" TargetType="Picker">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="FontFamily" Value="OpenSansRegular" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
+            <Setter Property="TitleColor" Value="{AppThemeBinding Light=#8B93A7, Dark=#94A3B8}" />
+        </Style>
+        <Style x:Key="ListCard" TargetType="Border">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#111827}" />
+            <Setter Property="Stroke" Value="{AppThemeBinding Light=#E6E9F0, Dark=#334155}" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+            <Setter Property="StrokeThickness" Value="1" />
+        </Style>
+    </ContentPage.Resources>
 
+    <Grid
+        Padding="24,18,24,14"
+        MaximumWidthRequest="1240"
+        RowDefinitions="Auto,Auto,Auto,*"
+        RowSpacing="14">
+
+        <!-- Encabezado: rótulo + título + comisión + clase -->
+        <VerticalStackLayout Grid.Row="0" Spacing="2">
+            <Label
+                CharacterSpacing="1.2"
+                FontFamily="OpenSansSemibold"
+                FontSize="11"
+                Text="ASISTENCIA"
+                TextColor="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" />
+            <Label
+                FontAttributes="Bold"
+                FontSize="24"
+                Text="Registrar asistencia"
+                TextColor="{AppThemeBinding Light=#0B0F1A, Dark=#F8FAFC}" />
+        </VerticalStackLayout>
+
+        <HorizontalStackLayout Grid.Row="1" Spacing="10">
+            <Border Style="{StaticResource PickerBox}">
+                <Picker
+                    Style="{StaticResource ThemedPicker}"
+                    MinimumWidthRequest="180"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBool}}"
+                    ItemDisplayBinding="{Binding Name, x:DataType=models:Section}"
+                    ItemsSource="{Binding Sections}"
+                    SelectedItem="{Binding SelectedSection}"
+                    Title="Comisión" />
+            </Border>
+            <Border Style="{StaticResource PickerBox}">
+                <Picker
+                    Style="{StaticResource ThemedPicker}"
+                    MinimumWidthRequest="140"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBool}}"
+                    ItemsSource="{Binding ClassSessions}"
+                    SelectedItem="{Binding SelectedClassSession}"
+                    Title="Fecha de la clase" />
+            </Border>
+            <ActivityIndicator
+                HeightRequest="18"
+                WidthRequest="18"
+                IsRunning="{Binding IsBusy}"
+                IsVisible="{Binding IsBusy}"
+                Color="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" />
+        </HorizontalStackLayout>
+
+        <VerticalStackLayout Grid.Row="2" Spacing="2">
+            <Label IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" TextColor="#E23D3D" FontSize="13" />
+            <Label IsVisible="{Binding HasStatus}" Text="{Binding StatusMessage}" TextColor="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" FontSize="13" />
+        </VerticalStackLayout>
+
+        <Border Grid.Row="3" Style="{StaticResource ListCard}">
+            <CollectionView ItemsSource="{Binding Rows}" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <Label
+                        Padding="16"
+                        FontSize="13"
+                        Text="No hay clases o alumnos para esta comisión. Agregá clases en Calendario."
+                        TextColor="{AppThemeBinding Light=#8B93A7, Dark=#94A3B8}" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:StatusRow">
+                        <VerticalStackLayout>
+                            <Grid Padding="16,8" ColumnDefinitions="*,Auto">
+                                <Label
+                                    FontSize="14"
+                                    Text="{Binding Name}"
+                                    TextColor="{AppThemeBinding Light=#1A1D23, Dark=#E2E8F0}"
+                                    VerticalOptions="Center" />
+                                <Picker
+                                    Grid.Column="1"
+                                    Style="{StaticResource ThemedPicker}"
+                                    FontSize="13"
+                                    MinimumWidthRequest="130"
+                                    ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type vm:AttendanceViewModel}}, Path=StatusOptions, x:DataType=vm:AttendanceViewModel}"
+                                    SelectedItem="{Binding SelectedStatus}"
+                                    Title="Sin registro" />
+                            </Grid>
+                            <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#EEF0F3, Dark=#334155}" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
+    </Grid>
 </ContentPage>
