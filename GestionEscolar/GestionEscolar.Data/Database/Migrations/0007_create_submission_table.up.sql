@@ -1,8 +1,9 @@
 USE course_tracking;
 GO
 
-IF OBJECT_ID(N'dbo.submission', N'U') IS NOT NULL
-    DROP TABLE dbo.submission;
+-- Comentado: queda deshabilitado hasta separar los scripts DDL de los DML.
+-- IF OBJECT_ID(N'dbo.submission', N'U') IS NOT NULL
+--     DROP TABLE dbo.submission;
 GO
 
 IF OBJECT_ID(N'dbo.submission', N'U') IS NULL

@@ -1,8 +1,9 @@
 USE course_tracking;
 GO
 
-IF OBJECT_ID(N'dbo.intervention', N'U') IS NOT NULL
-    DROP TABLE dbo.intervention;
+-- Comentado: queda deshabilitado hasta separar los scripts DDL de los DML.
+-- IF OBJECT_ID(N'dbo.intervention', N'U') IS NOT NULL
+--     DROP TABLE dbo.intervention;
 GO
 
 IF OBJECT_ID(N'dbo.intervention', N'U') IS NULL

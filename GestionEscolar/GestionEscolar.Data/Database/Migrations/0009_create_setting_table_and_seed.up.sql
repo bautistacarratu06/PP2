@@ -1,8 +1,9 @@
 USE course_tracking;
 GO
 
-IF OBJECT_ID(N'dbo.setting', N'U') IS NOT NULL
-    DROP TABLE dbo.setting;
+-- Comentado: queda deshabilitado hasta separar los scripts DDL de los DML.
+-- IF OBJECT_ID(N'dbo.setting', N'U') IS NOT NULL
+--     DROP TABLE dbo.setting;
 GO
 
 IF OBJECT_ID(N'dbo.setting', N'U') IS NULL

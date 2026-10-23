@@ -265,7 +265,7 @@ sequenceDiagram
 | Script | Qué hace |
 |---|---|
 | `run-tests.cmd` | Recorre todos los `*.Tests.csproj` de la solución y ejecuta `dotnet test` (acepta argumentos extra). Termina con `[SUCCESS]` o `[ERROR]`. |
-| `run-database.cmd` | Ejecuta con `sqlcmd` contra `.\SQLEXPRESS` todas las migraciones de `GestionEscolar.Data\Database\Migrations\*.up.sql` en orden. **Recrea `course_tracking`** con datos de prueba (se pierden los datos cargados) y lista las tablas. |
+| `run-database.cmd` | Ejecuta con `sqlcmd` contra `.\SQLEXPRESS` todas las migraciones de `GestionEscolar.Data\Database\Migrations\*.up.sql` en orden. Ya **no borra nada**: los `DROP DATABASE` / `DROP TABLE` de las migraciones están comentados hasta separar los scripts DDL de los DML. Con el servidor vacío crea `course_tracking`, carga los datos de prueba y lista las tablas. Sobre una base existente, las tablas se saltean (`IF OBJECT_ID(...) IS NULL`), pero el seed de `0010` choca con `uq_section_name` y el script se corta con error: no se pierden datos, aunque tampoco se aplica nada que venga después. Para empezar de cero hay que borrar la base a mano. |
 | `run-desktop.cmd` | Cierra `UI.exe` si está abierto y ejecuta la app (`dotnet run`, target Windows). |
 | `hooks/pre-push.cmd` | Lo usa el hook pre-push. Si `UI.exe` está abierto, avisa y corta; si no, compila la UI y corre los tests. |
 
@@ -291,6 +291,7 @@ Se instalan solos al restaurar o compilar: el target `Husky` de `GestionEscolar.
 - **`ErrorMessage`** de `TrackingViewModel` todavía no está enlazado en el XAML.
 - **Connection string** como constante: si hace falta por entorno, moverla a un `appsettings.json` embebido.
 - **Fórmula de riesgo duplicada** en C# (`ScoringRiskServices`) y en SQL (`SqlRiskSummaryRepository`): hay que mantenerlas sincronizadas.
+- **Migraciones mezclan DDL y DML** (el seed vive en `0010`): los `DROP` quedaron comentados y `run-database.cmd` no se puede re-ejecutar sobre una base con datos. Hay que separar esquema y datos de prueba, con un seed idempotente.
 - **Sin tests de integración** de los repositorios SQL contra la base real, ni tests de `StudentService`.
 
 ## 7. Fuentes

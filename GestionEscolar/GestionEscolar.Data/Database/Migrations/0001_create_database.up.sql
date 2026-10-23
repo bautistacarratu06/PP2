@@ -1,5 +1,6 @@
-IF DB_ID(N'course_tracking') IS NOT NULL
-    DROP DATABASE course_tracking;
+-- Comentado: queda deshabilitado hasta separar los scripts DDL de los DML.
+-- IF DB_ID(N'course_tracking') IS NOT NULL
+--     DROP DATABASE course_tracking;
 GO
 
 IF DB_ID(N'course_tracking') IS NULL

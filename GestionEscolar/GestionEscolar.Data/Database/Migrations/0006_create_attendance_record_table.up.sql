@@ -1,8 +1,9 @@
 USE course_tracking;
 GO
 
-IF OBJECT_ID(N'dbo.attendance_record', N'U') IS NOT NULL
-    DROP TABLE dbo.attendance_record;
+-- Comentado: queda deshabilitado hasta separar los scripts DDL de los DML.
+-- IF OBJECT_ID(N'dbo.attendance_record', N'U') IS NOT NULL
+--     DROP TABLE dbo.attendance_record;
 GO
 
 IF OBJECT_ID(N'dbo.attendance_record', N'U') IS NULL
