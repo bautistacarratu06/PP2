@@ -60,7 +60,7 @@ dotnet format GestionEscolar\GestionEscolar.slnx --verify-no-changes
 ```
 
 - Close `UI.exe` before building; it locks the output DLLs. Alternatively, build elsewhere with `-p:BaseOutputPath=%TEMP%\uibuild\`.
-- **`scripts\run-database.cmd` drops and recreates the database.** Do not run it on a database with data you need. Use `sqlcmd -S .\SQLEXPRESS -d course_tracking -E` for targeted changes and checks.
+- **`scripts\run-database.cmd` no longer drops anything.** The `DROP DATABASE` / `DROP TABLE` statements in the migrations are commented out until DDL and DML scripts are separated. On an empty server it creates and seeds `course_tracking`. On an existing database the table scripts are no-ops (`IF OBJECT_ID(...) IS NULL`), but the seed in `0010` fails on `uq_section_name` and the script stops with an error. Existing data is kept, but no new migration runs after that point. To reset, drop the database manually first, and only if the user asks. Use `sqlcmd -S .\SQLEXPRESS -d course_tracking -E` for targeted changes and checks.
 
 ## Git hooks (Husky.Net)
 
