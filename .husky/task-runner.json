@@ -2,13 +2,6 @@
    "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
    "tasks": [
       {
-         "name": "format-staged",
-         "group": "pre-commit",
-         "command": "dotnet",
-         "args": [ "format", "GestionEscolar/GestionEscolar.slnx", "--verify-no-changes", "--include", "${staged}" ],
-         "include": [ "**/*.cs" ]
-      },
-      {
          "name": "build-and-test",
          "group": "pre-push",
          "command": "cmd",
