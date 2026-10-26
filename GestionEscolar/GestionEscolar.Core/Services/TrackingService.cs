@@ -3,8 +3,9 @@ using GestionEscolar.Core.Models;
 
 namespace GestionEscolar.Core.Services;
 
-// Arma el panel de seguimiento: trae los datos del repositorio y calcula el riesgo
-// de cada alumno con ScoringRiskServices y los umbrales de RiskConfig.
+// Caso de uso de seguimiento: evalúa a cada alumno con la regla de riesgo y devuelve
+// esa lista junto con el resumen Alto/Medio/Bajo contado sobre la misma lista.
+// Umbrales por defecto: 50 y 25.
 public class TrackingService
 {
     private readonly ITrackingRepository _repository;
@@ -16,28 +17,32 @@ public class TrackingService
         _config = config ?? throw new ArgumentNullException(nameof(config));
     }
 
-    public async Task<IReadOnlyList<StudentRiskResult>> GetSectionRiskAsync(int sectionId, CancellationToken cancellationToken = default)
+    public async Task<SectionTracking> GetSectionRiskAsync(int sectionId, CancellationToken cancellationToken = default)
     {
         var rows = await _repository.GetRowsBySectionAsync(sectionId, cancellationToken).ConfigureAwait(false);
-        return rows.Select(Evaluate).ToList();
+        var students = rows.Select(Evaluate).ToList();
+        return new SectionTracking(students, RiskSummary.FromResults(students));
     }
 
-    public StudentRiskResult Evaluate(StudentTrackingData data)
+    private StudentRiskResult Evaluate(StudentTrackingData data)
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        // Cada alumno puede tener totales distintos, así que se arma un scorer por fila.
-        var scorer = new ScoringRiskServices(_config)
-        {
-            TotalClasses = data.TotalClasses,
-            TotalAssignments = data.TotalAssignments
-        };
+        // Dato sucio (más asistencias que clases): se recorta al total. Un total negativo
+        // no se recorta acá: lo rechaza la regla.
+        var attended = data.TotalClasses < 0
+            ? data.AttendedClasses
+            : Math.Clamp(data.AttendedClasses, 0, data.TotalClasses);
+        var submitted = data.TotalAssignments < 0
+            ? data.SubmittedAssignments
+            : Math.Clamp(data.SubmittedAssignments, 0, data.TotalAssignments);
 
-        // Defensivo: si la base trae inconsistencias (más asistencias que clases) no rompemos la grilla.
-        var attended = Math.Clamp(data.AttendedClasses, 0, data.TotalClasses);
-        var submitted = Math.Clamp(data.SubmittedAssignments, 0, data.TotalAssignments);
-
-        var risk = scorer.Calculate(attended, submitted);
-        return new StudentRiskResult(data, risk, scorer.GetRiskLevel(risk));
+        var evaluation = RiskRule.Evaluate(
+            attended,
+            data.TotalClasses,
+            submitted,
+            data.TotalAssignments,
+            _config);
+        return new StudentRiskResult(data, evaluation.Score, evaluation.Level);
     }
 }

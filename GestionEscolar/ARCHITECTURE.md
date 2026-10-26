@@ -12,7 +12,7 @@ Documentos relacionados (en la raíz del repo `PP2/`):
 
 La solución sigue una variante simple de **Clean Architecture** (también llamada "Onion" o "Ports & Adapters"):
 
-- La lógica de negocio vive en un proyecto central (`GestionEscolar.Core`) que no depende de nada.
+- La lógica de negocio vive en un proyecto central (`GestionEscolar.Core`) que no depende de MAUI ni de SQL. Solo referencia las abstracciones de DI para exponer el alta de sus casos de uso.
 - La infraestructura (`GestionEscolar.Data`) y la presentación (`UI`) dependen de Core, y no al revés.
 
 | Proyecto | Tipo | Target |
@@ -49,7 +49,7 @@ graph LR
     Data -. SQL .-> DB[(SQL Server<br/>course_tracking)]
 ```
 
-Todas las flechas apuntan hacia Core. `UI` referencia a `Data` solamente para registrar las implementaciones en el contenedor de inyección de dependencias (la *composition root*, `MauiProgram.cs`).
+Todas las flechas de proyecto apuntan hacia Core. `UI` referencia a `Data` para llamar el alta de infraestructura. Core y Data exponen ese alta; la UI registra ViewModels y páginas.
 
 ## 2. Rol de cada proyecto
 
@@ -67,7 +67,7 @@ Lógica pura: **no conoce MAUI ni SQL**. Por eso se puede testear directamente d
   - `CalendarItem`: ítem de la lista combinada del Calendario. Su `Kind` es un `CalendarItemKind` y su `Name` es `null` en las clases.
   - `AttendanceMark` / `SubmissionMark`: alumno ("Apellido, Nombre") + estado para una clase o un trabajo (`null` = sin registro).
   - `CalendarValidationException`: error de validación con un mensaje listo para mostrar.
-  - `RiskSummary`: cantidad de alumnos Alto/Medio/Bajo (+ `Total`) de una comisión. `RiskSummary.FromResults` cuenta a partir de los resultados de `TrackingService` y sirve de referencia.
+  - `RiskSummary`: cantidad de alumnos Alto/Medio/Bajo (+ `Total`) de una comisión. `RiskSummary.FromResults` cuenta a partir de la lista ya evaluada. `SectionTracking` junta esa lista y el resumen.
   - `RiskConfig`: umbrales de riesgo (`HighThreshold` = 50, `MediumThreshold` = 25).
 - **`Enums/`**:
   - `RiskLevel` (Bajo/Medio/Alto), `AttendanceStatus`, `SubmissionStatus` y `CalendarItemKind` (Clase/Trabajo).
@@ -81,15 +81,15 @@ Lógica pura: **no conoce MAUI ni SQL**. Por eso se puede testear directamente d
   - `ICalendarRepository`: clases y trabajos de una comisión, y sus altas.
   - `IAttendanceRepository` / `ISubmissionRepository`: estado por alumno y upsert.
 - **`Services/`**:
-  - `ScoringRiskServices`: calcula el riesgo (60 % asistencia, 40 % entregas) y el nivel según `RiskConfig`.
-  - `TrackingService`: pide los datos al repositorio y devuelve un `StudentRiskResult` por alumno.
+  - `RiskRule`: cálculo puro. Asistencias, entregas, totales y umbrales entran juntos y devuelven puntaje y nivel (60 % inasistencia, 40 % entregas faltantes, redondeo alejándose de cero).
+  - `TrackingService`: pide las filas al repositorio, evalúa cada alumno con `RiskRule` y devuelve un `SectionTracking` (lista + resumen contado sobre esa lista).
   - `StudentDetailsService`: arma el `StudentDetail` (contacto + historiales de la comisión) desde `IStudentDetailsRepository`.
   - `StudentService`: nómina de una comisión (`GetRosterAsync`).
   - `SectionService`: lista las comisiones y elige la de por defecto (`PickDefault`: la 1 si existe, si no la primera).
   - `CalendarService`:
     - devuelve la lista combinada ordenada por fecha;
-    - `AddClassAsync` no acepta una fecha de clase repetida en la comisión;
-    - `AddAssignmentAsync` exige nombre (se recorta, máx. 120).
+    - `AddClassAsync` consulta `CalendarEntryRules` y no acepta una fecha de clase repetida en la comisión;
+    - `AddAssignmentAsync` consulta `CalendarEntryRules`: exige nombre (se recorta, máx. 120) y guarda la fecha sin hora.
   - `AttendanceService` / `SubmissionService`: clases o trabajos de la comisión, estado por alumno y guardado. `PickDefault` elige la última fecha hasta hoy.
   - `CsvParser` y `StudentCsvImporter`: lectura de CSV.
 
@@ -97,7 +97,7 @@ Lógica pura: **no conoce MAUI ni SQL**. Por eso se puede testear directamente d
 
 Acceso a SQL Server. Implementa las interfaces de Core con SQL parametrizado y async.
 
-- `DatabaseOptions`: contiene la connection string.
+- `DatabaseOptions`: transporta la connection string leída de la configuración (`ConnectionStrings:CourseTracking` en `UI/appsettings.json`).
 - `DatabaseInstance`: fábrica de conexiones (`GetConnection`, `OpenConnectionAsync`), más `TestConnection(Async)` y `ListTables(Async)`. Es singleton por DI, no por un `GetInstance` estático.
 - **`Repositories/`**:
   - `SqlTrackingRepository`: implementa `ITrackingRepository` con subconsultas sobre `class_session`, `attendance_record`, `assignment`, `submission` e `intervention`. Solo devuelve datos; no calcula riesgo.
@@ -110,10 +110,10 @@ Acceso a SQL Server. Implementa las interfaces de Core con SQL parametrizado y a
   - `SqlStudentRepository`: nómina de una comisión desde `dbo.student`, ordenada por apellido.
   - `SqlSectionRepository`: `SELECT id, name FROM dbo.section`.
   - `SqlRiskSummaryRepository`: implementa `IRiskSummaryRepository`.
-    - Cuenta los niveles directamente en SQL **replicando la fórmula de `ScoringRiskServices`**: FLOAT + `ROUND` half away from zero, y asistencias/entregas recortadas al total.
+    - Sigue en el código y en el alta de Data, pero **la pantalla de Seguimiento no lo llama**: las tarjetas salen de `SectionTracking.Summary`.
+    - Cuenta los niveles directamente en SQL **replicando la fórmula de `RiskRule`**: FLOAT + `ROUND` half away from zero, y asistencias/entregas recortadas al total.
     - Recibe los umbrales de `RiskConfig` como parámetros.
     - No usa `vw_student_risk`, porque esa vista calcula sobre los registros del alumno y no sobre los totales de la comisión.
-    - Si cambia la fórmula en Core, hay que actualizar esta query (lo documenta `RiskSummaryTests`).
   - `SqlCalendarRepository`:
     - lectura e `INSERT ... OUTPUT INSERTED.id` en `class_session` / `assignment`;
     - traduce la violación de la UNIQUE (2627/2601) de una clase repetida a `CalendarValidationException`.
@@ -156,9 +156,9 @@ Acceso a SQL Server. Implementa las interfaces de Core con SQL parametrizado y a
 - **`RiskBadge`**: colores por `RiskLevel`, compartidos entre Seguimiento y Detalle.
 - **`Converters/InvertBoolConverter`**: deshabilita los Pickers mientras `IsBusy`.
 - **`MauiProgram.cs`**: *composition root*.
-  - Configuración: `DatabaseOptions` y `RiskConfig` (singleton).
-  - Datos: `DatabaseInstance` y los repositorios (`ITrackingRepository`, `IRiskSummaryRepository`, `ISectionRepository`, `IStudentDetailsRepository`, `IStudentRepository`, `ICalendarRepository`, `IAttendanceRepository`, `ISubmissionRepository`), todos singleton con su implementación `Sql*`.
-  - Transient: los servicios de Core, los ViewModels y las páginas.
+  - Carga `appsettings.json` embebido en la configuración de la app.
+  - Llama `AddGestionEscolarCore()` (casos de uso transient y `RiskConfig` singleton, 50/25) y `AddGestionEscolarData(configuration)` (conexión y repositorios singleton).
+  - La UI sigue registrando ViewModels y páginas como transient.
   - Shell resuelve las páginas por DI, y cada página recibe su ViewModel por constructor.
 - `Seeding/StudentSeeder` + `sample.csv` (recurso embebido): lector del CSV de alumnos. Hoy ningún ViewModel lo usa, porque Nómina lee de SQL.
 
@@ -167,9 +167,9 @@ Acceso a SQL Server. Implementa las interfaces de Core con SQL parametrizado y a
 xUnit sobre Core, sin base de datos:
 
 - **`Fakes/`**: implementaciones en memoria.
-  - `FakeTrackingRepository`, `FakeSectionRepository`, `FakeStudentDetailsRepository`, `FakeCalendarRepository`.
+  - `FakeTrackingRepository`, `FakeSectionRepository`, `FakeStudentRepository`, `FakeStudentDetailsRepository`, `FakeCalendarRepository`.
   - `FakeAttendanceRepository` / `FakeSubmissionRepository`, en `FakeMarksRepositories.cs`.
-- **`Services/`**: `TrackingServiceTests`, `ScoringRiskServicesTests`, `RiskSummaryTests`, `SectionServiceTests`, `StudentDetailsServiceTests`, `CalendarServiceTests`, `AttendanceAndSubmissionServiceTests` y `CsvParserTests`.
+- **`Services/`**: `TrackingServiceTests`, `RiskRuleTests`, `RiskSummaryTests`, `SectionServiceTests`, `StudentDetailsServiceTests`, `StudentServiceTests`, `CalendarServiceTests`, `AttendanceAndSubmissionServiceTests`, `CsvParserTests`, `StudentCsvImporterTests` y `CoreRegistrationTests`.
 
 ## 3. Flujo de ejemplo: Panel de Seguimiento
 
@@ -186,21 +186,17 @@ sequenceDiagram
     R->>DB: SELECT parametrizado (async)
     DB-->>R: filas
     R-->>S: List<StudentTrackingData>
-    S-->>VM: List<StudentRiskResult> (riesgo con ScoringRiskServices + RiskConfig)
-    VM-->>P: FilteredStudents = StudentRow[] (formato + badge)
+    S-->>VM: SectionTracking (lista evaluada con RiskRule + resumen contado sobre esa lista)
+    VM-->>P: FilteredStudents = StudentRow[] (formato + badge) y tarjetas = Summary
 ```
 
 1. `TrackingPage.OnAppearing` ejecuta `LoadCommand`.
    - La primera vez carga las comisiones (`SectionService`) para el `Picker` del encabezado y selecciona la de por defecto sin disparar una recarga extra.
    - Cambiar la comisión en el selector recarga la grilla y las tarjetas para ese `sectionId`. Si llega un cambio mientras `IsBusy`, se recarga al terminar.
    - No se toca la base en el constructor.
-2. `TrackingViewModel.LoadAsync` activa `IsBusy` y llama en paralelo a:
-   - `TrackingService`, para la grilla;
-   - `IRiskSummaryRepository`, para las tarjetas Riesgo Alto/Medio/Bajo (propiedad `Summary`).
-
-   En DEBUG se loguea si el resumen SQL no coincide con `RiskSummary.FromResults` de la grilla.
+2. `TrackingViewModel.LoadAsync` activa `IsBusy` y pide un solo `SectionTracking` a `TrackingService`. La grilla y las tarjetas salen de ese resultado. El ViewModel no recibe un repositorio.
 3. `TrackingService` obtiene los datos a través de `ITrackingRepository`; en runtime, la implementación es `SqlTrackingRepository`.
-4. Para cada alumno calcula `RiskScore` y `RiskLevel`.
+4. Para cada alumno calcula `RiskScore` y `RiskLevel` con `RiskRule`. El resumen cuenta esos niveles.
 5. El ViewModel aplica filtros (nivel de riesgo, "sin contactar") y crea un `StudentRow` por fila.
 6. Al tocar una fila, se navega a `StudentDetailPage`.
    - Se pasa el `StudentRow` con la clave `"Student"`, además de `SectionId` y `SectionName`.
@@ -253,7 +249,7 @@ sequenceDiagram
   - Los repositorios usan `OpenAsync`, `ExecuteReaderAsync` y `ReadAsync`, con parámetros tipados (nunca SQL concatenado).
   - Los ViewModels exponen comandos async con `IsBusy`.
 - **Enums en lugar de strings mágicos.** Se usa `RiskLevel` en lugar de "Alto"/"Medio"/"Bajo", y los valores de la base salen de `DbStatusValues.ToDbValue()`.
-- **Connection string en un único lugar.** Hoy es una constante en `MauiProgram.cs`, inyectada como `DatabaseOptions`.
+- **Connection string en un único lugar.** Se lee de `appsettings.json` (`ConnectionStrings:CourseTracking`) y `DatabaseOptions` la lleva a la infraestructura. Una cadena vacía impide construir la conexión.
 - **Modelos de Core sin formato de UI.** El formato vive en `StudentRow`, `RiskBadge`, `PickerOption` y los ViewModels.
 - **Inyección por constructor.** Nada de `new ViewModel()` en las páginas ni singletons estáticos.
 - **Archivos `.cs` en UTF-8 con BOM.**
@@ -280,7 +276,7 @@ Se instalan solos al restaurar o compilar: el target `Husky` de `GestionEscolar.
 
 ## 6. Pendientes y deuda conocida
 
-- **Umbrales hardcodeados**: `RiskConfig` usa 50/25 fijos. Ajustes solo valida y no persiste. Falta leer y guardar `dbo.setting` (`high_threshold`, `medium_threshold`).
+- **Umbrales hardcodeados**: `RiskConfig` usa 50/25 fijos. Ajustes solo valida y no persiste. Falta leer y guardar `dbo.setting` (`high_threshold`, `medium_threshold`). Este corte no agrega ese puerto.
 - **Detalle del alumno**: "Registrar contacto" muestra un alerta "Todavía no está implementado" (falta el formulario de intervención).
 - **Nómina**:
   - siempre carga la comisión 1 (no tiene selector de comisión);
@@ -289,10 +285,9 @@ Se instalan solos al restaurar o compilar: el target `Husky` de `GestionEscolar.
 - **Calendario**: solo permite agregar. No se pueden editar ni borrar clases o trabajos.
 - **Formato**: `dotnet format --verify-no-changes` marca espacios en blanco en `StudentService.cs` y `SqlStudentRepository.cs`. El pre-commit los va a frenar cuando se commiteen.
 - **`ErrorMessage`** de `TrackingViewModel` todavía no está enlazado en el XAML.
-- **Connection string** como constante: si hace falta por entorno, moverla a un `appsettings.json` embebido.
-- **Fórmula de riesgo duplicada** en C# (`ScoringRiskServices`) y en SQL (`SqlRiskSummaryRepository`): hay que mantenerlas sincronizadas.
+- **Fórmula de riesgo duplicada** en C# (`RiskRule`, la usa la pantalla) y en SQL (`SqlRiskSummaryRepository`, ya no está en el camino de Seguimiento). La vista `vw_student_risk` no se usa para las tarjetas.
 - **Migraciones mezclan DDL y DML** (el seed vive en `0010`): los `DROP` quedaron comentados y `run-database.cmd` no se puede re-ejecutar sobre una base con datos. Hay que separar esquema y datos de prueba, con un seed idempotente.
-- **Sin tests de integración** de los repositorios SQL contra la base real, ni tests de `StudentService`.
+- **Sin tests de integración** de los repositorios SQL contra la base real. `StudentService` se prueba con `FakeStudentRepository`.
 
 ## 7. Fuentes
 

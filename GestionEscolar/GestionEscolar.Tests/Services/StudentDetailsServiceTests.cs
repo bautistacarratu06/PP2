@@ -22,7 +22,7 @@ public class StudentDetailsServiceTests
     }
 
     [Fact]
-    public async Task GetAsync_ComposesHistoriesForRequestedSection()
+    public async Task Given_RequestedSection_When_GettingDetail_Then_HistoriesBelongToThatSection()
     {
         var repo = Repo();
         var detail = await new StudentDetailsService(repo).GetAsync(2, sectionId: 1);
@@ -37,7 +37,7 @@ public class StudentDetailsServiceTests
     }
 
     [Fact]
-    public async Task GetAsync_WithoutSection_UsesStudentSection()
+    public async Task Given_NoSection_When_GettingDetail_Then_UsesStudentSection()
     {
         var repo = Repo();
 
@@ -47,7 +47,7 @@ public class StudentDetailsServiceTests
     }
 
     [Fact]
-    public async Task GetAsync_StudentWithoutRecords_ReturnsEmptyLists()
+    public async Task Given_StudentWithoutRecords_When_GettingDetail_Then_ListsAreEmpty()
     {
         var detail = await new StudentDetailsService(Repo()).GetAsync(15, 1);
 
@@ -58,7 +58,7 @@ public class StudentDetailsServiceTests
     }
 
     [Fact]
-    public async Task GetAsync_UnknownStudent_ReturnsNull()
+    public async Task Given_UnknownStudent_When_GettingDetail_Then_ReturnsNull()
     {
         Assert.Null(await new StudentDetailsService(Repo()).GetAsync(999, 1));
     }
@@ -67,7 +67,7 @@ public class StudentDetailsServiceTests
     [InlineData("presente", AttendanceStatus.Presente)]
     [InlineData("ausente", AttendanceStatus.Ausente)]
     [InlineData(null, null)]
-    public void ParseAttendanceStatus_MapsDbValues(string? db, AttendanceStatus? expected)
+    public void Given_AttendanceDbValue_When_Parsing_Then_MapsToEnum(string? db, AttendanceStatus? expected)
     {
         Assert.Equal(expected, DbStatusValues.ParseAttendanceStatus(db));
     }
@@ -76,13 +76,13 @@ public class StudentDetailsServiceTests
     [InlineData("entregó", SubmissionStatus.Entrego)]
     [InlineData("no entregó", SubmissionStatus.NoEntrego)]
     [InlineData(null, null)]
-    public void ParseSubmissionStatus_MapsDbValues(string? db, SubmissionStatus? expected)
+    public void Given_SubmissionDbValue_When_Parsing_Then_MapsToEnum(string? db, SubmissionStatus? expected)
     {
         Assert.Equal(expected, DbStatusValues.ParseSubmissionStatus(db));
     }
 
     [Fact]
-    public void Intervention_Description_IncludesNote()
+    public void Given_InterventionWithNote_When_ReadingDescription_Then_IncludesNote()
     {
         var i = new Intervention { Outcome = "No contestó", Note = "reintentar" };
         Assert.Equal("No contestó (reintentar)", i.Description);

@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿
+using System.Data;
 using GestionEscolar.Core.Enums;
 using GestionEscolar.Core.Interfaces;
 using GestionEscolar.Core.Models;
@@ -9,8 +10,7 @@ namespace GestionEscolar.Data.Repositories;
 // Solo trae datos de la DB.
 public sealed class SqlStudentRepository : IStudentRepository
 {
-    // Un registro por alumno de la comisión
-
+    // Un registro por alumno de la comisión.
     private const string Sql = @"
 SELECT
     s.id,
@@ -29,21 +29,30 @@ ORDER BY s.last_name, s.first_name;";
         _db = db ?? throw new ArgumentNullException(nameof(db));
     }
 
-    public async Task<IReadOnlyList<Student>> GetRosterAsync(int sectionId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Student>> GetRosterAsync(
+        int sectionId,
+        CancellationToken cancellationToken = default)
     {
         var rows = new List<Student>();
 
-        await using var conn = await _db.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        await using var conn = await _db
+            .OpenConnectionAsync(cancellationToken)
+            .ConfigureAwait(false);
+
         await using var cmd = new SqlCommand(Sql, conn);
         cmd.Parameters.Add("@sectionId", SqlDbType.Int).Value = sectionId;
-        cmd.Parameters.Add("@presentStatus", SqlDbType.NVarChar, 10).Value = AttendanceStatus.Presente.ToDbValue();
-        cmd.Parameters.Add("@submittedStatus", SqlDbType.NVarChar, 12).Value = SubmissionStatus.Entrego.ToDbValue();
+        cmd.Parameters.Add("@presentStatus", SqlDbType.NVarChar, 10).Value =
+            AttendanceStatus.Presente.ToDbValue();
+        cmd.Parameters.Add("@submittedStatus", SqlDbType.NVarChar, 12).Value =
+            SubmissionStatus.Entrego.ToDbValue();
 
-        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        await using var reader = await cmd
+            .ExecuteReaderAsync(cancellationToken)
+            .ConfigureAwait(false);
+
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
             rows.Add(
-            
                 new Student
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),

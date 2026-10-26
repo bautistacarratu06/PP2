@@ -8,7 +8,7 @@ namespace GestionEscolar.Data.Repositories;
 
 // Cuenta alumnos por nivel de riesgo directamente en SQL.
 //
-// IMPORTANTE: replica la fórmula de ScoringRiskServices (Core) para que las tarjetas
+// IMPORTANTE: replica la fórmula de RiskRule (Core) para que las tarjetas
 // coincidan con la grilla:
 //   riesgo = ROUND(((totalClases - asistidas) / totalClases * 0.6
 //                 + (totalTrabajos - entregados) / totalTrabajos * 0.4) * 100)
@@ -19,7 +19,7 @@ namespace GestionEscolar.Data.Repositories;
 // Los umbrales llegan como parámetros desde RiskConfig (no están hardcodeados en la query).
 // No usa dbo.vw_student_risk porque esa vista calcula sobre los registros cargados del alumno,
 // no sobre el total de clases/trabajos de la comisión, y daría otros números.
-// Si cambia la fórmula en ScoringRiskServices, hay que cambiarla acá también.
+// Si cambia la fórmula en RiskRule, hay que cambiarla acá también.
 public sealed class SqlRiskSummaryRepository : IRiskSummaryRepository
 {
     public const string Sql = @"

@@ -5,7 +5,7 @@ namespace UI.ViewModels
 {
     // TODO: Solo UI por ahora. Los umbrales están hardcodeados y no se persisten.
     // Más adelante conectar con la base de datos (high_threshold, medium_threshold)
-    // y con ScoringRiskServices, que hoy también los tiene fijos en 50 y 25.
+    // y con RiskRule, que hoy también los tiene fijos en 50 y 25.
     public partial class SettingsViewModel : ObservableObject
     {
         [ObservableProperty]

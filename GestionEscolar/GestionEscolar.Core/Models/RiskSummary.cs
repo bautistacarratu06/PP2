@@ -9,8 +9,7 @@ public sealed record RiskSummary(int High, int Medium, int Low)
 
     public int Total => High + Medium + Low;
 
-    // Cuenta a partir de los resultados calculados en C# (TrackingService).
-    // Sirve como referencia: SqlRiskSummaryRepository tiene que dar lo mismo.
+    // Cuenta los niveles de la lista ya evaluada. Las tarjetas de Seguimiento usan este conteo.
     public static RiskSummary FromResults(IEnumerable<StudentRiskResult> results)
     {
         ArgumentNullException.ThrowIfNull(results);

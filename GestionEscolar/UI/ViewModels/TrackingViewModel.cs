@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionEscolar.Core.Enums;
-using GestionEscolar.Core.Interfaces;
 using GestionEscolar.Core.Models;
 using GestionEscolar.Core.Services;
 
@@ -22,13 +21,11 @@ namespace UI.ViewModels
         };
 
         private readonly TrackingService _trackingService;
-        private readonly IRiskSummaryRepository _riskSummaryRepository;
         private readonly SectionService _sectionService;
 
-        public TrackingViewModel(TrackingService trackingService, IRiskSummaryRepository riskSummaryRepository, SectionService sectionService)
+        public TrackingViewModel(TrackingService trackingService, SectionService sectionService)
         {
             _trackingService = trackingService;
-            _riskSummaryRepository = riskSummaryRepository;
             _sectionService = sectionService;
             SelectedRisk = AllFilter;
         }
@@ -48,7 +45,7 @@ namespace UI.ViewModels
 
         public IReadOnlyList<string> RiskFilterOptions { get; } = RiskFilters.Keys.ToList();
 
-        // Tarjetas Alto / Medio / Bajo: vienen de SqlRiskSummaryRepository (misma fórmula y umbrales que la grilla).
+        // Tarjetas Alto / Medio / Bajo: salen del mismo resultado que la grilla.
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(HighRiskCount), nameof(MediumRiskCount), nameof(LowRiskCount))]
         public partial RiskSummary Summary { get; set; } = RiskSummary.Empty;
@@ -145,26 +142,16 @@ namespace UI.ViewModels
                     ErrorMessage = string.Empty;
                     try
                     {
-                        var resultsTask = _trackingService.GetSectionRiskAsync(section.Id);
-                        var summaryTask = _riskSummaryRepository.GetSummaryBySectionAsync(section.Id);
-                        await Task.WhenAll(resultsTask, summaryTask);
-                        var results = resultsTask.Result;
+                        var tracking = await _trackingService.GetSectionRiskAsync(section.Id);
 
                         // Si mientras tanto cambió la comisión, descartamos este resultado.
                         if (_reloadPending)
                             continue;
 
-                        Summary = summaryTask.Result;
-
-#if DEBUG
-                        // Chequeo de consistencia: el resumen SQL debe coincidir con los niveles de la grilla.
-                        var expected = RiskSummary.FromResults(results);
-                        if (expected != Summary)
-                            System.Diagnostics.Debug.WriteLine($"[RiskSummary] SQL {Summary} != grilla {expected}");
-#endif
+                        Summary = tracking.Summary;
 
                         Students.Clear();
-                        foreach (var result in results)
+                        foreach (var result in tracking.Students)
                             Students.Add(result);
                     }
                     catch (Exception ex)

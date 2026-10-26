@@ -5,7 +5,7 @@ namespace GestionEscolar.Tests.Services;
 public class CsvParserTests
 {
     [Fact]
-    public void ParseLine_SimpleLine_ReturnsFields()
+    public void Given_SimpleLine_When_Parsing_Then_ReturnsFields()
     {
         var line = "Juan,20,Buenos Aires";
 
@@ -18,7 +18,7 @@ public class CsvParserTests
     }
 
     [Fact]
-    public void ParseLine_CommaInsideQuotes_DoesNotSplitField()
+    public void Given_CommaInsideQuotes_When_Parsing_Then_DoesNotSplitField()
     {
         var line = "Juan,\"Buenos Aires, Argentina\",20";
 
@@ -31,7 +31,7 @@ public class CsvParserTests
     }
 
     [Fact]
-    public void ParseLine_EscapedQuotes_ReturnsLiteralQuotes()
+    public void Given_EscapedQuotes_When_Parsing_Then_ReturnsLiteralQuotes()
     {
         var line = "Juan,\"Dijo \"\"hola\"\"\"";
 
@@ -44,7 +44,7 @@ public class CsvParserTests
     }
 
     [Fact]
-    public void ParseLine_EmptyFields_PreservesEmptyFields()
+    public void Given_EmptyFields_When_Parsing_Then_PreservesEmptyFields()
     {
         var line = "Juan,,20,";
 
@@ -57,7 +57,7 @@ public class CsvParserTests
     }
 
     [Fact]
-    public void ParseLine_EmptyLine_ReturnsOneEmptyField()
+    public void Given_EmptyLine_When_Parsing_Then_ReturnsOneEmptyField()
     {
         var line = "";
 

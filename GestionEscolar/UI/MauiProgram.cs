@@ -1,8 +1,6 @@
-﻿using GestionEscolar.Core.Interfaces;
-using GestionEscolar.Core.Models;
-using GestionEscolar.Core.Services;
+﻿using GestionEscolar.Core;
 using GestionEscolar.Data;
-using GestionEscolar.Data.Repositories;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UI.ViewModels;
 using UI.Views;
@@ -11,11 +9,6 @@ namespace UI
 {
     public static class MauiProgram
     {
-        // Único lugar donde se define la conexión a la base.
-        // TODO: moverla a un appsettings.json embebido si hace falta cambiarla por entorno.
-        private const string ConnectionString =
-            "Server=.\\SQLEXPRESS;Database=course_tracking;Trusted_Connection=True;TrustServerCertificate=True;";
-
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
@@ -27,35 +20,10 @@ namespace UI
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-            // Configuración
-            builder.Services.AddSingleton(new DatabaseOptions { ConnectionString = ConnectionString });
-            builder.Services.AddSingleton(new RiskConfig()); // 50 / 25, hardcodeado por ahora
+            LoadAppSettings(builder);
 
-            // Datos
-            builder.Services.AddSingleton<DatabaseInstance>();
-            builder.Services.AddSingleton<ITrackingRepository, SqlTrackingRepository>();
-            builder.Services.AddSingleton<IRiskSummaryRepository, SqlRiskSummaryRepository>();
-            builder.Services.AddSingleton<ISectionRepository, SqlSectionRepository>();
-            builder.Services.AddSingleton<IStudentDetailsRepository, SqlStudentDetailsRepository>();
-
-            // New Student
-            builder.Services.AddSingleton<IStudentRepository, SqlStudentRepository>();
-
-            // Calendario, Asistencia y Entregas
-            builder.Services.AddSingleton<ICalendarRepository, SqlCalendarRepository>();
-            builder.Services.AddSingleton<IAttendanceRepository, SqlAttendanceRepository>();
-            builder.Services.AddSingleton<ISubmissionRepository, SqlSubmissionRepository>();
-
-            // Servicios
-            builder.Services.AddTransient<TrackingService>();
-            builder.Services.AddTransient<SectionService>();
-            builder.Services.AddTransient<StudentDetailsService>();
-
-            // New Student
-            builder.Services.AddTransient<StudentService>();
-            builder.Services.AddTransient<CalendarService>();
-            builder.Services.AddTransient<AttendanceService>();
-            builder.Services.AddTransient<SubmissionService>();
+            builder.Services.AddGestionEscolarCore();
+            builder.Services.AddGestionEscolarData(builder.Configuration);
 
             // ViewModels
             builder.Services.AddTransient<TrackingViewModel>();
@@ -81,6 +49,19 @@ namespace UI
 #endif
 
             return builder.Build();
+        }
+
+        // appsettings.json embebido. El valor de desarrollo apunta al SQL Server local
+        // (.\SQLEXPRESS, base course_tracking, conexión de confianza).
+        private static void LoadAppSettings(MauiAppBuilder builder)
+        {
+            using var resource = typeof(MauiProgram).Assembly.GetManifestResourceStream("UI.appsettings.json")
+                ?? throw new InvalidOperationException("Falta appsettings.json.");
+
+            var copy = new MemoryStream();
+            resource.CopyTo(copy);
+            copy.Position = 0;
+            builder.Configuration.AddJsonStream(copy);
         }
     }
 }

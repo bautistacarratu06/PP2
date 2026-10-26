@@ -21,7 +21,7 @@ public class CalendarServiceTests
     }
 
     [Fact]
-    public async Task GetItemsAsync_MergesAndSortsByDate_ClassBeforeAssignment()
+    public async Task Given_ClassesAndAssignments_When_Listing_Then_OrderedByDateClassFirst()
     {
         var items = await new CalendarService(Repo()).GetItemsAsync(1);
 
@@ -32,7 +32,7 @@ public class CalendarServiceTests
     }
 
     [Fact]
-    public async Task AddClassAsync_DuplicateDateInSection_Throws()
+    public async Task Given_ClassOnSameDayInSection_When_AddingAnother_Then_RejectedAndNotInserted()
     {
         var repo = Repo();
         var ex = await Assert.ThrowsAsync<CalendarValidationException>(
@@ -43,7 +43,7 @@ public class CalendarServiceTests
     }
 
     [Fact]
-    public async Task AddClassAsync_SameDateOtherSection_IsAllowed()
+    public async Task Given_SameDateInOtherSection_When_AddingClass_Then_Inserted()
     {
         var repo = Repo();
         await new CalendarService(repo).AddClassAsync(2, D2);
@@ -55,21 +55,21 @@ public class CalendarServiceTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task AddAssignmentAsync_NameRequired(string? name)
+    public async Task Given_BlankAssignmentName_When_Adding_Then_Rejected(string? name)
     {
         await Assert.ThrowsAsync<CalendarValidationException>(
             () => new CalendarService(Repo()).AddAssignmentAsync(1, name, D1));
     }
 
     [Fact]
-    public async Task AddAssignmentAsync_TooLongName_Throws()
+    public async Task Given_NameLongerThan120_When_AddingAssignment_Then_Rejected()
     {
         await Assert.ThrowsAsync<CalendarValidationException>(
             () => new CalendarService(Repo()).AddAssignmentAsync(1, new string('x', 121), D1));
     }
 
     [Fact]
-    public async Task AddAssignmentAsync_TrimsNameAndDropsTime()
+    public async Task Given_SpacedNameAndTime_When_AddingAssignment_Then_StoresTrimmedNameAndDateOnly()
     {
         var repo = Repo();
         await new CalendarService(repo).AddAssignmentAsync(1, "  TP 2  ", D1.AddHours(15));

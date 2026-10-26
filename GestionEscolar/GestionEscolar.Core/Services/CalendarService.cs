@@ -4,11 +4,10 @@ using GestionEscolar.Core.Models;
 
 namespace GestionEscolar.Core.Services;
 
-// Calendario de una comisión: lista combinada de clases y trabajos y alta con validación.
+// Calendario de una comisión: lista combinada de clases y trabajos.
+// La fecha de clase y el nombre del trabajo se validan en CalendarEntryRules antes de guardar.
 public class CalendarService
 {
-    public const int MaxAssignmentNameLength = 120; // dbo.assignment.name NVARCHAR(120)
-
     private readonly ICalendarRepository _repository;
 
     public CalendarService(ICalendarRepository repository)
@@ -34,22 +33,15 @@ public class CalendarService
 
     public async Task<int> AddClassAsync(int sectionId, DateTime date, CancellationToken cancellationToken = default)
     {
-        var day = date.Date;
         var sessions = await _repository.GetClassSessionsAsync(sectionId, cancellationToken).ConfigureAwait(false);
-        if (sessions.Any(s => s.Date.Date == day))
-            throw new CalendarValidationException($"Ya hay una clase el {day:dd/MM/yyyy} en esta comisión.");
+        var day = CalendarEntryRules.ClassDay(date, sessions.Select(s => s.Date));
 
         return await _repository.AddClassSessionAsync(sectionId, day, cancellationToken).ConfigureAwait(false);
     }
 
     public Task<int> AddAssignmentAsync(int sectionId, string? name, DateTime dueDate, CancellationToken cancellationToken = default)
     {
-        var trimmed = name?.Trim() ?? string.Empty;
-        if (trimmed.Length == 0)
-            throw new CalendarValidationException("El trabajo necesita un nombre.");
-        if (trimmed.Length > MaxAssignmentNameLength)
-            throw new CalendarValidationException($"El nombre no puede superar {MaxAssignmentNameLength} caracteres.");
-
-        return _repository.AddAssignmentAsync(sectionId, trimmed, dueDate.Date, cancellationToken);
+        var trimmed = CalendarEntryRules.AssignmentName(name);
+        return _repository.AddAssignmentAsync(sectionId, trimmed, CalendarEntryRules.DueDay(dueDate), cancellationToken);
     }
 }

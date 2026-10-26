@@ -21,4 +21,9 @@
     <Exec Command="dotnet husky install" WorkingDirectory="$(HuskyRepoRoot)" StandardOutputImportance="Low" StandardErrorImportance="High" />
   </Target>
 
+  <!-- Solo para exponer el alta de los casos de uso. Core sigue sin MAUI y sin SQL. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
 </Project>
