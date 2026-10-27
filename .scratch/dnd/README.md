@@ -1,10 +1,8 @@
 # Carga de una comisión desde un CSV
 
-Tareas locales del asistente de carga. El archivo se elige con un botón. Soltar el CSV queda para el final.
+Dos cortes. El primero carga una comisión nueva: el archivo entra con un botón o soltándolo. El segundo reporta la importación sobre una comisión que ya existe y deja resolver cada conflicto, omitiendo o fusionando.
 
 Un alumno entra en conflicto si su DNI ya está guardado o si su legajo ya está en la comisión. El DNI identifica al alumno en toda la base. El legajo se repite solo dentro de la comisión.
 
 - [01 — Cargar una comisión nueva desde un CSV](01-cargar-comision-nueva-desde-csv.md) — sin bloqueo
-- [02 — Agregar alumnos a una comisión existente, omitiendo duplicados](02-append-comision-existente-omitiendo-duplicados.md) — bloqueada por 01
-- [03 — Fusionar los duplicados en el mismo paso](03-fusionar-duplicados-al-cargar-csv.md) — bloqueada por 02
-- [04 — Soltar el CSV sobre el asistente](04-soltar-csv-sobre-el-asistente.md) — bloqueada por 01
+- [02 — Reportar la importación y resolver cada conflicto](02-reportar-importacion-y-resolver-conflictos.md) — bloqueada por 01

@@ -24,7 +24,7 @@ The git root is this folder. The solution is `GestionEscolar/GestionEscolar.slnx
 | `GestionEscolar/GestionEscolar.Data` | SQL Server via Entity Framework (`Persistence/CourseTrackingDbContext`, `Repositories/Ef*Repository.cs`). |
 | `GestionEscolar/GestionEscolar.Data/Migrations` | EF Core migrations. New schema changes go here. |
 | `GestionEscolar/GestionEscolar.Data/Database/Migrations` | Historical `0001`–`0010` `*.up.sql` scripts. Do not edit them and do not add new ones. |
-| `GestionEscolar/UI` | MAUI Shell app: `Views/` (XAML), `ViewModels/` (CommunityToolkit.Mvvm), `Converters/`, `MauiProgram.cs` (DI), `AppShell.xaml` (flyout). |
+| `GestionEscolar/UI` | MAUI Shell app: `Views/` (XAML), `ViewModels/` (CommunityToolkit.Mvvm), `Controls/` (reusable controls), `Converters/`, `Resources/Styles/` (tokens and named styles), `MauiProgram.cs` (DI), `AppShell.xaml` (sidebar). |
 | `GestionEscolar/GestionEscolar.Tests` | xUnit tests for Core, using in-memory fakes in `Fakes/`. |
 | `GestionEscolar/GestionEscolar.Data.Tests` | xUnit tests for the EF repositories against SQL Server Express. |
 | `scripts/` | `run-tests.cmd`, `run-database.cmd`, `run-desktop.cmd`, `hooks/pre-push.cmd`. |
@@ -35,7 +35,7 @@ The git root is this folder. The solution is `GestionEscolar/GestionEscolar.slnx
 - No SQL in ViewModels or Views. ViewModels call Core services. Services depend on Core interfaces, which are implemented in Data.
 - Register everything in `UI/MauiProgram.cs`:
   - repositories as singletons;
-  - services, ViewModels and pages as transient.
+  - services, ViewModels and pages as transient. `SectionSelection` is the exception: a UI singleton for the commission shared by every screen.
   - Shell resolves pages through DI.
 - Data access goes through Entity Framework in `GestionEscolar.Data`:
   - async all the way (`async`/`await` with `CancellationToken`);
@@ -78,11 +78,14 @@ Do not bypass the hooks with `--no-verify` unless the user asks.
 
 - UI text is in Spanish (e.g. "Comisión", "Registrar asistencia"). Code identifiers are in English; comments are mostly in Spanish. Follow the surrounding file.
 - `.cs` files: UTF-8 with BOM. Keep each file's existing line endings.
-- XAML styling:
-  - `AppThemeBinding` for light/dark;
-  - teal accent (`#0F766E` / `#5EEAD4`);
-  - rounded `Border` cards.
-- Student names display as "Apellido, Nombre".
+- UI look, for every new screen or control:
+  - One dark theme. Colors come from `UI/Resources/Styles/Colors.xaml` (`Bg`, `Side`, `Surface`, `Raised`, `Line`, `TextPrimary`, `TextSecondary`, `TextTertiary`, `Accent`, `Danger`, `Warning`, `Success`). Do not hardcode hex in new pages, and do not bring back navy or teal.
+  - Type: Inter (`Inter`, `InterMedium`, `InterSemibold`, `InterBold`) and JetBrains Mono (`JetBrainsMono`) for student numbers, phones, and dates.
+  - Reuse `UI/Controls` (`PageShell`, `SidebarView`, `SectionPicker`, `SearchBox`, `Avatar`, `Icon`, `Meter`, `RiskPill`, `StatusPill`, `SegmentedControl`, `KpiCard`, `FilterChips`, `HoverRow`) and the named styles in `UI/Resources/Styles/Styles.xaml` (`Card`, `FieldBorder`, `PrimaryButton`, `GhostButton`, `LinkButton`, `PageTitle`, `PageSubtitle`, `ColumnHeader`, `Mono`). New chrome goes through `PageShell`, not a private title.
+  - Cards are a `Border` with a 14px radius and a 1px stroke. No `Frame`, no drop shadow.
+  - List names are "Apellido, Nombre" via `UI/Formatting/PersonName`. The detail subtitle is "Nombre Apellido · legajo".
+  - The chosen commission is the `UI.Services.SectionSelection` singleton. Screens subscribe to it; they do not hardcode a section id.
+  - Visual reference: `.scratch/look-and-feel/` (`Gestión Escolar · Mockup.html`, `ui-revamp.md`, `component-guide.md`, and `issues/`).
 
 ## Git rules
 

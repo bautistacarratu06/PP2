@@ -4,152 +4,70 @@
     x:DataType="vm:CalendarViewModel"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:UI.Controls"
     xmlns:vm="clr-namespace:UI.ViewModels"
-    xmlns:conv="clr-namespace:UI.Converters"
-    xmlns:models="clr-namespace:GestionEscolar.Core.Models;assembly=GestionEscolar.Core"
-    BackgroundColor="{AppThemeBinding Light=#F4F6F8, Dark=#0F172A}"
-    Shell.NavBarIsVisible="False"
-    Shell.NavBarHasShadow="False">
+    Shell.NavBarIsVisible="False">
 
-    <ContentPage.Resources>
-        <conv:InvertBoolConverter x:Key="InvertBool" />
-        <Style x:Key="PickerBox" TargetType="Border">
-            <Setter Property="Padding" Value="10,0" />
-            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#111827}" />
-            <Setter Property="Stroke" Value="{AppThemeBinding Light=#E6E9F0, Dark=#334155}" />
-            <Setter Property="StrokeShape" Value="RoundRectangle 10" />
-            <Setter Property="StrokeThickness" Value="1" />
-        </Style>
-        <Style x:Key="ThemedPicker" TargetType="Picker">
-            <Setter Property="BackgroundColor" Value="Transparent" />
-            <Setter Property="FontFamily" Value="OpenSansRegular" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="TextColor" Value="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
-            <Setter Property="TitleColor" Value="{AppThemeBinding Light=#8B93A7, Dark=#94A3B8}" />
-        </Style>
-        <Style x:Key="ListCard" TargetType="Border">
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=White, Dark=#111827}" />
-            <Setter Property="Stroke" Value="{AppThemeBinding Light=#E6E9F0, Dark=#334155}" />
-            <Setter Property="StrokeShape" Value="RoundRectangle 14" />
-            <Setter Property="StrokeThickness" Value="1" />
-        </Style>
-    </ContentPage.Resources>
-
-    <Grid
-        Padding="24,18,24,14"
-        MaximumWidthRequest="1240"
-        RowDefinitions="Auto,Auto,Auto,Auto,*"
-        RowSpacing="14">
-
-        <!-- Encabezado: rótulo + título + comisión -->
-        <VerticalStackLayout Grid.Row="0" Spacing="2">
-            <Label
-                CharacterSpacing="1.2"
-                FontFamily="OpenSansSemibold"
-                FontSize="11"
-                Text="CALENDARIO"
-                TextColor="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" />
-            <Label
-                FontAttributes="Bold"
-                FontSize="24"
-                Text="Clases y trabajos"
-                TextColor="{AppThemeBinding Light=#0B0F1A, Dark=#F8FAFC}" />
-        </VerticalStackLayout>
-
-        <HorizontalStackLayout Grid.Row="1" Spacing="10">
-            <Border Style="{StaticResource PickerBox}">
-                <Picker
-                    Style="{StaticResource ThemedPicker}"
-                    MinimumWidthRequest="180"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBool}}"
-                    ItemDisplayBinding="{Binding Name, x:DataType=models:Section}"
-                    ItemsSource="{Binding Sections}"
-                    SelectedItem="{Binding SelectedSection}"
-                    Title="Comisión" />
+    <controls:PageShell Title="Calendario" Subtitle="Clases y trabajos de la comisión.">
+        <VerticalStackLayout Spacing="16">
+            <Border Style="{StaticResource Card}">
+                <Grid Padding="16,14" ColumnDefinitions="160,*,180,Auto" ColumnSpacing="12">
+                    <Border Style="{StaticResource FieldBorder}">
+                        <Picker ItemsSource="{Binding TypeOptions}" SelectedItem="{Binding SelectedType}" />
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource FieldBorder}">
+                        <Entry Placeholder="{Binding NamePlaceholder}" Text="{Binding NewName}" />
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource FieldBorder}">
+                        <DatePicker Date="{Binding NewDate}" Format="dd/MM/yyyy" />
+                    </Border>
+                    <Button
+                        Grid.Column="3"
+                        Command="{Binding AddCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Text="Agregar" />
+                </Grid>
             </Border>
-            <ActivityIndicator
-                HeightRequest="18"
-                WidthRequest="18"
-                IsRunning="{Binding IsBusy}"
-                IsVisible="{Binding IsBusy}"
-                Color="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" />
-        </HorizontalStackLayout>
 
-        <!-- Alta: tipo + nombre + fecha + Agregar -->
-        <Border Grid.Row="2" Padding="12,8" Style="{StaticResource ListCard}">
-            <Grid ColumnDefinitions="140,*,Auto,Auto" ColumnSpacing="12">
-                <Picker
-                    Style="{StaticResource ThemedPicker}"
-                    ItemsSource="{Binding TypeOptions}"
-                    SelectedItem="{Binding SelectedType}"
-                    VerticalOptions="Center" />
-                <Entry
-                    Grid.Column="1"
-                    BackgroundColor="Transparent"
-                    FontSize="14"
-                    IsEnabled="{Binding IsAssignment}"
-                    MaxLength="120"
-                    Placeholder="{Binding NamePlaceholder}"
-                    PlaceholderColor="{AppThemeBinding Light=#8B93A7, Dark=#94A3B8}"
-                    Text="{Binding NewName}"
-                    TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}"
-                    VerticalOptions="Center" />
-                <DatePicker
-                    Grid.Column="2"
-                    Date="{Binding NewDate}"
-                    Format="dd/MM/yyyy"
-                    FontSize="14"
-                    TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}"
-                    VerticalOptions="Center" />
-                <Button
-                    Grid.Column="3"
-                    Padding="16,8"
-                    BackgroundColor="{AppThemeBinding Light=#0F766E, Dark=#14B8A6}"
-                    Command="{Binding AddCommand}"
-                    CornerRadius="8"
-                    FontFamily="OpenSansSemibold"
-                    FontSize="13"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBool}}"
-                    Text="Agregar"
-                    TextColor="White" />
-            </Grid>
-        </Border>
+            <Label IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" TextColor="{StaticResource Danger}" />
+            <Label IsVisible="{Binding HasStatus}" Text="{Binding StatusMessage}" TextColor="{StaticResource TextTertiary}" />
 
-        <VerticalStackLayout Grid.Row="3" Spacing="2">
-            <Label IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" TextColor="#E23D3D" FontSize="13" />
-            <Label IsVisible="{Binding HasStatus}" Text="{Binding StatusMessage}" TextColor="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" FontSize="13" />
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CalendarRow">
+                            <VerticalStackLayout>
+                                <controls:HoverRow Padding="20,0" ColumnDefinitions="*,Auto,110" ColumnSpacing="12" HeightRequest="54">
+                                    <Label FontFamily="InterSemibold" Text="{Binding Name}" VerticalOptions="Center" />
+                                    <controls:StatusPill
+                                        Grid.Column="1"
+                                        Kind="{Binding KindKey}"
+                                        Text="{Binding Kind}"
+                                        VerticalOptions="Center" />
+                                    <Label
+                                        Grid.Column="2"
+                                        FontFamily="JetBrainsMono"
+                                        FontSize="12"
+                                        HorizontalTextAlignment="End"
+                                        Text="{Binding DateText}"
+                                        TextColor="{StaticResource TextSecondary}"
+                                        VerticalOptions="Center" />
+                                </controls:HoverRow>
+                                <BoxView HeightRequest="1" Color="{StaticResource Line}" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <Border.Triggers>
+                    <DataTrigger Binding="{Binding HasNoItems}" TargetType="Border" Value="True">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Border.Triggers>
+            </Border>
+            <Label
+                IsVisible="{Binding HasNoItems}"
+                Style="{StaticResource EmptyLabel}"
+                Text="Todavía no hay clases ni trabajos en esta comisión." />
         </VerticalStackLayout>
-
-        <Border Grid.Row="4" Style="{StaticResource ListCard}">
-            <CollectionView ItemsSource="{Binding Items}" SelectionMode="None">
-                <CollectionView.EmptyView>
-                    <Label
-                        Padding="16"
-                        FontSize="13"
-                        Text="Todavía no hay clases ni trabajos en esta comisión."
-                        TextColor="{AppThemeBinding Light=#8B93A7, Dark=#94A3B8}" />
-                </CollectionView.EmptyView>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="vm:CalendarRow">
-                        <VerticalStackLayout>
-                            <Grid Padding="16,12" ColumnDefinitions="*,Auto">
-                                <Label
-                                    FontFamily="OpenSansSemibold"
-                                    FontSize="14"
-                                    Text="{Binding Name}"
-                                    TextColor="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
-                                <Label
-                                    Grid.Column="1"
-                                    FontSize="12"
-                                    Text="{Binding Detail}"
-                                    TextColor="{AppThemeBinding Light=#5E6772, Dark=#94A3B8}" />
-                            </Grid>
-                            <BoxView HeightRequest="1" Color="{AppThemeBinding Light=#EEF0F3, Dark=#334155}" />
-                        </VerticalStackLayout>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </Border>
-    </Grid>
+    </controls:PageShell>
 </ContentPage>

@@ -1,8 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using GestionEscolar.Core.Enums;
 using GestionEscolar.Core.Models;
 using GestionEscolar.Core.Services;
+using UI.Services;
 
 namespace UI.ViewModels
 {
@@ -19,7 +21,7 @@ namespace UI.ViewModels
         private readonly AttendanceService _service;
         private bool _suppressSessionReload;
 
-        public AttendanceViewModel(SectionService sectionService, AttendanceService service) : base(sectionService)
+        public AttendanceViewModel(SectionSelection selection, AttendanceService service) : base(selection)
         {
             _service = service;
         }
@@ -32,6 +34,14 @@ namespace UI.ViewModels
         public partial PickerOption<ClassSession>? SelectedClassSession { get; set; }
 
         public ObservableCollection<StatusRow> Rows { get; } = new();
+
+        public int RegisteredCount => Rows.Count(row => !string.IsNullOrEmpty(row.SelectedStatus));
+
+        public int RowCount => Rows.Count;
+
+        public double RegisteredProgress => RowCount == 0 ? 0 : (double)RegisteredCount / RowCount;
+
+        public string RegisteredText => $"{RegisteredCount} de {RowCount} registrados";
 
         [ObservableProperty]
         public partial bool HasNoClasses { get; set; }
@@ -73,7 +83,37 @@ namespace UI.ViewModels
 
             var marks = await _service.GetMarksAsync(SelectedClassSession.Value.Id);
             foreach (var m in marks)
-                Rows.Add(new StatusRow(m.StudentId, m.StudentName, Label(m.Status), SaveAsync));
+                Rows.Add(Watch(new StatusRow(m.StudentId, m.StudentName, Label(m.Status), SaveAsync)));
+
+            NotifyProgress();
+        }
+
+        [RelayCommand]
+        private void MarkAllPresent()
+        {
+            foreach (var row in Rows)
+            {
+                if (row.SelectedStatus != "Presente")
+                    row.SelectedStatus = "Presente";
+            }
+        }
+
+        private StatusRow Watch(StatusRow row)
+        {
+            row.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(StatusRow.SelectedStatus))
+                    NotifyProgress();
+            };
+            return row;
+        }
+
+        private void NotifyProgress()
+        {
+            OnPropertyChanged(nameof(RegisteredCount));
+            OnPropertyChanged(nameof(RowCount));
+            OnPropertyChanged(nameof(RegisteredProgress));
+            OnPropertyChanged(nameof(RegisteredText));
         }
 
         private async Task SaveAsync(StatusRow row, string label)

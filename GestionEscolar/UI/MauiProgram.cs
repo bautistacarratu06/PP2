@@ -2,6 +2,7 @@
 using GestionEscolar.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using UI.Services;
 using UI.ViewModels;
 using UI.Views;
 
@@ -16,14 +17,18 @@ namespace UI
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
                 {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("Inter-Regular.ttf", "Inter");
+                    fonts.AddFont("Inter-Medium.ttf", "InterMedium");
+                    fonts.AddFont("Inter-SemiBold.ttf", "InterSemibold");
+                    fonts.AddFont("Inter-Bold.ttf", "InterBold");
+                    fonts.AddFont("JetBrainsMono-Regular.ttf", "JetBrainsMono");
                 });
 
             LoadAppSettings(builder);
 
             builder.Services.AddGestionEscolarCore();
             builder.Services.AddGestionEscolarData(builder.Configuration);
+            builder.Services.AddSingleton<SectionSelection>();
 
             // ViewModels
             builder.Services.AddTransient<TrackingViewModel>();

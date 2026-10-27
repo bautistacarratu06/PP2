@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="UI.Controls.SidebarView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:UI.Controls"
+    x:Name="Root">
+    <Grid
+        BackgroundColor="{StaticResource Side}"
+        Padding="12,20,12,0"
+        RowDefinitions="Auto,*,Auto">
+        <HorizontalStackLayout
+            x:Name="Brand"
+            Padding="10,4,10,24"
+            Spacing="10">
+            <Border
+                Background="{StaticResource LogoBrush}"
+                HeightRequest="28"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 8"
+                WidthRequest="28">
+                <Label
+                    FontFamily="InterBold"
+                    FontSize="13"
+                    HorizontalOptions="Center"
+                    Text="G"
+                    TextColor="White"
+                    VerticalOptions="Center" />
+            </Border>
+            <VerticalStackLayout x:Name="BrandText" Spacing="0" VerticalOptions="Center">
+                <Label FontFamily="InterSemibold" FontSize="14" Text="Gestión Escolar" TextColor="{StaticResource TextPrimary}" />
+                <Label FontSize="11" Text="PP2 · IFTS" TextColor="{StaticResource TextTertiary}" />
+            </VerticalStackLayout>
+        </HorizontalStackLayout>
+
+        <VerticalStackLayout
+            x:Name="Menu"
+            Grid.Row="1"
+            Spacing="2" />
+
+        <VerticalStackLayout Grid.Row="2" Spacing="0">
+            <BoxView HeightRequest="1" Color="{StaticResource Line}" />
+            <HorizontalStackLayout
+                Padding="10,12"
+                Spacing="12">
+                <HorizontalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnToggle" />
+                </HorizontalStackLayout.GestureRecognizers>
+                <controls:Icon
+                    x:Name="CollapseIcon"
+                    GlyphColor="{StaticResource TextTertiary}"
+                    Name="chevron-left"
+                    Size="17"
+                    VerticalOptions="Center" />
+                <Label
+                    x:Name="CollapseLabel"
+                    FontFamily="InterMedium"
+                    Text="Colapsar"
+                    TextColor="{StaticResource TextTertiary}"
+                    VerticalOptions="Center" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </Grid>
+</ContentView>

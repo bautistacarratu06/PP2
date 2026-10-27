@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="UI.Controls.FilterChips"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Name="Root">
+    <Border
+        BackgroundColor="{StaticResource Bg}"
+        Padding="3"
+        Stroke="{StaticResource Line}"
+        StrokeShape="RoundRectangle 9"
+        StrokeThickness="1">
+        <HorizontalStackLayout Spacing="4">
+            <Button Clicked="OnChip" Style="{StaticResource GhostButton}" Text="Todos" Padding="12,5" BorderWidth="0" CornerRadius="6" />
+            <Button Clicked="OnChip" Style="{StaticResource GhostButton}" Text="Alto" Padding="12,5" BorderWidth="0" CornerRadius="6" />
+            <Button Clicked="OnChip" Style="{StaticResource GhostButton}" Text="Medio" Padding="12,5" BorderWidth="0" CornerRadius="6" />
+            <Button Clicked="OnChip" Style="{StaticResource GhostButton}" Text="Bajo" Padding="12,5" BorderWidth="0" CornerRadius="6" />
+        </HorizontalStackLayout>
+    </Border>
+</ContentView>

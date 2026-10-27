@@ -4,134 +4,67 @@
     x:DataType="vm:SettingsViewModel"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:UI.Controls"
     xmlns:vm="clr-namespace:UI.ViewModels"
-    BackgroundColor="{AppThemeBinding Light=#F4F6F8, Dark=#0F172A}"
-    Shell.NavBarIsVisible="False"
-    Shell.NavBarHasShadow="False">
+    Shell.NavBarIsVisible="False">
 
-    <ContentPage.Resources>
-        <Style x:Key="FieldLabel" TargetType="Label">
-            <Setter Property="FontFamily" Value="OpenSansSemibold" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="TextColor" Value="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
-        </Style>
-        <Style x:Key="MutedText" TargetType="Label">
-            <Setter Property="FontFamily" Value="OpenSansRegular" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="TextColor" Value="{AppThemeBinding Light=#5E6772, Dark=#94A3B8}" />
-        </Style>
-        <Style x:Key="NumberEntry" TargetType="Entry">
-            <Setter Property="Keyboard" Value="Numeric" />
-            <Setter Property="FontFamily" Value="OpenSansSemibold" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="TextColor" Value="{AppThemeBinding Light=#1A1D23, Dark=#F8FAFC}" />
-            <Setter Property="BackgroundColor" Value="Transparent" />
-        </Style>
-    </ContentPage.Resources>
-
-    <ScrollView>
-        <VerticalStackLayout
-            Padding="36,36,36,24"
-            Spacing="0"
+    <controls:PageShell Title="Ajustes" Subtitle="Reglas de cálculo y umbrales de riesgo.">
+        <Border
+            Padding="24"
+            Style="{StaticResource Card}"
             HorizontalOptions="Start"
-            MaximumWidthRequest="780"
-            WidthRequest="780">
-
-            <Label
-                Margin="0,0,0,6"
-                CharacterSpacing="1.5"
-                FontFamily="OpenSansSemibold"
-                FontSize="12"
-                Text="CONFIGURACIÓN"
-                TextColor="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" />
-
-            <Label
-                Margin="0,0,0,28"
-                FontAttributes="Bold"
-                FontFamily="OpenSansSemibold"
-                FontSize="34"
-                Text="Reglas y datos"
-                TextColor="{AppThemeBinding Light=#0B0F1A, Dark=#F8FAFC}" />
-
-            <Border
-                Padding="26,28"
-                BackgroundColor="{AppThemeBinding Light=White, Dark=#111827}"
-                Stroke="{AppThemeBinding Light=#E6E9F0, Dark=#334155}"
-                StrokeShape="RoundRectangle 16"
-                StrokeThickness="1">
-
-                <VerticalStackLayout Spacing="0">
-                    <Label
-                        Margin="0,0,0,8"
-                        FontFamily="OpenSansSemibold"
-                        FontSize="17"
-                        Text="Umbrales de riesgo"
-                        TextColor="{AppThemeBinding Light=#0B0F1A, Dark=#F8FAFC}" />
-
-                    <Label
-                        Margin="0,0,0,22"
-                        Style="{StaticResource MutedText}"
-                        Text="Alto si el riesgo es igual o mayor; Medio desde el segundo valor." />
-
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="24" RowDefinitions="Auto,Auto">
-                        <Label Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabel}" Text="Alto" />
-                        <Label Grid.Row="0" Grid.Column="1" Style="{StaticResource FieldLabel}" Text="Medio" />
-                        <Entry
-                            Grid.Row="1"
-                            Grid.Column="0"
-                            Style="{StaticResource NumberEntry}"
-                            Text="{Binding HighThreshold}" />
-                        <Entry
-                            Grid.Row="1"
-                            Grid.Column="1"
-                            Style="{StaticResource NumberEntry}"
-                            Text="{Binding MediumThreshold}" />
-                    </Grid>
-
+            MaximumWidthRequest="640"
+            WidthRequest="640">
+            <VerticalStackLayout Spacing="0">
+                <Label Style="{StaticResource CardTitle}" Text="Umbrales de riesgo" />
+                <Label
+                    Margin="0,4,0,18"
+                    Text="Alto si el riesgo es igual o mayor al primer valor; Medio desde el segundo."
+                    TextColor="{StaticResource TextSecondary}" />
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Style="{StaticResource FieldLabel}" Text="Alto" />
+                        <Border Style="{StaticResource FieldBorder}">
+                            <Entry Keyboard="Numeric" Text="{Binding HighThreshold}" />
+                        </Border>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="6">
+                        <Label Style="{StaticResource FieldLabel}" Text="Medio" />
+                        <Border Style="{StaticResource FieldBorder}">
+                            <Entry Keyboard="Numeric" Text="{Binding MediumThreshold}" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+                <HorizontalStackLayout Margin="0,16,0,0" Spacing="12">
                     <Button
-                        Margin="0,4,0,0"
-                        Padding="16,10"
-                        BackgroundColor="{AppThemeBinding Light=#0F766E, Dark=#14B8A6}"
                         Command="{Binding SaveThresholdsCommand}"
                         IsEnabled="{Binding CanSave}"
-                        CornerRadius="10"
-                        FontFamily="OpenSansSemibold"
-                        FontSize="14"
-                        HorizontalOptions="Start"
-                        Text="Guardar umbrales"
-                        TextColor="White" />
-
+                        Style="{StaticResource PrimaryButton}"
+                        Text="Guardar umbrales" />
                     <Label
-                        Margin="0,10,0,0"
-                        FontSize="12"
                         IsVisible="{Binding HasStatusMessage}"
                         Text="{Binding StatusMessage}"
-                        TextColor="{AppThemeBinding Light=#0F766E, Dark=#5EEAD4}" />
-
-                    <Label
-                        Margin="0,32,0,8"
-                        FontFamily="OpenSansSemibold"
-                        FontSize="14"
-                        Text="Fórmula"
-                        TextColor="{AppThemeBinding Light=#334155, Dark=#CBD5E1}" />
-
-                    <Label
-                        Margin="0,0,0,10"
-                        Style="{StaticResource MutedText}"
-                        Text="Score = asistencia × 60% + entregas × 40%. Riesgo = 100 − score." />
-
-                    <Label Style="{StaticResource MutedText}">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="Pesos fijos: " />
-                                <Span FontFamily="OpenSansSemibold" Text="60% asistencia" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
-                                <Span Text=" · " />
-                                <Span FontFamily="OpenSansSemibold" Text="40% entregas" TextColor="{AppThemeBinding Light=#334155, Dark=#E2E8F0}" />
-                            </FormattedString>
-                        </Label.FormattedText>
+                        TextColor="{StaticResource TextTertiary}"
+                        VerticalOptions="Center">
+                        <Label.Triggers>
+                            <DataTrigger Binding="{Binding StatusIsError}" TargetType="Label" Value="True">
+                                <Setter Property="TextColor" Value="{StaticResource Danger}" />
+                            </DataTrigger>
+                        </Label.Triggers>
                     </Label>
-                </VerticalStackLayout>
-            </Border>
-        </VerticalStackLayout>
-    </ScrollView>
+                </HorizontalStackLayout>
+
+                <BoxView Margin="0,24,0,20" HeightRequest="1" Color="{StaticResource Line}" />
+                <Label Style="{StaticResource CardTitle}" Text="Fórmula" />
+                <Label
+                    Margin="0,4,0,12"
+                    Text="Score = asistencia × 60 % + entregas × 40 %. Riesgo = 100 − score."
+                    TextColor="{StaticResource TextSecondary}" />
+                <HorizontalStackLayout Spacing="8">
+                    <controls:StatusPill Kind="neutral" Text="60 % asistencia" />
+                    <controls:StatusPill Kind="neutral" Text="40 % entregas" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+    </controls:PageShell>
 </ContentPage>

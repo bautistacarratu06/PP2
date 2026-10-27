@@ -27,15 +27,44 @@ namespace UI
                 Debug.WriteLine($"No se pudieron cargar los umbrales: {ex}");
             }
 
-            return new Window(new AppShell())
+            var window = new Window(new AppShell())
             {
-                // * este es nuestro entrypoint que monta las shells
-                // Shell muestra el primer ShellContent. tenemos q tenerlo en cuenta 
-                // para la navegación. Investigar como hacer 1 sidebar
-                Title = "Gestión Escolar PP2",
+                Title = string.Empty,
                 Width = 1360,
-                Height = 900
+                Height = 900,
+                MinimumWidth = 900,
+                MinimumHeight = 640
             };
+            window.Created += (_, _) => ApplyTitleBar(window);
+            return window;
+        }
+
+        private static void ApplyTitleBar(Window window)
+        {
+#if WINDOWS
+            if (window.Handler?.PlatformView is not Microsoft.UI.Xaml.Window native)
+                return;
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(native);
+            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+            var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+            var background = global::Windows.UI.Color.FromArgb(255, 10, 10, 10);
+            var foreground = global::Windows.UI.Color.FromArgb(255, 142, 142, 147);
+            var hover = global::Windows.UI.Color.FromArgb(255, 27, 27, 27);
+            appWindow.Title = string.Empty;
+            appWindow.TitleBar.BackgroundColor = background;
+            appWindow.TitleBar.InactiveBackgroundColor = background;
+            appWindow.TitleBar.ForegroundColor = foreground;
+            appWindow.TitleBar.InactiveForegroundColor = foreground;
+            appWindow.TitleBar.ButtonBackgroundColor = background;
+            appWindow.TitleBar.ButtonInactiveBackgroundColor = background;
+            appWindow.TitleBar.ButtonForegroundColor = foreground;
+            appWindow.TitleBar.ButtonInactiveForegroundColor = foreground;
+            appWindow.TitleBar.ButtonHoverBackgroundColor = hover;
+            appWindow.TitleBar.ButtonHoverForegroundColor = foreground;
+            appWindow.TitleBar.ButtonPressedBackgroundColor = hover;
+            appWindow.TitleBar.ButtonPressedForegroundColor = foreground;
+#endif
         }
     }
 }

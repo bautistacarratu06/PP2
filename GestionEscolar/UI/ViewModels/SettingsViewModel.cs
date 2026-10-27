@@ -30,6 +30,7 @@ namespace UI.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(HasStatusMessage))]
+        [NotifyPropertyChangedFor(nameof(StatusIsError))]
         public partial string StatusMessage { get; set; } = string.Empty;
 
         // En false hasta terminar la lectura, así Guardar no pisa esa carga.
@@ -37,6 +38,8 @@ namespace UI.ViewModels
         public partial bool CanSave { get; set; }
 
         public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
+
+        public bool StatusIsError => HasStatusMessage && StatusMessage != RiskSettingsService.SavedMessage;
 
         // Se dispara desde SettingsViewPage.OnAppearing.
         [RelayCommand]

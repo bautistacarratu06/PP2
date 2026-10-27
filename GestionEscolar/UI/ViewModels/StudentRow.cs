@@ -1,6 +1,6 @@
-﻿using System.Globalization;
-using GestionEscolar.Core.Enums;
+﻿using GestionEscolar.Core.Enums;
 using GestionEscolar.Core.Models;
+using UI.Formatting;
 
 namespace UI.ViewModels
 {
@@ -28,7 +28,8 @@ namespace UI.ViewModels
         public StudentRiskResult? Risk { get; }
         public int RowNumber { get; }
 
-        public string Name => Student.Name;
+        public string Name => PersonName.AsSurnameFirst(Student.Name);
+        public string Initials => PersonName.Initials(Name);
         public string StudentNumber => Student.StudentNumber;
         public string Phone => Student.Phone;
         public string Email => Student.Email;
@@ -41,13 +42,12 @@ namespace UI.ViewModels
 
         public string AttendanceText => Risk is null ? string.Empty : $"{Risk.Data.AttendancePercent}%";
         public string DeliveryText => Risk is null ? string.Empty : $"{Risk.Data.DeliveryPercent}%";
+        public double AttendanceRatio => Risk is null ? 0 : Risk.Data.AttendancePercent / 100d;
+        public double DeliveryRatio => Risk is null ? 0 : Risk.Data.DeliveryPercent / 100d;
 
         public bool HasContact => Risk?.Data.LastContact is not null;
 
-        public string ContactLabel =>
-            Risk?.Data.LastContact is { } date
-                ? date.ToString("dd'/'MM'/'yyyy", CultureInfo.InvariantCulture)
-                : "Sin contactar";
+        public string ContactLabel => ContactWhen.Relative(Risk?.Data.LastContact);
 
         public string Justification
         {

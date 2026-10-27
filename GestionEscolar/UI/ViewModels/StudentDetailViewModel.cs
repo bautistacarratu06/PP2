@@ -1,9 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using GestionEscolar.Core.Enums;
 using GestionEscolar.Core.Models;
 using GestionEscolar.Core.Services;
+using UI.Formatting;
 
 namespace UI.ViewModels
 {
@@ -78,6 +80,26 @@ namespace UI.ViewModels
 
         public bool HasNoInterventions => !IsBusy && Interventions.Count == 0;
 
+        public string HeaderSubtitle => string.IsNullOrEmpty(StudentNumber)
+            ? string.Empty
+            : $"{PersonName.AsGivenFirst(Name)} · {StudentNumber}";
+
+        public int Attended { get; private set; }
+
+        public int ClassTotal { get; private set; }
+
+        public int Submitted { get; private set; }
+
+        public int AssignmentTotal { get; private set; }
+
+        public double AttendanceRatio => ClassTotal == 0 ? 0 : (double)Attended / ClassTotal;
+
+        public double SubmissionRatio => AssignmentTotal == 0 ? 0 : (double)Submitted / AssignmentTotal;
+
+        public string AttendanceCaption => $"{Attended} de {ClassTotal} · {Percent(AttendanceRatio)}";
+
+        public string SubmissionCaption => $"{Submitted} de {AssignmentTotal} · {Percent(SubmissionRatio)}";
+
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             if (query.TryGetValue(SectionQueryKey, out var section) && section is string sectionName && sectionName.Length > 0)
@@ -94,6 +116,14 @@ namespace UI.ViewModels
             RiskLevel = row.RiskLevel;
             RiskScore = row.RiskScore;
             Justification = row.Justification;
+            if (row.Risk is { } risk)
+            {
+                Attended = risk.Data.AttendedClasses;
+                ClassTotal = risk.Data.TotalClasses;
+                Submitted = risk.Data.SubmittedAssignments;
+                AssignmentTotal = risk.Data.TotalAssignments;
+                NotifyMetrics();
+            }
             BadgeBackground = row.BadgeBackground;
             BadgeForeground = row.BadgeForeground;
 
@@ -123,14 +153,23 @@ namespace UI.ViewModels
                 if (string.IsNullOrEmpty(Commission) || sectionId is null || sectionId == detail.SectionId)
                     Commission = detail.SectionName;
 
+                Name = PersonName.AsSurnameFirst($"{detail.Name} {detail.LastName}");
+                OnPropertyChanged(nameof(HeaderSubtitle));
+
                 foreach (var a in detail.AttendanceRecords)
-                    Attendance.Add(new HistoryItem($"Clase · {Format(a.Date)}", AttendanceText(a.Status)));
+                {
+                    var status = AttendanceText(a.Status);
+                    Attendance.Add(new HistoryItem($"Clase · {Format(a.Date)}", status, KindFor(status)));
+                }
 
                 foreach (var s in detail.Submissions)
-                    Submissions.Add(new HistoryItem($"{s.AssignmentName} · vence {Format(s.DueDate)}", SubmissionText(s.Status)));
+                {
+                    var status = SubmissionText(s.Status);
+                    Submissions.Add(new HistoryItem($"{s.AssignmentName} · vence {Format(s.DueDate)}", status, KindFor(status)));
+                }
 
                 foreach (var i in detail.Interventions)
-                    Interventions.Add(new HistoryItem($"{Format(i.Date)} · {i.Channel}", i.Description));
+                    Interventions.Add(new HistoryItem($"{Format(i.Date)} · {i.Channel} · {i.Description}", string.Empty, "neutral"));
             }
             catch (Exception ex)
             {
@@ -158,7 +197,36 @@ namespace UI.ViewModels
             SubmissionStatus.NoEntrego => "No entregó",
             _ => "Sin registro"
         };
+
+        private static string KindFor(string status) => status switch
+        {
+            "Presente" or "Entregó" => "success",
+            "Ausente" or "No entregó" => "danger",
+            _ => "neutral"
+        };
+
+        private static string Percent(double ratio) => $"{Math.Round(ratio * 100)}%";
+
+        private void NotifyMetrics()
+        {
+            OnPropertyChanged(nameof(Attended));
+            OnPropertyChanged(nameof(ClassTotal));
+            OnPropertyChanged(nameof(Submitted));
+            OnPropertyChanged(nameof(AssignmentTotal));
+            OnPropertyChanged(nameof(AttendanceRatio));
+            OnPropertyChanged(nameof(SubmissionRatio));
+            OnPropertyChanged(nameof(AttendanceCaption));
+            OnPropertyChanged(nameof(SubmissionCaption));
+            OnPropertyChanged(nameof(HeaderSubtitle));
+        }
+
+        partial void OnNameChanged(string value) => OnPropertyChanged(nameof(HeaderSubtitle));
+
+        partial void OnStudentNumberChanged(string value) => OnPropertyChanged(nameof(HeaderSubtitle));
+
+        [RelayCommand]
+        private Task BackAsync() => Shell.Current.GoToAsync("//TrackingPage");
     }
 
-    public sealed record HistoryItem(string Label, string Status);
+    public sealed record HistoryItem(string Label, string Status, string Kind);
 }

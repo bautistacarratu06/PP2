@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using GestionEscolar.Core.Enums;
 using GestionEscolar.Core.Models;
 using GestionEscolar.Core.Services;
+using UI.Services;
 
 namespace UI.ViewModels
 {
@@ -15,7 +16,7 @@ namespace UI.ViewModels
 
         private readonly CalendarService _service;
 
-        public CalendarViewModel(SectionService sectionService, CalendarService service) : base(sectionService)
+        public CalendarViewModel(SectionSelection selection, CalendarService service) : base(selection)
         {
             _service = service;
             SelectedType = ClassType;
@@ -59,7 +60,8 @@ namespace UI.ViewModels
             foreach (var i in items)
                 Items.Add(new CalendarRow(
                     i.Kind == CalendarItemKind.Clase ? ClassType : i.Name ?? string.Empty,
-                    $"{(i.Kind == CalendarItemKind.Clase ? ClassType : AssignmentType)} · {FormatDate(i.Date)}"));
+                    i.Kind == CalendarItemKind.Clase ? ClassType : AssignmentType,
+                    FormatDate(i.Date)));
             HasNoItems = Items.Count == 0;
         }
 
@@ -98,5 +100,8 @@ namespace UI.ViewModels
         }
     }
 
-    public sealed record CalendarRow(string Name, string Detail);
+    public sealed record CalendarRow(string Name, string Kind, string DateText)
+    {
+        public string KindKey => Kind == "Trabajo" ? "accent" : "neutral";
+    }
 }

@@ -3,21 +3,30 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionEscolar.Core.Models;
 using GestionEscolar.Core.Services;
+using UI.Services;
 
 namespace UI.ViewModels
 {
-    // Base para las pantallas que trabajan sobre una comisión (selector igual al de Seguimiento).
-    // Carga las comisiones una vez, elige la de por defecto sin recargar dos veces y serializa
-    // las cargas: si llega un cambio mientras IsBusy, se ejecuta al terminar la carga actual.
+    // Base para las pantallas que trabajan sobre una comisión. La comisión elegida es la
+    // de SectionSelection (una sola en la ventana). Serializa las cargas: si llega un
+    // cambio mientras IsBusy, se ejecuta al terminar la carga actual.
     public abstract partial class SectionScopedViewModel : ObservableObject
     {
-        private readonly SectionService _sectionService;
+        private readonly SectionSelection _selection;
         private bool _suppressSectionReload;
         private Func<Task>? _pending;
 
-        protected SectionScopedViewModel(SectionService sectionService)
+        protected SectionScopedViewModel(SectionSelection selection)
         {
-            _sectionService = sectionService;
+            _selection = selection;
+            _selection.Changed += (_, _) => MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var current = _selection.Current;
+                if (current is null || SelectedSection?.Id == current.Id)
+                    return;
+
+                SelectedSection = current;
+            });
         }
 
         public ObservableCollection<Section> Sections { get; } = new();
@@ -48,12 +57,12 @@ namespace UI.ViewModels
             {
                 try
                 {
-                    var sections = await _sectionService.GetAllAsync();
-                    foreach (var section in sections)
+                    await _selection.EnsureLoadedAsync();
+                    foreach (var section in _selection.Items)
                         Sections.Add(section);
 
                     _suppressSectionReload = true;
-                    SelectedSection = SectionService.PickDefault(sections);
+                    SelectedSection = _selection.Current;
                     _suppressSectionReload = false;
                 }
                 catch (Exception ex)
@@ -71,6 +80,7 @@ namespace UI.ViewModels
             if (_suppressSectionReload || value is null)
                 return;
 
+            _selection.Select(value);
             _ = RunAsync(OnSectionChangedAsync);
         }
 

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="UI.Controls.RiskPill"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <Border
+        x:Name="Capsule"
+        Padding="9,4"
+        StrokeThickness="0"
+        StrokeShape="RoundRectangle 999"
+        HorizontalOptions="Start"
+        VerticalOptions="Center">
+        <HorizontalStackLayout Spacing="6">
+            <Ellipse
+                x:Name="Dot"
+                HeightRequest="6"
+                WidthRequest="6"
+                VerticalOptions="Center" />
+            <Label
+                x:Name="LevelLabel"
+                FontFamily="InterSemibold"
+                FontSize="12"
+                VerticalOptions="Center" />
+            <Label
+                x:Name="ScoreLabel"
+                FontFamily="JetBrainsMono"
+                FontSize="12"
+                Opacity="0.85"
+                TextColor="{StaticResource TextPrimary}"
+                VerticalOptions="Center" />
+        </HorizontalStackLayout>
+    </Border>
+</ContentView>

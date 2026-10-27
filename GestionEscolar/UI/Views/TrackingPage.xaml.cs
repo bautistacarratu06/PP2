@@ -2,9 +2,6 @@
 
 namespace UI.Views
 {
-    // TODO: Abstraer la lógica de tamaño de la tabla en un control customizado, para que no esté en la página.
-    // Todos este código de tamaño de la tabla es un hack para que la tabla se vea bien en la UI, y no debería estar en la página.
-    // El código está 100% hecho por IA
     public partial class TrackingPage : ContentPage
     {
         private readonly TrackingViewModel _viewModel;
@@ -14,62 +11,32 @@ namespace UI.Views
             InitializeComponent();
             _viewModel = viewModel;
             BindingContext = viewModel;
+            SizeChanged += (_, _) => ArrangeKpis();
         }
 
-        // Carga (o refresca) los datos cada vez que se muestra la página; no en el constructor.
+        private void ArrangeKpis()
+        {
+            if (double.IsNaN(Width) || Width <= 0)
+                return;
+
+            var narrow = Width < 720;
+            Kpis.ColumnDefinitions = narrow
+                ? [new ColumnDefinition(GridLength.Star)]
+                : [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star)];
+            Kpis.RowDefinitions = narrow
+                ? [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto)]
+                : [new RowDefinition(GridLength.Auto)];
+            Kpis.RowSpacing = narrow ? 12 : 0;
+            Grid.SetColumn(MediumCard, narrow ? 0 : 1);
+            Grid.SetRow(MediumCard, narrow ? 1 : 0);
+            Grid.SetColumn(LowCard, narrow ? 0 : 2);
+            Grid.SetRow(LowCard, narrow ? 2 : 0);
+        }
+
         protected override async void OnAppearing()
         {
             base.OnAppearing();
             await _viewModel.LoadCommand.ExecuteAsync(null);
-        }
-
-        private void OnPageSizeChanged(object? sender, EventArgs e)
-        {
-            if (ContentHost is null || double.IsNaN(Width) || Width <= 0)
-                return;
-
-            var target = Math.Min(1240, Width);
-            if (Math.Abs(ContentHost.WidthRequest - target) > 0.5)
-                ContentHost.WidthRequest = target;
-        }
-
-        private void OnTableViewportChanged(object? sender, EventArgs e)
-        {
-            if (TableScroll is null || TableRoot is null || TableCard is null)
-                return;
-
-            if (!double.IsNaN(TableScroll.Width) && TableScroll.Width > 0)
-            {
-                var targetWidth = Math.Max(1120, TableScroll.Width);
-                if (Math.Abs(TableRoot.WidthRequest - targetWidth) > 0.5)
-                    TableRoot.WidthRequest = targetWidth;
-            }
-
-            if (double.IsNaN(TableCard.Height) || TableCard.Height <= 0)
-                return;
-
-            if (!double.IsNaN(Height) && Height > 0 && TableCard.Height > Height)
-                return;
-
-            var targetHeight = Math.Max(0, TableCard.Height - 2);
-            if (targetHeight > 0 && Math.Abs(TableRoot.HeightRequest - targetHeight) > 0.5)
-                TableRoot.HeightRequest = targetHeight;
-        }
-
-        // Navega al detalle del alumno de la fila tocada.
-        // La ruta "StudentDetailPage" se registra en AppShell.xaml.cs y es relativa,
-        // así se apila sobre Seguimiento y se puede volver atrás.
-        private async void OnStudentRowTapped(object? sender, TappedEventArgs e)
-        {
-            if (sender is not BindableObject { BindingContext: StudentRow row })
-                return;
-
-            await Shell.Current.GoToAsync(nameof(StudentDetailPage), new Dictionary<string, object>
-            {
-                [StudentDetailViewModel.StudentQueryKey] = row,
-                [StudentDetailViewModel.SectionQueryKey] = _viewModel.SelectedSection?.Name ?? string.Empty,
-                [StudentDetailViewModel.SectionIdQueryKey] = _viewModel.SelectedSection?.Id ?? 0
-            });
         }
     }
 }

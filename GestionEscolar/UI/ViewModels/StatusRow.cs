@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using UI.Formatting;
 
 namespace UI.ViewModels
 {
@@ -19,6 +20,10 @@ namespace UI.ViewModels
         public int StudentId { get; }
 
         public string Name { get; }
+
+        public string DisplayName => PersonName.AsSurnameFirst(Name);
+
+        public string Initials => PersonName.Initials(DisplayName);
 
         [ObservableProperty]
         public partial string? SelectedStatus { get; set; }

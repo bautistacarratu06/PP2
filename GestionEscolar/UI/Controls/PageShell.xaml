@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="UI.Controls.PageShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:UI.Controls"
+    x:Name="Root">
+    <ContentView.ControlTemplate>
+        <ControlTemplate>
+            <Grid BackgroundColor="{StaticResource Bg}">
+                <ScrollView>
+                    <VerticalStackLayout
+                        Padding="{TemplateBinding ShellPadding}"
+                        Spacing="28"
+                        HorizontalOptions="Center"
+                        MaximumWidthRequest="1160"
+                        WidthRequest="{TemplateBinding ContentWidth}">
+                        <VerticalStackLayout Spacing="4" IsVisible="{TemplateBinding ShowBack}">
+                            <HorizontalStackLayout Spacing="6">
+                                <controls:Icon GlyphColor="{StaticResource TextSecondary}" Name="chevron-left" Size="16" VerticalOptions="Center" />
+                                <Button
+                                    Command="{TemplateBinding BackCommand}"
+                                    Style="{StaticResource LinkButton}"
+                                    Text="{TemplateBinding BackText}" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                        <Grid x:Name="Header" ColumnDefinitions="*,Auto" ColumnSpacing="24">
+                            <VerticalStackLayout Spacing="4" VerticalOptions="End">
+                                <Label Style="{StaticResource PageTitle}" Text="{TemplateBinding Title}" />
+                                <Label Style="{StaticResource PageSubtitle}" Text="{TemplateBinding Subtitle}" />
+                            </VerticalStackLayout>
+                            <controls:SectionPicker x:Name="Picker" Grid.Column="1" VerticalOptions="End" />
+                        </Grid>
+                        <ContentPresenter />
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Grid>
+        </ControlTemplate>
+    </ContentView.ControlTemplate>
+</ContentView>
