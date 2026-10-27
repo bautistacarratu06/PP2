@@ -38,7 +38,7 @@ El mockup cubre las 7 vistas de la app: Nómina, Seguimiento, Entregas, Asistenc
 | `AccentSoft` | `#9D8CFF` al 14 % de opacidad | Fondo del tag "Trabajo" |
 | `Danger` | `#F87171` | Riesgo alto, "Ausente", "No entregó" |
 | `DangerSoft` | `#F87171` al 12 % | Fondo de pill de riesgo alto |
-| `Warning` | `#FBBF24` | Riesgo medio, "Tarde" |
+| `Warning` | `#FBBF24` | Riesgo medio |
 | `WarningSoft` | `#FBBF24` al 12 % | Fondo de pill de riesgo medio |
 | `Success` | `#34D399` | Riesgo bajo, "Presente", "Entregó" |
 | `SuccessSoft` | `#34D399` al 12 % | Fondo de pill de riesgo bajo |
@@ -119,7 +119,7 @@ Crear **un único componente reutilizable** (`PageShell`, un `ContentView` o `Co
 Reglas del shell:
 - Contenedor de contenido con **ancho máximo 1160px**, centrado horizontalmente, padding **36 arriba, 40 laterales, 56 abajo** (24/18 laterales en ventanas angostas). Todas las páginas comparten exactamente los mismos márgenes (hoy arrancan en posiciones distintas).
 - El encabezado usa disposición horizontal con alineación inferior; si no cabe, el selector pasa abajo.
-- La **Comisión es un contexto global**: un servicio/ViewModel singleton (`CommissionContext`) con la comisión seleccionada. Cambiarla en una página la cambia en todas y recarga los datos de la vista actual. No hay un selector distinto por pantalla.
+- La **Comisión es una sola para toda la ventana**. Cambiarla en una página la cambia en todas y recarga los datos de la vista actual. No hay un selector distinto por pantalla. Las pantallas que ya recargan al cambiar de comisión siguen usando esa selección; no se inventa un tipo nuevo de comisión. Nómina deja de fijar la comisión 1. En Ajustes el selector se muestra, y los umbrales siguen siendo globales.
 - Cada página aporta solo: título, subtítulo y su cuerpo. Los controles propios de la página (fecha de clase, trabajo, búsqueda, filtros) viven **dentro de la barra de herramientas de la tarjeta principal**, nunca en el encabezado.
 
 **Selector de Comisión (componente destacado, "clave"):** botón/combo con fondo `Raised`, borde 1px `Border2`, radio 10, padding 9/14. Contiene, en orden: un **punto de 8px en `Accent`**, la etiqueta "Comisión" (13 Medium Secondary) y el valor seleccionado (13 Medium Primary) con chevron. Debe verse más prominente que los demás controles. No usar el ComboBox/Picker por defecto con label flotante.
@@ -173,10 +173,10 @@ Círculo de 34px (56 en contextos grandes), fondo `Raised`, borde 1px `Border2`,
 Avatar + bloque vertical: "Apellido, Nombre" (14 SemiBold) y debajo el legajo **sin el prefijo "Legajo"**, solo `LEG-1015` en mono 11 Tertiary.
 
 ### 4.10 Control segmentado de estado (Entregas y Asistencia)
-Reemplaza el dropdown de cada fila. Contenedor igual al de los chips, con tres botones:
-- Asistencia: **Presente** (verde) · **Tarde** (ámbar) · **Ausente** (rojo).
-- Entregas: **Entregó** (verde) · **Tarde** (ámbar) · **No entregó** (rojo).
-Sin selección, todos en gris (`TextSecondary`), que equivale a "Sin registro". Al elegir uno, ese botón toma fondo `*Soft` y texto del color pleno. Volver a tocar el mismo botón **deselecciona**.
+Reemplaza el dropdown de cada fila. Contenedor igual al de los chips, con dos botones. No existe el estado "Tarde".
+- Asistencia: **Presente** (verde) · **Ausente** (rojo).
+- Entregas: **Entregó** (verde) · **No entregó** (rojo).
+Sin selección, ambos en gris (`TextSecondary`), que equivale a "Sin registro". Al elegir uno, ese botón toma fondo `*Soft` y texto del color pleno. Volver a tocar el mismo botón lo deselecciona solo si el guardado actual admite vacío; si no, queda el último estado guardado.
 
 ### 4.11 Barra de progreso de registro
 Barra de 5px de alto y 140 de ancho, pista `Raised`, relleno `Accent`, con el texto "X de N registrados" (13, Tertiary) al lado. Sirve de feedback en Entregas y Asistencia.
@@ -228,7 +228,7 @@ Fila con texto a la izquierda y pill de estado a la derecha, padding vertical 12
 
 ### 5.5 Calendario
 - Shell.
-- **Tarjeta de alta:** una fila con selector de tipo (Clase / Trabajo), campo de nombre con placeholder "La fecha identifica la clase" (ocupa el espacio libre), selector de fecha y botón primario compacto "Agregar". Si el nombre queda vacío, se usa el tipo como nombre.
+- **Tarjeta de alta:** una fila con selector de tipo (Clase / Trabajo), campo de nombre con placeholder "La fecha identifica la clase" (ocupa el espacio libre), selector de fecha y botón primario compacto "Agregar". Se respetan las reglas de alta que ya tiene la pantalla: una clase se identifica por la fecha, y un trabajo exige el nombre que el servicio ya valida.
 - **Tarjeta de lista** debajo (margen 16): filas de 54px ordenadas por fecha ascendente, con nombre en SemiBold a la izquierda, tag de tipo y fecha en mono a la derecha (ancho fijo 110, alineada a la derecha). Se elimina el gran espacio vacío: la tarjeta crece según el contenido.
 
 ### 5.6 Ajustes
@@ -238,7 +238,7 @@ Fila con texto a la izquierda y pill de estado a la derecha, padding vertical 12
   - Dos inputs numéricos en grilla de 2 columnas (Alto, Medio) con etiquetas encima.
   - Botón primario compacto "Guardar umbrales" y, al lado, un texto de confirmación ("Guardado") en Tertiary.
   - Separador de 1px y bloque "Fórmula": texto "Score = asistencia × 60 % + entregas × 40 %. Riesgo = 100 − score." y dos tags: "60 % asistencia", "40 % entregas".
-- Al guardar, los niveles de riesgo se recalculan con los nuevos umbrales (conectar con `dbo.setting` cuando esté disponible el puerto).
+- Al guardar, se usa el guardado de umbrales que ya existe. Los pesos de la fórmula se muestran, no se editan.
 
 ### 5.7 Detalle del alumno
 - Shell con título "Detalle del alumno" y subtítulo "Nombre Apellido · LEG-XXXX". Sobre el shell, botón de volver "‹ Seguimiento" (sin la flecha en la barra de título).
@@ -250,8 +250,7 @@ Fila con texto a la izquierda y pill de estado a la derecha, padding vertical 12
 - **Columna derecha (tres `Card` apiladas, gap 16, padding 20):**
   - **Historial de asistencia:** filas "Clase · dd/MM/yyyy" + pill Presente/Ausente.
   - **Historial de entregas:** filas "TP… · vence dd/MM/yyyy" + pill Entregó/No entregó.
-  - **Intervenciones:** encabezado con H3 a la izquierda y botón primario compacto **"Registrar contacto"** a la derecha; debajo, lista de contactos o el texto "Sin contactos registrados." en Tertiary. Registrar un contacto agrega la entrada y actualiza "Contacto" en la tabla de Seguimiento.
-- El botón "Registrar contacto" **ya no va suelto arriba a la derecha**: vive en la tarjeta de Intervenciones.
+  - **Intervenciones:** H3 y, debajo, la lista que ya se carga, o el texto "Sin contactos registrados." en Tertiary. No hay alta de contacto: la app no tiene un comando para crear una intervención.
 
 ---
 
@@ -286,17 +285,19 @@ Fila con texto a la izquierda y pill de estado a la derecha, padding vertical 12
 
 ## 9. Guía de implementación en .NET MAUI
 
-1. **Recursos:** crear `Resources/Styles/Colors.xaml` con todos los tokens de 2.1 (colores y variantes `*Soft` con alfa) y `Styles.xaml` con estilos implícitos/nombrados: `Card`, `CardPad`, `PageTitle`, `PageSubtitle`, `Caption`, `ColumnHeader`, `Mono`, `Pill`, `Tag`, `PrimaryButton`, `GhostButton`, `Field`, `SegmentButton`, `NavItem`.
+Los controles nuevos viven en el proyecto UI, junto a Views, ViewModels, Converters y Resources/Styles. No se crea un árbol de carpetas nuevo. `Colors.xaml` y `Styles.xaml` ya existen: ahí van los tokens y los estilos con nombre.
+
+1. **Recursos:** reemplazar los tokens de `Colors.xaml` por los de 2.1 (colores y variantes `*Soft` con alfa) y sumar en `Styles.xaml` los estilos con nombre: `Card`, `CardPad`, `PageTitle`, `PageSubtitle`, `Caption`, `ColumnHeader`, `Mono`, `Pill`, `Tag`, `PrimaryButton`, `GhostButton`, `Field`, `SegmentButton`, `NavItem`.
 2. **Fuentes:** registrar Inter (400/500/600/700) y JetBrains Mono en `MauiProgram` con `ConfigureFonts` y usarlas vía `FontFamily`.
-3. **Shell de navegación:** sidebar propia (no la del `Shell` por defecto) con dos estados (expandido/colapsado) controlados por una propiedad `IsCollapsed`, animando `WidthRequest` de 232 a 64. Iconos como `PathGeometry`/SVG o una fuente de iconos; el indicador activo es un `BoxView` o `Border` de 3px.
-4. **`PageShell`:** `ContentView` con `ControlTemplate` o `ContentPresenter`; propiedades enlazables `Title`, `Subtitle` y `Body`. Incluye internamente el `CommissionPicker`. Todas las páginas heredan de él. Evitar que cada página defina su propio encabezado.
-5. **`CommissionContext`:** servicio singleton con `SelectedCommission` y evento de cambio; los ViewModels se suscriben y recargan.
-6. **`CommissionPicker`:** control propio (`Border` + `Picker` o `Popup`), con el punto de acento. No usar el `Picker` por defecto con título flotante.
+3. **Shell de navegación:** sidebar propia (no la del `Shell` por defecto) con dos estados (expandido/colapsado) controlados por una propiedad `IsCollapsed`, animando `WidthRequest` de 232 a 64. Iconos como `PathGeometry`/SVG o una fuente de iconos; el indicador activo es un `BoxView` o `Border` de 3px. Las rutas y la resolución de páginas por DI no cambian.
+4. **Encabezado común:** un solo contenedor de página con título, subtítulo y el selector de Comisión. Todas las páginas lo usan. Evitar que cada página defina su propio encabezado.
+5. **Comisión seleccionada:** una sola para la ventana. Las pantallas que ya recargan al cambiar de comisión se enganchan a esa selección. No se crea un tipo de comisión distinto del que ya usa la app.
+6. **Selector de Comisión:** control propio (`Border` + `Picker` o `Popup`), con el punto de acento. No usar el `Picker` por defecto con título flotante.
 7. **Tablas:** `CollectionView` con `ItemTemplate` basado en `Grid` con `ColumnDefinitions` proporcionales (p. ej. `2.2*,110,1.3*,1.3*,110` en Seguimiento) y una fila de encabezado aparte con el mismo `Grid`. Los separadores son un `BoxView` de 1px o el borde inferior del `Border` de cada fila.
 8. **Barras:** `ProgressBar` con `ProgressColor` y altura 5, o un `Grid` con dos `BoxView` si se necesita redondeo exacto.
 9. **Barra de título (Windows):** handler que aplique `Bg` a la barra de título y botones transparentes.
 10. **Convertidores:** `RiskLevelToColorConverter`, `RiskLevelToSoftColorConverter`, `PercentToProgressConverter`.
-11. **Pruebas:** no tocar `Core` ni `Data`. Los tests xUnit existentes deben seguir pasando. Si se agregan ViewModels, testear `CommissionContext` y el filtrado por nivel.
+11. **Pruebas:** no tocar `Core` ni `Data`. Los tests xUnit existentes deben seguir pasando.
 12. **Orden sugerido:** tokens y estilos → `PageShell` + sidebar → Nómina → Seguimiento → Detalle → Entregas/Asistencia → Calendario → Ajustes.
 
 ---
@@ -310,6 +311,8 @@ Fila con texto a la izquierda y pill de estado a la derecha, padding vertical 12
 - No usar `Frame`, sombras, bordes de más de 1px ni dropdowns por fila para estados.
 - No dejar una página sin selector de Comisión ni sin título y subtítulo.
 - No cambiar nombres de campos, reglas ni acceso a datos.
+- No agregar el estado "Tarde", ni un alta de intervenciones, ni una galería de componentes, ni un drawer de detalle.
+- No crear carpetas Foundation, Layout, Navigation, Inputs, Display, Tables ni Gallery.
 
 ---
 
@@ -325,6 +328,6 @@ Fila con texto a la izquierda y pill de estado a la derecha, padding vertical 12
 - [ ] Entregas y Asistencia: control segmentado, barra de progreso, selector propio en el toolbar, "Marcar todos presentes".
 - [ ] Calendario: alta en una fila y lista ordenada sin espacio vacío.
 - [ ] Ajustes: tarjeta de 640px, umbrales funcionales, fórmula con tags.
-- [ ] Detalle: columna izquierda de 300px, tres tarjetas a la derecha y "Registrar contacto" dentro de Intervenciones.
+- [ ] Detalle: columna izquierda de 300px, tres tarjetas a la derecha, intervenciones de solo lectura.
 - [ ] Estados hover, foco y vacío implementados.
 - [ ] Capturas de cada pantalla comparadas lado a lado con el mockup.

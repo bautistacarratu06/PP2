@@ -1,8 +1,8 @@
 # Gestión Escolar PP2 · Guía de componentes reutilizables (.NET MAUI)
 
-Este documento complementa a `gestion-escolar-design-spec.md`. Aquel define **cómo se ve** la app (tokens, medidas, pantallas). Este define **qué piezas de código hay que crear** para construir esas pantallas sin repetir XAML, con nombres, API pública, estados y orden de trabajo.
+Este documento complementa a `ui-revamp.md`. Aquel define **cómo se ve** la app (tokens, medidas, pantallas). Este define **qué piezas de código hay que crear** para construir esas pantallas sin repetir XAML, con nombres, API pública y estados.
 
-La referencia visual de cada componente es el mockup `gestion-escolar-mockup.html`. Si hay dudas de apariencia, ganan el mockup y el design spec. Si hay dudas de estructura de código, gana este documento.
+La referencia visual de cada componente es el mockup `Gestión Escolar · Mockup.html`. Si hay dudas de apariencia, ganan el mockup y `ui-revamp.md`. La ubicación de los archivos sigue el proyecto UI que ya existe. Las historias de `.scratch/look-and-feel/issues/` cortan el trabajo; este documento no manda un orden de carpetas.
 
 ---
 
@@ -19,38 +19,14 @@ La referencia visual de cada componente es el mockup `gestion-escolar-mockup.htm
 
 ---
 
-## 2. Estructura de carpetas y convenciones
+## 2. Dónde viven y convenciones
 
-```
-GestionEscolar.UI/                      (o la carpeta de UI del proyecto MAUI)
-├─ Resources/
-│  ├─ Fonts/                            Inter (400/500/600/700), JetBrains Mono
-│  └─ Styles/
-│     ├─ Colors.xaml                    tokens de color (con variantes Soft)
-│     ├─ Typography.xaml                estilos de texto: PageTitle, CardTitle, Caption...
-│     ├─ Styles.xaml                    estilos implícitos y nombrados de controles base
-│     └─ Icons.xaml                     geometrías de iconos (ver 4.1)
-├─ Controls/
-│  ├─ Foundation/                       Icon, Card, Divider
-│  ├─ Layout/                           PageShell, CardToolbar, EmptyState
-│  ├─ Navigation/                       SidebarNav, NavItemView
-│  ├─ Inputs/                           SearchBox, FormField, SegmentedControl, FilterChips,
-│  │                                    CommissionPicker, AppButton
-│  ├─ Display/                          Avatar, Tag, StatusPill, RiskPill, Meter, ScoreBadge,
-│  │                                    KpiCard, MetricCard, KeyValueBlock, HistoryRow
-│  └─ Tables/                           TableHeader, StudentIdentityCell
-├─ Converters/                          RiskLevelToColor, RiskLevelToSoftColor, PercentToProgress...
-├─ Models/                              display models de UI (StudentRowItem, HistoryItem, ...)
-├─ ViewModels/
-├─ Views/                               las 7 pantallas
-└─ Gallery/                             ComponentGalleryPage (solo en Debug, ver sección 8)
-```
+No hay un árbol de carpetas nuevo. El proyecto UI ya tiene `Views/`, `ViewModels/`, `Converters/` y `Resources/Styles/`. Los controles reutilizables se agregan ahí al lado, en el namespace `UI` (hoy las páginas son `UI.Views`). `Colors.xaml` y `Styles.xaml` ya existen: los tokens y los estilos con nombre van en esos diccionarios. Inter y JetBrains Mono van con las fuentes que ya registra la app.
 
 Convenciones:
-- Namespace XAML: `xmlns:ui="clr-namespace:GestionEscolar.UI.Controls"`.
 - Nombres de estilos nombrados en PascalCase, sin prefijos (`PageTitle`, `PrimaryButton`).
-- Cada control es un `ContentView` con su `.xaml` + `.xaml.cs` (o `TemplatedView` cuando necesite `ControlTemplate`).
-- Enums de UI en `Controls/Enums.cs`: `RiskLevel`, `StatusKind` (`Success`, `Warning`, `Danger`, `Neutral`), `ButtonKind`.
+- Cada control reutilizable es un `ContentView` con su `.xaml` + `.xaml.cs` (o `TemplatedView` cuando necesite `ControlTemplate`).
+- No se duplica `RiskLevel`: el nivel que se muestra es el enum de Core. Un color de estado de la UI (`Success`, `Warning`, `Danger`, `Neutral`) puede vivir junto a los convertidores. `Warning` es el ámbar del riesgo medio, no un estado de asistencia ni de entrega.
 
 Patrón base de una propiedad enlazable:
 
@@ -69,33 +45,33 @@ public string Text
 
 ## 3. Catálogo resumido
 
-| # | Componente | Capa | Reemplaza / resuelve | Usado en |
-|---|---|---|---|---|
-| 1 | `Icon` | Foundation | Iconos de línea (menú, búsqueda, chevrons) | Sidebar, búsqueda, volver |
-| 2 | `Card` | Foundation | `Border` repetido con borde y radio | Todas |
-| 3 | `PageShell` | Layout | Encabezado distinto en cada página | Todas |
-| 4 | `CommissionPicker` | Inputs | Combo "Elegí una comisión" duplicado | Todas (vía `PageShell`) |
-| 5 | `SidebarNav` | Navigation | Menú lateral sin iconos | `AppShell` |
-| 6 | `CardToolbar` | Layout | Fila de filtros arriba de la tabla | Nómina, Seguimiento, Entregas, Asistencia |
-| 7 | `SearchBox` | Inputs | — | Nómina, Seguimiento |
-| 8 | `FilterChips` | Inputs | — | Seguimiento |
-| 9 | `SegmentedControl` | Inputs | Dropdown por fila | Entregas, Asistencia |
-| 10 | `AppButton` | Inputs | Botones teal sueltos | Calendario, Ajustes, Detalle, Asistencia |
-| 11 | `FormField` | Inputs | Etiqueta + input | Calendario, Ajustes |
-| 12 | `Avatar` | Display | Ícono de persona violeta | Tablas, Detalle |
-| 13 | `StudentIdentityCell` | Tables | Nombre + legajo | Nómina, Seguimiento, Entregas, Asistencia |
-| 14 | `RiskPill` | Display | Columnas Nivel + Riesgo | Seguimiento, Detalle |
-| 15 | `Meter` | Display | Porcentajes como texto | Seguimiento |
-| 16 | `Tag` | Display | Tipo de evento, pesos | Calendario, Ajustes |
-| 17 | `StatusPill` | Display | "Sin registro" / estados | Detalle |
-| 18 | `KpiCard` | Display | Tarjetas teñidas de riesgo | Seguimiento |
-| 19 | `ScoreBadge` | Display | Puntaje grande con nivel | Detalle |
-| 20 | `MetricCard` | Display | Bloque Asistencia/Entregas con barra | Detalle |
-| 21 | `KeyValueBlock` | Display | Teléfono / Correo | Detalle |
-| 22 | `HistoryRow` | Display | Fila de historial | Detalle |
-| 23 | `RegistrationProgress` | Display | Feedback de registro | Entregas, Asistencia |
-| 24 | `EmptyState` | Layout | Lista sin resultados | Todas las listas |
-| 25 | `TableHeader` | Tables | Encabezado de columnas | Tablas |
+| # | Componente | Reemplaza / resuelve | Usado en |
+|---|---|---|---|
+| 1 | `Icon` | Iconos de línea (menú, búsqueda, chevrons) | Sidebar, búsqueda, volver |
+| 2 | `Card` | `Border` repetido con borde y radio | Todas |
+| 3 | `PageShell` | Encabezado distinto en cada página | Todas |
+| 4 | `CommissionPicker` | Combo "Elegí una comisión" duplicado | Todas (vía `PageShell`) |
+| 5 | `SidebarNav` | Menú lateral sin iconos | `AppShell` |
+| 6 | `CardToolbar` | Fila de filtros arriba de la tabla | Nómina, Seguimiento, Entregas, Asistencia |
+| 7 | `SearchBox` | — | Nómina, Seguimiento |
+| 8 | `FilterChips` | — | Seguimiento |
+| 9 | `SegmentedControl` | Dropdown por fila | Entregas, Asistencia |
+| 10 | `AppButton` | Botones teal sueltos | Calendario, Ajustes, Detalle, Asistencia |
+| 11 | `FormField` | Etiqueta + input | Calendario, Ajustes |
+| 12 | `Avatar` | Ícono de persona violeta | Tablas, Detalle |
+| 13 | `StudentIdentityCell` | Nombre + legajo | Nómina, Seguimiento, Entregas, Asistencia |
+| 14 | `RiskPill` | Columnas Nivel + Riesgo | Seguimiento, Detalle |
+| 15 | `Meter` | Porcentajes como texto | Seguimiento |
+| 16 | `Tag` | Tipo de evento, pesos | Calendario, Ajustes |
+| 17 | `StatusPill` | "Sin registro" / estados | Detalle |
+| 18 | `KpiCard` | Tarjetas teñidas de riesgo | Seguimiento |
+| 19 | `ScoreBadge` | Puntaje grande con nivel | Detalle |
+| 20 | `MetricCard` | Bloque Asistencia/Entregas con barra | Detalle |
+| 21 | `KeyValueBlock` | Teléfono / Correo | Detalle |
+| 22 | `HistoryRow` | Fila de historial | Detalle |
+| 23 | `RegistrationProgress` | Feedback de registro | Entregas, Asistencia |
+| 24 | `EmptyState` | Lista sin resultados | Todas las listas |
+| 25 | `TableHeader` | Encabezado de columnas | Tablas |
 
 ---
 
@@ -178,27 +154,12 @@ Atención: un `CollectionView` dentro de un `ScrollView` pierde virtualización.
 ### 5.2 `CommissionPicker`
 Selector destacado de comisión, conectado al contexto global.
 
-| Propiedad | Tipo | Notas |
-|---|---|---|
-| `Commissions` | `IReadOnlyList<CommissionItem>` | Se obtiene del servicio, no se pasa por página |
-| `SelectedCommission` | `CommissionItem` | Enlace bidireccional con `CommissionContext` |
+El selector muestra la comisión elegida de la ventana y escribe sobre esa misma selección. El modelo es el `Section` que las pantallas ya usan. No se crea un `CommissionItem` ni un servicio con otro nombre de dominio.
 
 Reglas:
-- Se resuelve `CommissionContext` (servicio singleton registrado en DI) en `OnHandlerChanged`, vía `Handler.MauiContext.Services`.
-- Al cambiar la selección, `CommissionContext` dispara un evento y los ViewModels activos recargan.
+- Hay una sola comisión seleccionada. Cambiarla recarga la vista visible. Nómina deja de cargar siempre la comisión 1. En Ajustes el selector se ve, y los umbrales siguen siendo globales.
 - Aspecto: fondo `Raised`, borde `Border2`, radio 10, punto de 8px en `Accent`, etiqueta "Comisión" y valor con chevron. Es el control más prominente del encabezado.
 - Implementación sugerida: `Border` clicable que abre un `Popup` (CommunityToolkit.Maui) o un `Picker` estilizado oculto debajo. No exponer el `Picker` por defecto con título flotante.
-
-Servicio asociado (fuera del componente):
-
-```csharp
-public sealed class CommissionContext
-{
-    public CommissionItem? Selected { get; private set; }
-    public event EventHandler<CommissionItem>? Changed;
-    public void Select(CommissionItem item) { Selected = item; Changed?.Invoke(this, item); }
-}
-```
 
 ### 5.3 `SidebarNav`
 Barra lateral colapsable con iconos.
@@ -260,7 +221,7 @@ Fondo `Bg`, borde `Border`, radio 9, icono de lupa a la izquierda. El borde pasa
 Contenedor con fondo `Bg`, borde `Border`, radio 9, padding 3. Chip activo con fondo `Raised`. Para Seguimiento: Todos, Alto, Medio, Bajo. Debe sincronizarse con las `KpiCard`: ambos escriben el mismo `SelectedLevel` del ViewModel.
 
 ### 6.3 `SegmentedControl`
-Control de 2 a 4 opciones con color semántico por opción. Reemplaza los dropdowns de Entregas y Asistencia.
+Control de dos opciones con color semántico por opción. Reemplaza los dropdowns de Entregas y Asistencia. No se agrega una tercera opción.
 
 | Propiedad | Tipo | Notas |
 |---|---|---|
@@ -268,9 +229,7 @@ Control de 2 a 4 opciones con color semántico por opción. Reemplaza los dropdo
 | `SelectedKey` | `string?` | `TwoWay`; `null` = "Sin registro" |
 | `AllowDeselect` | `bool` | `true`: tocar la opción activa la quita |
 
-Aspecto: contenedor como `FilterChips`; opción activa con fondo `*Soft` y texto del color pleno de su `Kind`; inactivas en `TextSecondary`. Para asistencia: Presente (Success), Tarde (Warning), Ausente (Danger). Para entregas: Entregó, Tarde, No entregó.
-
-Es un componente genérico: también servirá para cualquier selector corto futuro.
+Aspecto: contenedor como `FilterChips`; opción activa con fondo `*Soft` y texto del color pleno de su `Kind`; inactivas en `TextSecondary`. Para asistencia: Presente (Success) y Ausente (Danger). Para entregas: Entregó (Success) y No entregó (Danger). No existe "Tarde". Sin selección, ambos quedan en gris ("Sin registro"). Deseleccionar solo vuelve a vacío si el guardado actual lo admite.
 
 ### 6.4 `AppButton`
 | Propiedad | Tipo | Defecto |
@@ -326,7 +285,7 @@ Compone `Avatar` + "Apellido, Nombre" (14 SemiBold) + legajo en mono 11 `TextTer
 Cápsula con fondo `*Soft`, punto de 6px, texto del nivel y puntaje tabular. Los colores se resuelven con `RiskLevelToColorConverter` y `RiskLevelToSoftColorConverter`, nunca con `if` en el ViewModel.
 
 ### 7.4 `StatusPill`
-Igual que `RiskPill` pero con texto libre y `StatusKind`: `Presente`/`Entregó` (Success), `Tarde` (Warning), `Ausente`/`No entregó` (Danger), `Sin registro` (Neutral).
+Igual que `RiskPill` pero con texto libre y color de estado: `Presente`/`Entregó` (Success), `Ausente`/`No entregó` (Danger), `Sin registro` (Neutral). No hay cápsula "Tarde". El ámbar queda para el riesgo medio.
 
 | Propiedad | Tipo |
 |---|---|
@@ -424,47 +383,27 @@ Pantalla → componentes:
 ## 9. Dependencias entre componentes
 
 ```
-Foundation:  Icon, Card
-Display base: StatusPill → RiskPill, Meter, Avatar, Tag
+Base:        Icon, Card
+Display:     StatusPill → RiskPill, Meter, Avatar, Tag
 Compuestos:  StudentIdentityCell (Avatar) · KpiCard (Card) · MetricCard (Meter) · ScoreBadge (RiskPill)
              HistoryRow (StatusPill) · RegistrationProgress (Meter)
-Inputs:      AppButton (Icon) · SearchBox (Icon) · FilterChips · SegmentedControl · FormField
+Entradas:    AppButton (Icon) · SearchBox (Icon) · FilterChips · SegmentedControl · FormField
 Estructura:  CardToolbar · EmptyState · TableHeader
-Raíz:        CommissionPicker → PageShell → todas las vistas
-             SidebarNav (Icon) → AppShell
+Raíz:        selector de Comisión → encabezado de página → todas las vistas
+             sidebar (Icon) → ventana
 ```
 
----
-
-## 10. Orden de construcción recomendado
-
-| Fase | Entregable | Resultado verificable |
-|---|---|---|
-| 0 | `Colors.xaml`, `Typography.xaml`, `Styles.xaml`, fuentes, barra de título | La app ya tiene la paleta neutra |
-| 1 | `Icon`, `Card`, `AppButton`, `Tag`, `StatusPill`, `Avatar` | Galería con los átomos |
-| 2 | `CommissionContext`, `CommissionPicker`, `PageShell`, `SidebarNav` | Todas las pantallas actuales ya tienen shell y sidebar nuevos |
-| 3 | `SearchBox`, `FilterChips`, `CardToolbar`, `TableHeader`, `StudentIdentityCell`, `EmptyState`, `Meter`, `RiskPill`, `KpiCard` | Nómina y Seguimiento rediseñados |
-| 4 | `ScoreBadge`, `MetricCard`, `KeyValueBlock`, `HistoryRow` | Detalle del alumno rediseñado |
-| 5 | `SegmentedControl`, `RegistrationProgress`, `FormField` | Entregas, Asistencia, Calendario y Ajustes rediseñados |
-| 6 | Galería, pulido de estados, comparación contra el mockup | Checklist del design spec completo |
+Es orden de composición, no de carpetas.
 
 ---
 
-## 11. Galería de componentes (`ComponentGalleryPage`)
+## 10. Orden de construcción
 
-Crear una página accesible solo en `DEBUG` que muestre **cada componente en todos sus estados**: normal, hover, activo, deshabilitado, vacío, texto largo y valores extremos (0 %, 100 %, nombres de 40 caracteres, correos largos). Es la forma más rápida de comparar contra el mockup y de detectar regresiones visuales al tocar un token. Debe incluir:
-
-- Paleta completa con nombre y hex de cada token.
-- Escala tipográfica.
-- Los tres niveles de `RiskPill`, los tres `StatusKind` y los dos `Tag`.
-- `Meter` en 0, 33, 67 y 100 %.
-- `SegmentedControl` sin selección y con cada opción elegida.
-- `SidebarNav` expandida y colapsada.
-- `PageShell` con un cuerpo de ejemplo.
+El corte en historias está en `issues/`. No hay una galería de debug: cada historia se verifica abriendo la pantalla y comparándola con el mockup.
 
 ---
 
-## 12. Reglas de calidad para cada componente
+## 11. Reglas de calidad para cada componente
 
 - [ ] Todas las propiedades configurables son `BindableProperty` con valor por defecto.
 - [ ] Sin colores, tamaños de fuente ni radios hardcodeados: solo tokens.
@@ -472,13 +411,12 @@ Crear una página accesible solo en `DEBUG` que muestre **cada componente en tod
 - [ ] Estados hover, foco y deshabilitado definidos con `VisualStateManager`.
 - [ ] No referencia a `Core`, `Data` ni a ningún ViewModel concreto.
 - [ ] Se ve bien con textos largos (truncado con elipsis o ajuste de línea definido).
-- [ ] Aparece en la galería con todos sus estados.
 - [ ] Accesibilidad básica: `AutomationProperties.Name` en controles interactivos, orden de tabulación lógico y foco visible.
 - [ ] Probado a 900px y a 1920px de ancho de ventana.
 
 ---
 
-## 13. Errores a evitar
+## 12. Errores a evitar
 
 - Duplicar un selector de Comisión por pantalla en vez de usar el del `PageShell`.
 - Definir estilos con colores azules o con el aqua anterior.
@@ -487,3 +425,6 @@ Crear una página accesible solo en `DEBUG` que muestre **cada componente en tod
 - Dejar que un componente de UI llame a repositorios o a `RiskRule`.
 - Crear una columna o un componente específico para mostrar el texto de detalle del riesgo en cada fila: ese contenido pertenece al Detalle del alumno.
 - Hacer el control segmentado con un `Picker` oculto: debe ser un control propio, con botones reales.
+- Agregar "Tarde", un alta de intervenciones, un drawer de detalle o una página galería.
+- Crear carpetas Foundation, Layout, Navigation, Inputs, Display, Tables o Gallery.
+- Duplicar `RiskLevel` de Core con un enum de UI del mismo nombre.

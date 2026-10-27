@@ -85,13 +85,6 @@ h1{font-size:26px;font-weight:650;letter-spacing:-.02em;margin:0}
 .meter span{font-variant-numeric:tabular-nums;color:var(--t2);width:34px}
 .muted{color:var(--t3)}.mono{font-family:var(--mono);font-size:12px;color:var(--t2)}
 .empty{padding:48px;text-align:center;color:var(--t3)}
-.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
-.scrim.on{opacity:1;pointer-events:auto}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:min(400px,100%);background:var(--side);border-left:1px solid var(--border2);transform:translateX(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);z-index:21;display:flex;flex-direction:column;padding:calc(24px + env(safe-area-inset-top,0px)) 24px 24px}
-.drawer.on{transform:none}
-.dh{display:flex;justify-content:space-between;align-items:flex-start}
-.x{border:1px solid var(--border);background:var(--surface);color:var(--t2);width:30px;height:30px;border-radius:8px;cursor:pointer;display:grid;place-items:center}
-.x svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
 .big{margin:22px 0 6px;display:flex;align-items:baseline;gap:10px}
 .big b{font-size:52px;font-weight:650;letter-spacing:-.04em;line-height:1;color:var(--c)}
 .big span{color:var(--t2)}
@@ -102,7 +95,6 @@ h1{font-size:26px;font-weight:650;letter-spacing:-.02em;margin:0}
 .dcard small{display:block;color:var(--t3);margin-top:8px}
 .btn{margin-top:auto;border:0;border-radius:10px;padding:11px 14px;background:var(--accent-strong);color:#fff;font:inherit;font-weight:600;cursor:pointer}
 .btn:hover{filter:brightness(1.08)}
-.note{margin-top:20px;color:var(--t3);font-size:11px}
 @media(max-width:860px){.det{grid-template-columns:1fr}aside{width:64px;padding:16px 8px}.brand b,.brand small,.nav span,.sidefoot{display:none}.brand{padding:4px 0 20px;justify-content:center}.nav{justify-content:center}.nav.on::before{left:-8px}.page{padding:24px 18px}.kpis{grid-template-columns:1fr}}
 </style>
 </head>
@@ -113,8 +105,6 @@ h1{font-size:26px;font-weight:650;letter-spacing:-.02em;margin:0}
   <button class="sidefoot" id="tog" title="Colapsar menú"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg><span class="tl">Colapsar</span></button>
 </aside>
 <main><div class="page" id="page"></div></main>
-<div class="scrim" id="scrim"></div>
-<aside class="drawer" id="drawer"></aside>
 
 <script>
 const IC={
@@ -175,24 +165,10 @@ function render(){
  if(qi)qi.oninput=e=>{q=e.target.value;const pos=e.target.selectionStart;render();const n=document.getElementById('q');n.focus();n.setSelectionRange(pos,pos)};
  p.querySelectorAll('.tr').forEach(r=>r.onclick=()=>go('detalle',r.dataset.id));
 }
-function open(id){
- const s=S.find(x=>x.leg===id),d=document.getElementById('drawer');
- const fa=Math.round(60*(1-s.pa)),fe=Math.round(40*(1-s.pe));
- d.innerHTML=`<div class="dh"><div class="who"><div class="av" style="width:44px;height:44px;font-size:14px">${ini(s)}</div><div><b style="font-size:16px">${s.n} ${s.a}</b><span>${s.leg}</span></div></div><button class="x" id="cl">${svg('x')}</button></div>
- <div class="big" style="${cv(s.lvl)}"><b>${s.risk}</b><span>puntos de riesgo · <span class="pill" style="${cv(s.lvl)}"><i></i>${LV[s.lvl][0]}</span></span></div>
- <div class="dcard"><div class="t">Asistencia<span>${s.att} de ${TOT_C} clases · ${pct(s.pa)}</span></div><div class="bar"><i style="width:${pct(s.pa)}"></i></div><small>Inasistencia pesa 60 % → aporta ${fa} puntos de riesgo</small></div>
- <div class="dcard"><div class="t">Entregas<span>${s.ent} de ${TOT_E} trabajos · ${pct(s.pe)}</span></div><div class="bar"><i style="width:${pct(s.pe)}"></i></div><small>Entregas faltantes pesan 40 % → aporta ${fe} puntos de riesgo</small></div>
- <div class="dcard"><div class="t">Contacto<span>${s.uc}</span></div><small>${s.tel} · ${s.mail}</small></div>
- <p class="note">Este desglose reemplaza la columna “Detalle que justifica el valor” de la tabla.</p>
- <button class="btn">Registrar contacto</button>`;
- d.classList.add('on');document.getElementById('scrim').classList.add('on');document.getElementById('cl').onclick=close}
-function close(){document.getElementById('drawer').classList.remove('on');document.getElementById('scrim').classList.remove('on')}
-document.getElementById('scrim').onclick=close;
-document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 const CAL=[['Clase','Clase','2026-09-01'],['Clase','Clase','2026-09-08'],['TP1 - Fundamentos','Trabajo','2026-09-10'],['Clase','Clase','2026-09-15'],['TP2 - Base de Datos','Trabajo','2026-09-20']];
 const FECHAS=['01/09/2026','08/09/2026','15/09/2026'],TPS=['TP1 - Fundamentos · 10/09/2026','TP2 - Base de Datos · 20/09/2026'],COMS=['Mañana · 1A','Mañana · 1B','Noche · 2A'];
-let cur=null,fecha=FECHAS[2],tp=TPS[1],REG={},INT={};
-const OPT={a:[['p','Presente','lo'],['t','Tarde','mid'],['x','Ausente','hi']],e:[['p','Entregó','lo'],['t','Tarde','mid'],['x','No entregó','hi']]};
+let cur=null,fecha=FECHAS[2],tp=TPS[1],REG={};
+const OPT={a:[['p','Presente','lo'],['x','Ausente','hi']],e:[['p','Entregó','lo'],['x','No entregó','hi']]};
 const fd=i=>i.split('-').reverse().join('/');
 const sel=(id,o,v,l)=>`<label class="select${id==='com'?' key':''}">${l}<select data-c="${id}">${o.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('')}</select></label>`;
 const pl=(t,c)=>`<span class="pill" style="--c:var(--${c});--cs:var(--${c}-s)"><i></i>${t}</span>`;
@@ -210,7 +186,7 @@ function ajustes(){return `${head('Ajustes','Reglas de cálculo y umbrales de ri
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><label class="lab">Alto<input class="field" id="ta" type="number" min="0" max="100" value="${THR[0]}"></label><label class="lab">Medio<input class="field" id="tm" type="number" min="0" max="100" value="${THR[1]}"></label></div>
  <div style="margin-top:16px;display:flex;align-items:center;gap:12px"><button class="btn sm" data-a="savethr">Guardar umbrales</button><span class="muted" id="saved"></span></div>
  <div style="border-top:1px solid var(--border);margin-top:24px;padding-top:20px"><h3 class="h3">Fórmula</h3><p class="sub">Score = asistencia × 60 % + entregas × 40 %. Riesgo = 100 − score.</p><div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><span class="tag" style="--c:var(--t1);--cs:var(--raised)">60 % asistencia</span><span class="tag" style="--c:var(--t1);--cs:var(--raised)">40 % entregas</span></div></div></div>`}
-function det(){const s=S.find(x=>x.leg===cur),ints=INT[s.leg]||[];
+function det(){const s=S.find(x=>x.leg===cur),ints=[];
  const hl=a=>a.map(([t,v,c])=>`<div class="hl"><span>${t}</span>${pl(v,c)}</div>`).join('');
  const cl=FECHAS.map((d,i)=>[`Clase · ${d}`,i<s.att?'Presente':'Ausente',i<s.att?'lo':'hi']),tr=TPS.map((t,i)=>[t.replace(' · ',' · vence '),i<s.ent?'Entregó':'No entregó',i<s.ent?'lo':'hi']);
  return `<button class="back" data-a="back">${svg('back')}Seguimiento</button>
@@ -220,14 +196,13 @@ function det(){const s=S.find(x=>x.leg===cur),ints=INT[s.leg]||[];
  <div class="dcard"><div class="t">Entregas<span>${s.ent} de ${TOT_E} · ${pct(s.pe)}</span></div><div class="bar"><i style="width:${pct(s.pe)}"></i></div></div>
  <div class="kv"><small>Teléfono</small><span style="color:var(--accent)">${s.tel}</span></div><div class="kv"><small>Correo</small><span style="color:var(--accent)">${s.mail}</span></div></div>
  <div class="stack"><div class="card pad"><h3 class="h3">Historial de asistencia</h3>${hl(cl)}</div><div class="card pad"><h3 class="h3">Historial de entregas</h3>${hl(tr)}</div>
- <div class="card pad"><div style="display:flex;justify-content:space-between;align-items:center"><h3 class="h3">Intervenciones</h3><button class="btn sm" data-a="contact">Registrar contacto</button></div>${ints.length?ints.map(t=>`<div class="hl"><span>${t}</span></div>`).join(''):'<p class="muted" style="margin:10px 0 0">Sin contactos registrados.</p>'}</div></div></div>`}
+ <div class="card pad"><h3 class="h3">Intervenciones</h3>${ints.length?ints.map(t=>`<div class="hl"><span>${t}</span></div>`).join(''):'<p class="muted" style="margin:10px 0 0">Sin contactos registrados.</p>'}</div></div></div>`}
 const OTHER={asistencia:()=>reg('a'),entregas:()=>reg('e'),calendario:cal,ajustes,detalle:det};
 const pg=document.getElementById('page');
 pg.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;const d=t.dataset,v=id=>document.getElementById(id).value;
  if(d.a==='st'){const k=d.k+(d.k==='a'?fecha:tp)+d.id;REG[k]===d.v?delete REG[k]:REG[k]=d.v;render()}
  else if(d.a==='all'){S.forEach(s=>REG['a'+fecha+s.leg]='p');render()}
  else if(d.a==='back')go('seguimiento');
- else if(d.a==='contact'){(INT[cur]=INT[cur]||[]).unshift('Contacto registrado · 26/10/2026');S.find(x=>x.leg===cur).uc='Hoy';render()}
  else if(d.a==='addcal'){if(!v('cd'))return;CAL.push([v('cn').trim()||v('ct'),v('ct'),v('cd')]);render()}
  else if(d.a==='savethr'){THR=[+v('ta'),+v('tm')];S.forEach(s=>s.lvl=lv(s.risk));document.getElementById('saved').textContent='Guardado'}});
 pg.addEventListener('change',e=>{const c=e.target.dataset.c;if(c==='com')com=e.target.value;else if(c==='fecha')fecha=e.target.value;else if(c==='tp')tp=e.target.value;else return;render()});
