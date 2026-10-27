@@ -93,6 +93,7 @@
                         Padding="16,10"
                         BackgroundColor="{AppThemeBinding Light=#0F766E, Dark=#14B8A6}"
                         Command="{Binding SaveThresholdsCommand}"
+                        IsEnabled="{Binding CanSave}"
                         CornerRadius="10"
                         FontFamily="OpenSansSemibold"
                         FontSize="14"

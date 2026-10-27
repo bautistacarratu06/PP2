@@ -19,6 +19,7 @@ public class CoreRegistrationTests
             new[]
             {
                 typeof(TrackingService),
+                typeof(RiskSettingsService),
                 typeof(SectionService),
                 typeof(StudentDetailsService),
                 typeof(StudentService),

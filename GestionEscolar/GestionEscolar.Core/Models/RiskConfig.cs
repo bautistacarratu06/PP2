@@ -1,6 +1,7 @@
 ﻿namespace GestionEscolar.Core.Models;
 
-// Umbrales de riesgo. TODO: leerlos de dbo.setting (high_threshold / medium_threshold).
+// Umbrales de riesgo en memoria. RiskSettingsService los carga y los actualiza
+// desde dbo.setting. 50 y 25 coinciden con el valor inicial de la tabla.
 public class RiskConfig
 {
     // Riesgo igual o mayor a este valor = Alto

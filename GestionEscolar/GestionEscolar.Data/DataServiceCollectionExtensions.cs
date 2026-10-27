@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GestionEscolar.Data;
 
-// Alta de la conexión y de los repositorios que ya existen.
+// Alta de la conexión y de los repositorios.
 // La connection string llega por la configuración de la aplicación (no por dbo.setting).
 public static class DataServiceCollectionExtensions
 {
@@ -20,6 +20,7 @@ public static class DataServiceCollectionExtensions
 
         services.AddSingleton<ITrackingRepository, SqlTrackingRepository>();
         services.AddSingleton<IRiskSummaryRepository, SqlRiskSummaryRepository>();
+        services.AddSingleton<IRiskSettingsRepository, SqlRiskSettingsRepository>();
         services.AddSingleton<ISectionRepository, SqlSectionRepository>();
         services.AddSingleton<IStudentDetailsRepository, SqlStudentDetailsRepository>();
         services.AddSingleton<IStudentRepository, SqlStudentRepository>();
