@@ -1,5 +1,7 @@
 ﻿using GestionEscolar.Core.Interfaces;
+using GestionEscolar.Data.Persistence;
 using GestionEscolar.Data.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,18 +17,22 @@ public static class DataServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         var connectionString = configuration.GetConnectionString("CourseTracking") ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new ArgumentException("Falta la connection string.", nameof(configuration));
+
         services.AddSingleton(new DatabaseOptions { ConnectionString = connectionString });
         services.AddSingleton<DatabaseInstance>();
+        services.AddDbContextFactory<CourseTrackingDbContext>(options => options.UseSqlServer(connectionString));
 
-        services.AddSingleton<ITrackingRepository, SqlTrackingRepository>();
-        services.AddSingleton<IRiskSummaryRepository, SqlRiskSummaryRepository>();
-        services.AddSingleton<IRiskSettingsRepository, SqlRiskSettingsRepository>();
-        services.AddSingleton<ISectionRepository, SqlSectionRepository>();
-        services.AddSingleton<IStudentDetailsRepository, SqlStudentDetailsRepository>();
-        services.AddSingleton<IStudentRepository, SqlStudentRepository>();
-        services.AddSingleton<ICalendarRepository, SqlCalendarRepository>();
-        services.AddSingleton<IAttendanceRepository, SqlAttendanceRepository>();
-        services.AddSingleton<ISubmissionRepository, SqlSubmissionRepository>();
+        services.AddSingleton<ITrackingRepository, EfTrackingRepository>();
+        services.AddSingleton<IRiskSummaryRepository, EfRiskSummaryRepository>();
+        services.AddSingleton<IRiskSettingsRepository, EfRiskSettingsRepository>();
+        services.AddSingleton<ISectionRepository, EfSectionRepository>();
+        services.AddSingleton<IStudentDetailsRepository, EfStudentDetailsRepository>();
+        services.AddSingleton<IStudentRepository, EfStudentRepository>();
+        services.AddSingleton<ICalendarRepository, EfCalendarRepository>();
+        services.AddSingleton<IAttendanceRepository, EfAttendanceRepository>();
+        services.AddSingleton<ISubmissionRepository, EfSubmissionRepository>();
         return services;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace GestionEscolar.Core.Interfaces;
 
-// Acceso a los datos de seguimiento. La implementación SQL vive en GestionEscolar.Data;
+// Nómina de una comisión. La implementación vive en GestionEscolar.Data;
 // en los tests se usa un repositorio falso.
 public interface IStudentRepository
 {

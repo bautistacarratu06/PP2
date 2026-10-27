@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gestión Escolar · Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#0A0A0A;--side:#0E0E0E;--surface:#131313;--raised:#1B1B1B;--border:#232323;--border2:#303030;
+--t1:#EDEDED;--t2:#8E8E93;--t3:#5C5C61;--accent:#9D8CFF;--accent-strong:#7C6AF2;--accent-s:rgba(157,140,255,.14);
+--hi:#F87171;--hi-s:rgba(248,113,113,.12);--mid:#FBBF24;--mid-s:rgba(251,191,36,.12);--lo:#34D399;--lo-s:rgba(52,211,153,.12);
+--sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'JetBrains Mono',ui-monospace,Consolas,monospace}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--t1);font:400 13px/1.45 var(--sans);-webkit-font-smoothing:antialiased;display:flex;overflow:hidden}
+aside{width:232px;flex:none;background:var(--side);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 12px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 24px}
+.logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#9D8CFF,#6D58E8);display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
+.brand b{font-weight:600;font-size:14px;letter-spacing:-.01em}.brand small{display:block;color:var(--t3);font-size:11px;margin-top:-2px}
+nav{display:flex;flex-direction:column;gap:2px}
+.nav{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:8px;color:var(--t2);font-weight:500;cursor:default;border:0;background:none;font:inherit;font-weight:500;text-align:left;position:relative}
+.nav svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.nav:hover{background:var(--surface);color:var(--t1)}
+.nav.on{background:var(--raised);color:var(--t1)}
+.nav.on svg{color:var(--accent)}
+.nav.on::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+.nav.off{opacity:.55}
+.sidefoot{margin-top:auto;display:flex;align-items:center;gap:12px;padding:12px 10px;border:0;border-top:1px solid var(--border);background:none;color:var(--t3);font:inherit;font-weight:500;cursor:pointer}.sidefoot:hover{color:var(--t1)}.sidefoot svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+#side{transition:width .2s}#side.col{width:64px;padding:16px 8px}#side.col .brand b,#side.col .brand small,#side.col .nav span,#side.col .tl{display:none}#side.col .brand{padding:4px 0 20px;justify-content:center}#side.col .nav,#side.col .sidefoot{justify-content:center}#side.col .nav.on::before{left:-8px}#side.col .sidefoot svg{transform:rotate(180deg)}
+.row.reg{grid-template-columns:1fr auto;height:60px;min-width:0;border-bottom:1px solid var(--border)}.row.reg:last-child{border:0}
+.seg{display:flex;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:3px}.seg button{border:0;background:none;color:var(--t2);font:inherit;font-weight:500;padding:5px 12px;border-radius:6px;cursor:pointer}.seg button:hover{color:var(--t1)}.seg button.on{background:var(--cs);color:var(--c)}
+.prog{width:140px;height:5px;background:var(--raised);border-radius:5px;overflow:hidden}.prog i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.ghost{margin-left:auto;border:1px solid var(--border2);background:none;color:var(--t1);font:inherit;font-weight:500;padding:6px 12px;border-radius:8px;cursor:pointer}.ghost:hover{background:var(--raised)}
+.field{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:8px 11px;color:var(--t1);font:inherit;outline:0}.field:focus{border-color:var(--accent)}
+.btn.sm{margin:0;padding:8px 16px}.lab{display:flex;flex-direction:column;gap:6px;color:var(--t2);font-weight:500}.h3{margin:0;font-size:15px;font-weight:600}
+.tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;color:var(--c);background:var(--cs)}
+.row.cal{grid-template-columns:1fr auto 110px;height:54px;min-width:0;border-bottom:1px solid var(--border)}.row.cal:last-child{border:0}.row.cal .mono{text-align:right}
+.det{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}.pad{padding:20px}.stack{display:flex;flex-direction:column;gap:16px}
+.hl{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}.hl:last-child{border:0;padding-bottom:0}
+.back{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--t2);font:inherit;font-weight:500;cursor:pointer;padding:0;margin-bottom:18px}.back:hover{color:var(--t1)}.back svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.select.key{background:var(--raised);border-color:var(--border2);padding:9px 14px}.select.key::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}.kv{margin-top:14px}.kv small{display:block;color:var(--t3);font-size:11px;text-transform:uppercase;letter-spacing:.06em}.kv span{word-break:break-all}
+main{flex:1;min-width:0;overflow:auto}
+.page{max-width:1160px;margin:0 auto;padding:36px 40px 56px}
+header.ph{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px;flex-wrap:wrap}
+h1{font-size:26px;font-weight:650;letter-spacing:-.02em;margin:0}
+.sub{color:var(--t2);margin-top:4px}
+.select{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 12px;color:var(--t2)}
+.select select{background:none;border:0;color:var(--t1);font:inherit;font-weight:500;outline:0;cursor:pointer}
+.select select option{background:var(--surface)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;cursor:pointer;transition:border-color .15s,background .15s;text-align:left;color:inherit;font:inherit}
+.kpi:hover{border-color:var(--border2)}.kpi.on{border-color:var(--c);background:linear-gradient(180deg,var(--cs),transparent 70%),var(--surface)}
+.kpi .l{display:flex;align-items:center;gap:8px;color:var(--t2);font-weight:500}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.kpi .n{font-size:34px;font-weight:650;letter-spacing:-.03em;margin-top:6px;line-height:1.1}
+.kpi .n small{font-size:13px;color:var(--t3);font-weight:500;letter-spacing:0;margin-left:6px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.toolbar{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.search{flex:1;min-width:180px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:7px 11px;color:var(--t3)}
+.search svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round}
+.search input{flex:1;background:none;border:0;outline:0;color:var(--t1);font:inherit}
+.search:focus-within{border-color:var(--accent)}
+.chips{display:flex;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:3px}
+.chip{border:0;background:none;color:var(--t2);font:inherit;font-weight:500;padding:5px 12px;border-radius:6px;cursor:pointer}
+.chip.on{background:var(--raised);color:var(--t1)}
+.count{color:var(--t3);margin-left:auto}
+.scroll{overflow-x:auto}
+.row{display:grid;align-items:center;gap:20px;padding:0 20px;min-width:760px}
+.s-row{grid-template-columns:minmax(200px,2.2fr) 110px minmax(120px,1.3fr) minmax(120px,1.3fr) 110px}
+.n-row{grid-template-columns:minmax(220px,2.2fr) 130px 150px minmax(200px,2fr)}
+.row.th{height:38px;color:var(--t3);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.row.tr{height:64px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.row.tr:last-child{border-bottom:0}.row.tr:hover{background:var(--raised)}
+.who{display:flex;align-items:center;gap:12px;min-width:0}
+.av{width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--t1);background:var(--raised);border:1px solid var(--border2)}
+.who b{display:block;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who span{display:block;color:var(--t3);font-family:var(--mono);font-size:11px}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 10px 4px 9px;border-radius:999px;font-weight:600;font-size:12px;color:var(--c);background:var(--cs);width:max-content}
+.pill i{width:6px;height:6px;border-radius:50%;background:var(--c)}
+.pill em{font-style:normal;color:var(--t1);font-variant-numeric:tabular-nums;margin-left:2px;opacity:.85}
+.meter{display:flex;align-items:center;gap:10px}
+.bar{flex:1;height:5px;border-radius:5px;background:var(--raised);overflow:hidden;max-width:110px}
+.bar i{display:block;height:100%;border-radius:5px;background:var(--t2)}
+.meter span{font-variant-numeric:tabular-nums;color:var(--t2);width:34px}
+.muted{color:var(--t3)}.mono{font-family:var(--mono);font-size:12px;color:var(--t2)}
+.empty{padding:48px;text-align:center;color:var(--t3)}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(400px,100%);background:var(--side);border-left:1px solid var(--border2);transform:translateX(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);z-index:21;display:flex;flex-direction:column;padding:calc(24px + env(safe-area-inset-top,0px)) 24px 24px}
+.drawer.on{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:flex-start}
+.x{border:1px solid var(--border);background:var(--surface);color:var(--t2);width:30px;height:30px;border-radius:8px;cursor:pointer;display:grid;place-items:center}
+.x svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.big{margin:22px 0 6px;display:flex;align-items:baseline;gap:10px}
+.big b{font-size:52px;font-weight:650;letter-spacing:-.04em;line-height:1;color:var(--c)}
+.big span{color:var(--t2)}
+.dcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:12px}
+.dcard .t{display:flex;justify-content:space-between;font-weight:500}
+.dcard .t span{color:var(--t2);font-variant-numeric:tabular-nums}
+.dcard .bar{max-width:none;margin-top:10px;height:6px}
+.dcard small{display:block;color:var(--t3);margin-top:8px}
+.btn{margin-top:auto;border:0;border-radius:10px;padding:11px 14px;background:var(--accent-strong);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.note{margin-top:20px;color:var(--t3);font-size:11px}
+@media(max-width:860px){.det{grid-template-columns:1fr}aside{width:64px;padding:16px 8px}.brand b,.brand small,.nav span,.sidefoot{display:none}.brand{padding:4px 0 20px;justify-content:center}.nav{justify-content:center}.nav.on::before{left:-8px}.page{padding:24px 18px}.kpis{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<aside id="side">
+  <div class="brand"><div class="logo">G</div><div><b>Gestión Escolar</b><small>PP2 · IFTS</small></div></div>
+  <nav id="nav"></nav>
+  <button class="sidefoot" id="tog" title="Colapsar menú"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg><span class="tl">Colapsar</span></button>
+</aside>
+<main><div class="page" id="page"></div></main>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer"></aside>
+
+<script>
+const IC={
+ users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+ act:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+ inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+ check:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>',
+ cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+ set:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+ search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+ x:'<path d="M18 6 6 18M6 6l12 12"/>',back:'<path d="m15 18-6-6 6-6"/>'};
+const svg=n=>`<svg viewBox="0 0 24 24">${IC[n]}</svg>`;
+const NAV=[['nomina','Nómina','users',1],['seguimiento','Seguimiento','act',1],['entregas','Entregas','inbox',1],['asistencia','Asistencia','check',1],['calendario','Calendario','cal',1],['ajustes','Ajustes','set',1]];
+
+const RAW=[['Catalina','Acosta',15,0,0,0,0,'—'],['Ramiro','Aguirre',26,1,1,0,0,'—'],['Santiago','Álvarez',12,2,1,1,0,'Hace 3 días'],['Federico','Benítez',24,0,0,0,0,'—'],['Emilia','Castro',19,3,3,2,2,'Ayer'],['Gabriel','Domínguez',18,5,4,2,1,'Hace 1 sem.'],['Martina','Fernández',1,8,8,4,4,'—'],['Juan Cruz','Ferreyra',30,6,5,3,3,'Hace 2 días'],['Valentina','García',7,7,6,4,3,'—'],['Lisandro','Godoy',28,2,1,0,0,'Hace 5 días'],['Tomás','González',2,5,5,3,2,'Hace 2 sem.'],['Victoria','Herrera',17,8,7,4,4,'—'],['Facundo','López',4,4,2,2,1,'Ayer'],['Camila','Martínez',5,8,8,4,4,'—'],['Bruno','Medina',16,6,3,3,1,'Hace 4 días'],['Rocío','Molina',29,7,7,4,3,'—']];
+const TOT_C=3,TOT_E=2;let THR=[50,25];const lv=r=>r>=THR[0]?'hi':r>=THR[1]?'mid':'lo';
+const S=RAW.map(([n,a,l,ca,_x,e,_y,uc],i)=>{const att=[0,1,2,0,3,1,3,2,3,1,2,3,2,3,2,3][i],ent=[0,0,1,0,2,1,2,1,2,0,1,2,1,2,1,2][i];
+ const pa=att/TOT_C,pe=ent/TOT_E,risk=Math.round(60*(1-pa)+40*(1-pe));
+ const lvl=lv(risk);
+ return{n,a,leg:'LEG-10'+String(l).padStart(2,'0'),att,ent,pa,pe,risk,lvl,uc:i%3===0&&lvl==='hi'?'Sin contactar':(uc==='—'?'Sin contactar':uc),tel:'11000010'+String(l).padStart(2,'0'),mail:(n+'.'+a).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ /g,'')+'@example.com'}});
+S.sort((x,y)=>y.risk-x.risk);
+const LV={hi:['Alto','--hi','--hi-s'],mid:['Medio','--mid','--mid-s'],lo:['Bajo','--lo','--lo-s']};
+const cv=l=>`--c:var(${LV[l][1]});--cs:var(${LV[l][2]})`;
+const ini=s=>(s.n[0]+s.a[0]).toUpperCase();
+const pct=v=>Math.round(v*100)+'%';
+
+let view='seguimiento',filter='all',q='';
+function nav(){document.getElementById('nav').innerHTML=NAV.map(([k,t,i,on])=>`<button class="nav ${k===(view==='detalle'?'seguimiento':view)?'on':''}" data-k="${k}" title="${t}">${svg(i)}<span>${t}</span></button>`).join('');
+ document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{if(!+NAV.find(n=>n[0]===b.dataset.k)[3])return;view=b.dataset.k;q='';filter='all';render()})}
+function rows(list,kind){
+ if(!list.length)return'<div class="empty">Sin resultados para esa búsqueda.</div>';
+ return list.map(s=>kind==='s'?
+ `<div class="row s-row tr" data-id="${s.leg}"><div class="who"><div class="av">${ini(s)}</div><div><b>${s.a}, ${s.n}</b><span>${s.leg}</span></div></div>
+  <div><span class="pill" style="${cv(s.lvl)}"><i></i>${LV[s.lvl][0]}<em>${s.risk}</em></span></div>
+  <div class="meter"><div class="bar"><i style="width:${pct(s.pa)};background:var(--t2)"></i></div><span>${pct(s.pa)}</span></div>
+  <div class="meter"><div class="bar"><i style="width:${pct(s.pe)};background:var(--t2)"></i></div><span>${pct(s.pe)}</span></div>
+  <div class="${s.uc==='Sin contactar'?'muted':''}">${s.uc}</div></div>`:
+ `<div class="row n-row tr" data-id="${s.leg}"><div class="who"><div class="av">${ini(s)}</div><b>${s.a}, ${s.n}</b></div>
+  <div class="mono">${s.leg}</div><div class="mono">${s.tel}</div><div class="muted">${s.mail}</div></div>`).join('')}
+function render(){
+ nav();const p=document.getElementById('page');
+ if(view==='seguimiento'){
+  const c=l=>S.filter(s=>s.lvl===l).length;
+  let list=S.filter(s=>(filter==='all'||s.lvl===filter)&&(s.n+' '+s.a+' '+s.leg).toLowerCase().includes(q.toLowerCase()));
+  p.innerHTML=`${head('Seguimiento','Riesgo de abandono por estudiante, según asistencia y entregas.')}
+  <section class="kpis">${['hi','mid','lo'].map(l=>`<button class="kpi ${filter===l?'on':''}" data-f="${l}" style="${cv(l)}"><div class="l"><span class="dot"></span>Riesgo ${LV[l][0].toLowerCase()}</div><div class="n">${c(l)}<small>de ${S.length}</small></div></button>`).join('')}</section>
+  <div class="card"><div class="toolbar"><label class="search">${svg('search')}<input id="q" placeholder="Buscar por nombre o legajo" value="${q}"></label>
+  <div class="chips">${[['all','Todos'],['hi','Alto'],['mid','Medio'],['lo','Bajo']].map(([k,t])=>`<button class="chip ${filter===k?'on':''}" data-f="${k}">${t}</button>`).join('')}</div><span class="count">${list.length} estudiantes</span></div>
+  <div class="scroll"><div class="row s-row th"><div>Estudiante</div><div>Riesgo</div><div>Asistencia</div><div>Entregas</div><div>Contacto</div></div>${rows(list,'s')}</div></div>`;
+  p.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filter=filter===b.dataset.f&&b.classList.contains('kpi')?'all':b.dataset.f;render()});
+ }else if(view==='nomina'){
+  let list=[...S].sort((a,b)=>a.a.localeCompare(b.a,'es')).filter(s=>(s.n+' '+s.a+' '+s.leg).toLowerCase().includes(q.toLowerCase()));
+  p.innerHTML=`${head('Nómina','Estudiantes inscriptos en la comisión.')}
+  <div class="card"><div class="toolbar"><label class="search">${svg('search')}<input id="q" placeholder="Buscar por nombre o legajo" value="${q}"></label><span class="count">${list.length} estudiantes</span></div>
+  <div class="scroll"><div class="row n-row th"><div>Apellido y nombre</div><div>Legajo</div><div>Teléfono</div><div>Correo</div></div>${rows(list,'n')}</div></div>`;
+ }else{p.innerHTML=OTHER[view]()}
+ const qi=document.getElementById('q');
+ if(qi)qi.oninput=e=>{q=e.target.value;const pos=e.target.selectionStart;render();const n=document.getElementById('q');n.focus();n.setSelectionRange(pos,pos)};
+ p.querySelectorAll('.tr').forEach(r=>r.onclick=()=>go('detalle',r.dataset.id));
+}
+function open(id){
+ const s=S.find(x=>x.leg===id),d=document.getElementById('drawer');
+ const fa=Math.round(60*(1-s.pa)),fe=Math.round(40*(1-s.pe));
+ d.innerHTML=`<div class="dh"><div class="who"><div class="av" style="width:44px;height:44px;font-size:14px">${ini(s)}</div><div><b style="font-size:16px">${s.n} ${s.a}</b><span>${s.leg}</span></div></div><button class="x" id="cl">${svg('x')}</button></div>
+ <div class="big" style="${cv(s.lvl)}"><b>${s.risk}</b><span>puntos de riesgo · <span class="pill" style="${cv(s.lvl)}"><i></i>${LV[s.lvl][0]}</span></span></div>
+ <div class="dcard"><div class="t">Asistencia<span>${s.att} de ${TOT_C} clases · ${pct(s.pa)}</span></div><div class="bar"><i style="width:${pct(s.pa)}"></i></div><small>Inasistencia pesa 60 % → aporta ${fa} puntos de riesgo</small></div>
+ <div class="dcard"><div class="t">Entregas<span>${s.ent} de ${TOT_E} trabajos · ${pct(s.pe)}</span></div><div class="bar"><i style="width:${pct(s.pe)}"></i></div><small>Entregas faltantes pesan 40 % → aporta ${fe} puntos de riesgo</small></div>
+ <div class="dcard"><div class="t">Contacto<span>${s.uc}</span></div><small>${s.tel} · ${s.mail}</small></div>
+ <p class="note">Este desglose reemplaza la columna “Detalle que justifica el valor” de la tabla.</p>
+ <button class="btn">Registrar contacto</button>`;
+ d.classList.add('on');document.getElementById('scrim').classList.add('on');document.getElementById('cl').onclick=close}
+function close(){document.getElementById('drawer').classList.remove('on');document.getElementById('scrim').classList.remove('on')}
+document.getElementById('scrim').onclick=close;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+const CAL=[['Clase','Clase','2026-09-01'],['Clase','Clase','2026-09-08'],['TP1 - Fundamentos','Trabajo','2026-09-10'],['Clase','Clase','2026-09-15'],['TP2 - Base de Datos','Trabajo','2026-09-20']];
+const FECHAS=['01/09/2026','08/09/2026','15/09/2026'],TPS=['TP1 - Fundamentos · 10/09/2026','TP2 - Base de Datos · 20/09/2026'],COMS=['Mañana · 1A','Mañana · 1B','Noche · 2A'];
+let cur=null,fecha=FECHAS[2],tp=TPS[1],REG={},INT={};
+const OPT={a:[['p','Presente','lo'],['t','Tarde','mid'],['x','Ausente','hi']],e:[['p','Entregó','lo'],['t','Tarde','mid'],['x','No entregó','hi']]};
+const fd=i=>i.split('-').reverse().join('/');
+const sel=(id,o,v,l)=>`<label class="select${id==='com'?' key':''}">${l}<select data-c="${id}">${o.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('')}</select></label>`;
+const pl=(t,c)=>`<span class="pill" style="--c:var(--${c});--cs:var(--${c}-s)"><i></i>${t}</span>`;
+let com=COMS[0];const head=(t,s)=>`<header class="ph"><div><h1>${t}</h1><div class="sub">${s}</div></div>${sel('com',COMS,com,'Comisión')}</header>`;
+function go(v,id){view=v;if(id)cur=id;q='';filter='all';render();document.querySelector('main').scrollTo(0,0)}
+function reg(k){const key=k==='a'?fecha:tp,done=S.filter(s=>REG[k+key+s.leg]).length;
+ return `${head(k==='a'?'Registrar asistencia':'Registrar entregas',k==='a'?'Marcá la asistencia de cada estudiante en la clase elegida.':'Registrá el estado de entrega de cada estudiante.')}
+ <div class="card"><div class="toolbar">${k==='a'?sel('fecha',FECHAS,fecha,'Clase'):sel('tp',TPS,tp,'Trabajo')}<div class="prog"><i style="width:${done/S.length*100}%"></i></div><span class="count" style="margin-left:0">${done} de ${S.length} registrados</span>${k==='a'?'<button class="ghost" data-a="all">Marcar todos presentes</button>':''}</div>
+ <div class="scroll">${[...S].sort((a,b)=>a.a.localeCompare(b.a,'es')).map(s=>{const v=REG[k+key+s.leg];return `<div class="row reg"><div class="who"><div class="av">${ini(s)}</div><b>${s.a}, ${s.n}</b></div><div class="seg">${OPT[k].map(([c,t,col])=>`<button class="${v===c?'on':''}" style="--c:var(--${col});--cs:var(--${col}-s)" data-a="st" data-k="${k}" data-id="${s.leg}" data-v="${c}">${t}</button>`).join('')}</div></div>`}).join('')}</div></div>`}
+function cal(){return `${head('Calendario','Clases y trabajos de la comisión.')}
+ <div class="card" style="margin-bottom:16px"><div class="toolbar"><select class="field" id="ct"><option>Clase</option><option>Trabajo</option></select><input class="field" id="cn" placeholder="La fecha identifica la clase" style="flex:1;min-width:180px"><input class="field" id="cd" type="date" value="2026-10-26"><button class="btn sm" data-a="addcal">Agregar</button></div></div>
+ <div class="card">${[...CAL].sort((a,b)=>a[2].localeCompare(b[2])).map(([n,t,d])=>`<div class="row cal"><b>${n}</b><span class="tag" style="${t==='Trabajo'?'--c:var(--accent);--cs:var(--accent-s)':'--c:var(--t2);--cs:var(--raised)'}">${t}</span><span class="mono">${fd(d)}</span></div>`).join('')}</div>`}
+function ajustes(){return `${head('Ajustes','Reglas de cálculo y umbrales de riesgo.')}
+ <div class="card pad" style="max-width:640px;padding:24px"><h3 class="h3">Umbrales de riesgo</h3><p class="sub" style="margin:4px 0 18px">Alto si el riesgo es igual o mayor al primer valor; Medio desde el segundo.</p>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><label class="lab">Alto<input class="field" id="ta" type="number" min="0" max="100" value="${THR[0]}"></label><label class="lab">Medio<input class="field" id="tm" type="number" min="0" max="100" value="${THR[1]}"></label></div>
+ <div style="margin-top:16px;display:flex;align-items:center;gap:12px"><button class="btn sm" data-a="savethr">Guardar umbrales</button><span class="muted" id="saved"></span></div>
+ <div style="border-top:1px solid var(--border);margin-top:24px;padding-top:20px"><h3 class="h3">Fórmula</h3><p class="sub">Score = asistencia × 60 % + entregas × 40 %. Riesgo = 100 − score.</p><div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><span class="tag" style="--c:var(--t1);--cs:var(--raised)">60 % asistencia</span><span class="tag" style="--c:var(--t1);--cs:var(--raised)">40 % entregas</span></div></div></div>`}
+function det(){const s=S.find(x=>x.leg===cur),ints=INT[s.leg]||[];
+ const hl=a=>a.map(([t,v,c])=>`<div class="hl"><span>${t}</span>${pl(v,c)}</div>`).join('');
+ const cl=FECHAS.map((d,i)=>[`Clase · ${d}`,i<s.att?'Presente':'Ausente',i<s.att?'lo':'hi']),tr=TPS.map((t,i)=>[t.replace(' · ',' · vence '),i<s.ent?'Entregó':'No entregó',i<s.ent?'lo':'hi']);
+ return `<button class="back" data-a="back">${svg('back')}Seguimiento</button>
+ ${head('Detalle del alumno',s.n+' '+s.a+' · '+s.leg)}
+ <div class="det"><div class="card pad"><div class="big" style="${cv(s.lvl)};margin-top:0"><b>${s.risk}</b><span>${pl(LV[s.lvl][0],LV[s.lvl][1].slice(2))}</span></div>
+ <div class="dcard"><div class="t">Asistencia<span>${s.att} de ${TOT_C} · ${pct(s.pa)}</span></div><div class="bar"><i style="width:${pct(s.pa)}"></i></div></div>
+ <div class="dcard"><div class="t">Entregas<span>${s.ent} de ${TOT_E} · ${pct(s.pe)}</span></div><div class="bar"><i style="width:${pct(s.pe)}"></i></div></div>
+ <div class="kv"><small>Teléfono</small><span style="color:var(--accent)">${s.tel}</span></div><div class="kv"><small>Correo</small><span style="color:var(--accent)">${s.mail}</span></div></div>
+ <div class="stack"><div class="card pad"><h3 class="h3">Historial de asistencia</h3>${hl(cl)}</div><div class="card pad"><h3 class="h3">Historial de entregas</h3>${hl(tr)}</div>
+ <div class="card pad"><div style="display:flex;justify-content:space-between;align-items:center"><h3 class="h3">Intervenciones</h3><button class="btn sm" data-a="contact">Registrar contacto</button></div>${ints.length?ints.map(t=>`<div class="hl"><span>${t}</span></div>`).join(''):'<p class="muted" style="margin:10px 0 0">Sin contactos registrados.</p>'}</div></div></div>`}
+const OTHER={asistencia:()=>reg('a'),entregas:()=>reg('e'),calendario:cal,ajustes,detalle:det};
+const pg=document.getElementById('page');
+pg.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;const d=t.dataset,v=id=>document.getElementById(id).value;
+ if(d.a==='st'){const k=d.k+(d.k==='a'?fecha:tp)+d.id;REG[k]===d.v?delete REG[k]:REG[k]=d.v;render()}
+ else if(d.a==='all'){S.forEach(s=>REG['a'+fecha+s.leg]='p');render()}
+ else if(d.a==='back')go('seguimiento');
+ else if(d.a==='contact'){(INT[cur]=INT[cur]||[]).unshift('Contacto registrado · 26/10/2026');S.find(x=>x.leg===cur).uc='Hoy';render()}
+ else if(d.a==='addcal'){if(!v('cd'))return;CAL.push([v('cn').trim()||v('ct'),v('ct'),v('cd')]);render()}
+ else if(d.a==='savethr'){THR=[+v('ta'),+v('tm')];S.forEach(s=>s.lvl=lv(s.risk));document.getElementById('saved').textContent='Guardado'}});
+pg.addEventListener('change',e=>{const c=e.target.dataset.c;if(c==='com')com=e.target.value;else if(c==='fecha')fecha=e.target.value;else if(c==='tp')tp=e.target.value;else return;render()});
+document.getElementById('tog').onclick=()=>document.getElementById('side').classList.toggle('col');
+render();
+</script>
+</body>
+</html>

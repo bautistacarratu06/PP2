@@ -2,6 +2,9 @@
 setlocal
 chcp 65001 >nul
 
+rem Esquema histórico (0001-0010). El DDL nuevo lo aplica Entity Framework:
+rem   dotnet tool run dotnet-ef database update --project GestionEscolar\GestionEscolar.Data\GestionEscolar.Data.csproj
+
 set "SERVER=.\SQLEXPRESS"
 set "DB=course_tracking"
 set "DIR=%~dp0..\GestionEscolar\GestionEscolar.Data\Database\Migrations"
