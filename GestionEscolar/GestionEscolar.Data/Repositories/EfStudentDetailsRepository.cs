@@ -151,4 +151,24 @@ public sealed class EfStudentDetailsRepository(IDbContextFactory<CourseTrackingD
             Note = row.Note
         }).ToList();
     }
+
+    public async Task<Intervention> AddInterventionAsync(Intervention intervention, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(intervention);
+        await using var db = await _contexts.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        var entity = new InterventionEntity
+        {
+            StudentId = intervention.StudentId,
+            InterventionDate = intervention.Date.Date,
+            Channel = intervention.Channel,
+            Outcome = intervention.Outcome,
+            Note = string.IsNullOrWhiteSpace(intervention.Note) ? null : intervention.Note
+        };
+        db.Interventions.Add(entity);
+        await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        intervention.Id = entity.Id;
+        intervention.Date = entity.InterventionDate;
+        intervention.Note = entity.Note;
+        return intervention;
+    }
 }

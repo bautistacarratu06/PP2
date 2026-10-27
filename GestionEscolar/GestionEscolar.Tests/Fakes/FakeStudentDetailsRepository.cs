@@ -35,7 +35,18 @@ public sealed class FakeStudentDetailsRepository : IStudentDetailsRepository
 
     public Task<IReadOnlyList<Intervention>> GetInterventionsAsync(int studentId, CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<Intervention> rows = Interventions.Where(i => i.StudentId == studentId).ToList();
+        IReadOnlyList<Intervention> rows = Interventions
+            .Where(i => i.StudentId == studentId)
+            .OrderByDescending(i => i.Date)
+            .ThenByDescending(i => i.Id)
+            .ToList();
         return Task.FromResult(rows);
+    }
+
+    public Task<Intervention> AddInterventionAsync(Intervention intervention, CancellationToken cancellationToken = default)
+    {
+        intervention.Id = Interventions.Count == 0 ? 1 : Interventions.Max(item => item.Id) + 1;
+        Interventions.Add(intervention);
+        return Task.FromResult(intervention);
     }
 }

@@ -333,6 +333,158 @@ public sealed class CourseTrackingDatabaseTests(SqlServerFixture fixture)
     }
 
     [Fact]
+    public async Task Given_EnrollmentAndFutureDates_When_Summarizing_Then_OnlyTheWindowCounts()
+    {
+        await _fixture.ClearRowsAsync();
+        var sectionId = await SeedSectionAsync("Ventana");
+        var today = DateTime.Today;
+        int studentId;
+        await using (var db = _fixture.CreateContext())
+        {
+            var student = Student(sectionId, "81", "81", "Paz", "Ana", null, null);
+            student.EnrolledOn = today.AddDays(-10);
+            db.Students.Add(student);
+            db.ClassSessions.Add(new ClassSessionEntity { SectionId = sectionId, SessionDate = today.AddDays(-20) });
+            db.ClassSessions.Add(new ClassSessionEntity { SectionId = sectionId, SessionDate = today.AddDays(-1) });
+            db.ClassSessions.Add(new ClassSessionEntity { SectionId = sectionId, SessionDate = today.AddDays(3) });
+            db.Assignments.Add(new AssignmentEntity { SectionId = sectionId, Name = "Viejo", DueDate = today.AddDays(-30) });
+            db.Assignments.Add(new AssignmentEntity { SectionId = sectionId, Name = "Hoy", DueDate = today });
+            db.Assignments.Add(new AssignmentEntity { SectionId = sectionId, Name = "Futuro", DueDate = today.AddDays(2) });
+            await db.SaveChangesAsync();
+            studentId = student.Id;
+            var countedClass = db.ClassSessions.Single(session => session.SessionDate == today.AddDays(-1));
+            db.AttendanceRecords.Add(new AttendanceRecordEntity
+            {
+                ClassSessionId = countedClass.Id,
+                StudentId = studentId,
+                Status = AttendanceStatus.Ausente.ToDbValue()
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var row = Assert.Single(await _fixture.Get<ITrackingRepository>().GetRowsBySectionAsync(sectionId));
+        Assert.Equal(today.AddDays(-10), row.Student.EnrolledOn);
+        Assert.Equal(1, row.TotalClasses);
+        Assert.Equal(0, row.AttendedClasses);
+        Assert.Equal(1, row.TotalAssignments);
+        Assert.Equal(0, row.SubmittedAssignments);
+        Assert.Equal(
+            RiskRule.Evaluate(row.AttendedClasses, row.TotalClasses, row.SubmittedAssignments, row.TotalAssignments, new RiskConfig()).Score,
+            RiskRule.Evaluate(0, 1, 0, 1, new RiskConfig()).Score);
+    }
+
+    [Fact]
+    public async Task Given_ANewStudent_When_Adding_Then_TheRosterKeepsTheDateAndRejectsDuplicates()
+    {
+        await _fixture.ClearRowsAsync();
+        var sectionId = await SeedSectionAsync("Alta");
+        var otherId = await SeedSectionAsync("OtraAlta");
+        var service = new StudentService(_fixture.Get<IStudentRepository>());
+        var today = DateTime.Today;
+        var enrolled = today.AddDays(-4);
+
+        await service.AddAsync(sectionId, new StudentDraft("Paz", "Ana", "12345", "30111222", enrolled, "555", "ana@edu.test"), today);
+
+        var roster = await service.GetRosterAsync(sectionId);
+        var ana = Assert.Single(roster);
+        Assert.Equal("Ana Paz", ana.Name);
+        Assert.Equal(enrolled, ana.EnrolledOn);
+        Assert.Equal("30111222", ana.Dni);
+        Assert.Empty(await service.GetRosterAsync(otherId));
+
+        var duplicateNumber = await Assert.ThrowsAsync<StudentEnrollmentException>(() =>
+            service.AddAsync(sectionId, new StudentDraft("Rios", "Luis", "12345", "99", today), today));
+        Assert.Contains("Paz, Ana", duplicateNumber.Message);
+        var duplicateDni = await Assert.ThrowsAsync<StudentEnrollmentException>(() =>
+            service.AddAsync(otherId, new StudentDraft("Rios", "Luis", "88", "30111222", today), today));
+        Assert.Contains("Paz, Ana", duplicateDni.Message);
+        Assert.Single(await service.GetRosterAsync(sectionId));
+        Assert.Empty(await service.GetRosterAsync(otherId));
+    }
+
+    [Fact]
+    public async Task Given_ACsv_When_Importing_Then_NewRowsAreAddedAndConflictsFollowTheDecision()
+    {
+        await _fixture.ClearRowsAsync();
+        var sectionId = await SeedSectionAsync("Importada");
+        var otherId = await SeedSectionAsync("Ajena");
+        await using (var db = _fixture.CreateContext())
+        {
+            db.Students.Add(Student(sectionId, "1", "100", "Paz", "Ana", "viejo", "ana@viejo.test"));
+            db.Students.Add(Student(sectionId, "2", "200", "Rios", "Luis", "luis", null));
+            db.Students.Add(Student(otherId, "3", "300", "Sosa", "Eva", "viejo", null));
+            await db.SaveChangesAsync();
+        }
+
+        var service = new CommissionImportService(_fixture.Get<ICommissionImportRepository>());
+        var csv = """
+            DNI,Apellido,Nombre,Legajo,Teléfono,Correo
+            40,Diaz,Leo,400,1155500040,leo@edu.test
+            1,Paz,Ana María,100,1199990000,ana.nueva@edu.test
+            3,Sosa,Eva,999,1155500003,eva@edu.test
+            5,Costa,Ian,200,1155500005,ian@edu.test
+            70,Nunez,Sol,700,1155500070,sol@edu.test
+            70,Nunez,Sol,700,1155500071,sol2@edu.test
+            """;
+        var rows = service.Read(new StringReader(csv));
+        var preview = await service.PreviewAsync(sectionId, rows);
+        var decisions = preview.Conflicts.Select(conflict => conflict.CanMerge ? ImportDecision.Merge : ImportDecision.Omit).ToList();
+        await service.ApplyAsync(sectionId, preview, decisions, DateTime.Today);
+
+        var roster = await _fixture.Get<IStudentRepository>().GetRosterAsync(sectionId);
+        Assert.Equal(4, roster.Count);
+        Assert.Contains(roster, student => student.Dni == "40");
+        Assert.Contains(roster, student => student.Dni == "70");
+        var merged = roster.Single(student => student.Dni == "1");
+        Assert.Equal("1199990000", merged.Phone);
+        Assert.Equal("100", merged.StudentNumber);
+        Assert.Equal("Paz", merged.LastName);
+        Assert.DoesNotContain(roster, student => student.Dni == "3");
+        var outsider = Assert.Single(await _fixture.Get<IStudentRepository>().GetRosterAsync(otherId));
+        Assert.Equal("viejo", outsider.Phone);
+
+        var blocked = await Assert.ThrowsAsync<ImportValidationException>(() =>
+            service.CreateAsync("Importada", rows, DateTime.Today));
+        Assert.Contains("Ya existe", blocked.Message);
+    }
+
+    [Fact]
+    public async Task Given_AContact_When_Registering_Then_TheDetailAndThePanelUseIt()
+    {
+        await _fixture.ClearRowsAsync();
+        var sectionId = await SeedSectionAsync("Contacto");
+        int studentId;
+        await using (var db = _fixture.CreateContext())
+        {
+            var student = Student(sectionId, "44", "44", "Nunez", "Sol", null, null);
+            db.Students.Add(student);
+            await db.SaveChangesAsync();
+            studentId = student.Id;
+        }
+
+        var details = new StudentDetailsService(_fixture.Get<IStudentDetailsRepository>());
+        var today = DateTime.Today;
+        await details.RegisterContactAsync(studentId, today.AddDays(-2), ContactChannel.Llamada, ContactOutcome.NoContesto, "primero", today);
+        await details.RegisterContactAsync(studentId, today, ContactChannel.WhatsApp, ContactOutcome.SinNovedades, null, today);
+
+        var detail = await details.GetAsync(studentId, sectionId);
+        Assert.NotNull(detail);
+        Assert.Equal(2, detail.Interventions.Count);
+        Assert.Equal(today, detail.Interventions[0].Date);
+        Assert.Equal("WhatsApp", detail.Interventions[0].Channel);
+        Assert.Equal("Contactado - sin novedades", detail.Interventions[0].Outcome);
+        Assert.Contains(detail.Interventions, item => item.Note == "primero" && item.Channel == "Llamada");
+
+        var row = Assert.Single(await _fixture.Get<ITrackingRepository>().GetRowsBySectionAsync(sectionId));
+        Assert.Equal(today, row.LastContact);
+
+        var before = detail.Interventions.Count;
+        await Assert.ThrowsAsync<ContactValidationException>(() =>
+            details.RegisterContactAsync(studentId, today.AddDays(1), ContactChannel.Correo, ContactOutcome.AbandonoConfirmado, null, today));
+        Assert.Equal(before, (await details.GetAsync(studentId, sectionId))!.Interventions.Count);
+    }
+
+    [Fact]
     public async Task Given_StoredThresholds_When_Saving_Then_BothKeysChangeTogether()
     {
         var settings = _fixture.Get<IRiskSettingsRepository>();
@@ -377,7 +529,8 @@ public sealed class CourseTrackingDatabaseTests(SqlServerFixture fixture)
             LastName = lastName,
             FirstName = firstName,
             Phone = phone,
-            Email = email
+            Email = email,
+            EnrolledOn = new DateTime(2026, 1, 1)
         };
 
     private async Task<DateTime?> CorrectedAtAsync(int classSessionId, int studentId)

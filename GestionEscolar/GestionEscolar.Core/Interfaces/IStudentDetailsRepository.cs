@@ -16,4 +16,6 @@ public interface IStudentDetailsRepository
 
     // Intervenciones del alumno, más reciente primero.
     Task<IReadOnlyList<Intervention>> GetInterventionsAsync(int studentId, CancellationToken cancellationToken = default);
+
+    Task<Intervention> AddInterventionAsync(Intervention intervention, CancellationToken cancellationToken = default);
 }

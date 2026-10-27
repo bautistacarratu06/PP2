@@ -13,12 +13,17 @@ public partial class StudentListViewModel : ObservableObject
     private readonly SectionSelection _selection;
     private readonly List<StudentRow> _all = [];
 
-    public StudentListViewModel(StudentService students, SectionSelection selection)
+    public StudentListViewModel(StudentService students, SectionSelection selection, CommissionImportViewModel import)
     {
         _students = students;
         _selection = selection;
+        Import = import;
         _selection.Changed += (_, _) => MainThread.BeginInvokeOnMainThread(() => _ = LoadCommand.ExecuteAsync(null));
     }
+
+    public CommissionImportViewModel Import { get; }
+
+    public DateTime Today => DateTime.Today;
 
     public ObservableCollection<StudentRow> FilteredStudents { get; } = new();
 
@@ -33,14 +38,46 @@ public partial class StudentListViewModel : ObservableObject
     [ObservableProperty]
     public partial string ErrorMessage { get; set; } = string.Empty;
 
+    [ObservableProperty]
+    public partial bool IsAdding { get; set; }
+
+    [ObservableProperty]
+    public partial string LastName { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string FirstName { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string StudentNumber { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string Dni { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial DateTime EnrolledOn { get; set; } = DateTime.Today;
+
+    [ObservableProperty]
+    public partial string Phone { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string Email { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string AddError { get; set; } = string.Empty;
+
     public bool HasNoResults => !IsBusy && FilteredStudents.Count == 0 && string.IsNullOrEmpty(ErrorMessage);
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
-    public string EmptyText =>
-        string.IsNullOrWhiteSpace(SearchText)
-            ? "No hay estudiantes para mostrar."
-            : "Sin resultados para esa búsqueda.";
+    public bool HasAddError => !string.IsNullOrEmpty(AddError);
+
+    public bool ShowEmptyRoster => HasNoResults && string.IsNullOrWhiteSpace(SearchText);
+
+    public bool ShowSearchEmpty => HasNoResults && !string.IsNullOrWhiteSpace(SearchText);
+
+    public bool ShowTable => !ShowEmptyRoster && string.IsNullOrEmpty(ErrorMessage);
+
+    public string EmptyText => "Sin resultados para esa búsqueda.";
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
 
@@ -101,6 +138,58 @@ public partial class StudentListViewModel : ObservableObject
         OnPropertyChanged(nameof(FilteredCount));
         OnPropertyChanged(nameof(HasNoResults));
         OnPropertyChanged(nameof(HasError));
-        OnPropertyChanged(nameof(EmptyText));
+        OnPropertyChanged(nameof(ShowEmptyRoster));
+        OnPropertyChanged(nameof(ShowSearchEmpty));
+        OnPropertyChanged(nameof(ShowTable));
+    }
+
+    partial void OnAddErrorChanged(string value) => OnPropertyChanged(nameof(HasAddError));
+
+    [RelayCommand]
+    private void ShowAdd()
+    {
+        LastName = string.Empty;
+        FirstName = string.Empty;
+        StudentNumber = string.Empty;
+        Dni = string.Empty;
+        Phone = string.Empty;
+        Email = string.Empty;
+        EnrolledOn = DateTime.Today;
+        AddError = string.Empty;
+        IsAdding = true;
+    }
+
+    [RelayCommand]
+    private void CancelAdd() => IsAdding = false;
+
+    [RelayCommand]
+    private async Task SaveStudentAsync()
+    {
+        var section = _selection.Current;
+        if (section is null)
+        {
+            AddError = "Elegí una comisión.";
+            return;
+        }
+
+        try
+        {
+            await _students.AddAsync(
+                section.Id,
+                new StudentDraft(LastName, FirstName, StudentNumber, Dni, EnrolledOn, Phone, Email),
+                DateTime.Today);
+            IsAdding = false;
+            AddError = string.Empty;
+            await LoadAsync();
+        }
+        catch (StudentEnrollmentException ex)
+        {
+            AddError = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            AddError = "No se pudo guardar el estudiante.";
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
     }
 }

@@ -71,6 +71,103 @@ public class RiskRuleTests
     }
 
     [Fact]
+    public void Given_ClassBeforeEnrollment_When_Counting_Then_ItStaysOutOfTheTotalAndTheAbsences()
+    {
+        var count = RiskRule.Count(
+            new DateTime(2026, 4, 1),
+            new DateTime(2026, 10, 27),
+            [new RiskRule.DatedActivity(new DateTime(2026, 3, 15), false)]);
+
+        Assert.Equal(0, count.Total);
+        Assert.Equal(0, count.Completed);
+    }
+
+    [Fact]
+    public void Given_FutureClassWithoutAMark_When_Counting_Then_NobodyIncludesIt()
+    {
+        var today = new DateTime(2026, 10, 27);
+        var count = RiskRule.Count(
+            new DateTime(2026, 4, 1),
+            today,
+            [new RiskRule.DatedActivity(today.AddDays(1), false)]);
+
+        Assert.Equal(0, count.Total);
+    }
+
+    [Fact]
+    public void Given_AssignmentDueAfterToday_When_Counting_Then_ItIsNotAMissingDelivery()
+    {
+        var today = new DateTime(2026, 10, 27);
+        var count = RiskRule.Count(
+            new DateTime(2026, 4, 1),
+            today,
+            [new RiskRule.DatedActivity(today.AddDays(2), false)]);
+
+        Assert.Equal(0, count.Total);
+        Assert.Equal(0, count.Completed);
+    }
+
+    [Fact]
+    public void Given_ClassInsideTheWindowWithoutPresent_When_Counting_Then_ItIsAnAbsence()
+    {
+        var today = new DateTime(2026, 10, 27);
+        var count = RiskRule.Count(
+            new DateTime(2026, 4, 1),
+            today,
+            [new RiskRule.DatedActivity(today, false)]);
+
+        Assert.Equal(1, count.Total);
+        Assert.Equal(0, count.Completed);
+    }
+
+    [Fact]
+    public void Given_NoClassOrAssignmentInsideTheWindow_When_Evaluating_Then_ThoseSignalsAreZero()
+    {
+        var today = new DateTime(2026, 10, 27);
+        var enrolled = today;
+        var classes = RiskRule.Count(enrolled, today, [new RiskRule.DatedActivity(today.AddDays(1), false)]);
+        var assignments = RiskRule.Count(enrolled, today, [new RiskRule.DatedActivity(enrolled.AddDays(-3), false)]);
+
+        var result = RiskRule.Evaluate(classes.Completed, classes.Total, assignments.Completed, assignments.Total, DefaultThresholds);
+
+        Assert.Equal(0, classes.Total);
+        Assert.Equal(0, assignments.Total);
+        Assert.Equal(0, result.Score);
+        Assert.Equal(RiskLevel.Bajo, result.Level);
+    }
+
+    [Fact]
+    public void Given_SixteenOfTwentyAndFiveOfTenInsideTheWindow_When_Evaluating_Then_ScoreStays32()
+    {
+        var enrolled = new DateTime(2026, 1, 1);
+        var today = new DateTime(2026, 10, 27);
+        var classes = Enumerable.Range(0, 20)
+            .Select(index => new RiskRule.DatedActivity(enrolled.AddDays(index + 1), index < 16))
+            .Append(new RiskRule.DatedActivity(enrolled.AddDays(-1), false))
+            .Append(new RiskRule.DatedActivity(today.AddDays(1), false));
+        var assignments = Enumerable.Range(0, 10)
+            .Select(index => new RiskRule.DatedActivity(enrolled.AddDays(index + 1), index < 5))
+            .Append(new RiskRule.DatedActivity(today.AddDays(4), false));
+
+        var classCount = RiskRule.Count(enrolled, today, classes);
+        var assignmentCount = RiskRule.Count(enrolled, today, assignments);
+        var result = RiskRule.Evaluate(
+            classCount.Completed,
+            classCount.Total,
+            assignmentCount.Completed,
+            assignmentCount.Total,
+            DefaultThresholds);
+
+        Assert.Equal(16, classCount.Completed);
+        Assert.Equal(20, classCount.Total);
+        Assert.Equal(5, assignmentCount.Completed);
+        Assert.Equal(10, assignmentCount.Total);
+        Assert.Equal(32, result.Score);
+        Assert.Equal(RiskLevel.Medio, result.Level);
+        Assert.Equal(RiskLevel.Alto, RiskRule.Classify(result.Score, new RiskConfig { HighThreshold = 30, MediumThreshold = 10 }));
+    }
+
+    [Fact]
     public void Given_AttendedAndTotals_When_ReadingPercents_Then_MatchGridAndZeroTotalIsZero()
     {
         var mixed = new StudentTrackingData

@@ -93,8 +93,46 @@
                     </VerticalStackLayout>
                 </Border>
                 <Border Padding="20" Style="{StaticResource Card}">
-                    <VerticalStackLayout>
-                        <Label Margin="0,0,0,8" Style="{StaticResource CardTitle}" Text="Intervenciones" />
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Style="{StaticResource CardTitle}" Text="Intervenciones" VerticalOptions="Center" />
+                            <Button
+                                Grid.Column="1"
+                                Command="{Binding OpenContactCommand}"
+                                Style="{StaticResource PrimaryButton}"
+                                Text="Registrar contacto" />
+                        </Grid>
+                        <VerticalStackLayout IsVisible="{Binding IsContactOpen}" Spacing="10">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource FieldLabel}" Text="Fecha" />
+                                <Border Style="{StaticResource FieldBorder}">
+                                    <DatePicker Date="{Binding ContactDate}" Format="dd/MM/yyyy" MaximumDate="{Binding Today}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource FieldLabel}" Text="Medio" />
+                                <Border Style="{StaticResource FieldBorder}">
+                                    <Picker ItemsSource="{Binding ChannelOptions}" SelectedItem="{Binding SelectedChannel}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource FieldLabel}" Text="Resultado" />
+                                <Border Style="{StaticResource FieldBorder}">
+                                    <Picker ItemsSource="{Binding OutcomeOptions}" SelectedItem="{Binding SelectedOutcome}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource FieldLabel}" Text="Nota" />
+                                <Border Style="{StaticResource FieldBorder}">
+                                    <Entry Placeholder="Opcional" Text="{Binding Note}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <Label IsVisible="{Binding HasContactError}" Text="{Binding ContactError}" TextColor="{StaticResource Danger}" />
+                            <HorizontalStackLayout Spacing="8">
+                                <Button Command="{Binding SaveContactCommand}" Style="{StaticResource PrimaryButton}" Text="Guardar" />
+                                <Button Command="{Binding CancelContactCommand}" Style="{StaticResource GhostButton}" Text="Cancelar" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Interventions}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="vm:HistoryItem">

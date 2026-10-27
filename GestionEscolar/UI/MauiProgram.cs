@@ -2,6 +2,7 @@
 using GestionEscolar.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.LifecycleEvents;
 using UI.Services;
 using UI.ViewModels;
 using UI.Views;
@@ -22,6 +23,34 @@ namespace UI
                     fonts.AddFont("Inter-SemiBold.ttf", "InterSemibold");
                     fonts.AddFont("Inter-Bold.ttf", "InterBold");
                     fonts.AddFont("JetBrainsMono-Regular.ttf", "JetBrainsMono");
+                })
+                .ConfigureLifecycleEvents(events =>
+                {
+#if WINDOWS
+                    // Una sola vez: el color del caption no se ve si queda una franja transparente sobre Mica.
+                    events.AddWindows(windows => windows.OnWindowCreated(window =>
+                    {
+                        window.SystemBackdrop = null;
+
+                        var background = global::Windows.UI.Color.FromArgb(255, 0x0A, 0x0A, 0x0A);
+                        var foreground = global::Windows.UI.Color.FromArgb(255, 0x8E, 0x8E, 0x93);
+                        var inactiveForeground = global::Windows.UI.Color.FromArgb(255, 0x5C, 0x5C, 0x61);
+                        var hover = global::Windows.UI.Color.FromArgb(255, 0x1B, 0x1B, 0x1B);
+                        var titleBar = window.AppWindow.TitleBar;
+                        titleBar.BackgroundColor = background;
+                        titleBar.InactiveBackgroundColor = background;
+                        titleBar.ForegroundColor = foreground;
+                        titleBar.InactiveForegroundColor = inactiveForeground;
+                        titleBar.ButtonBackgroundColor = background;
+                        titleBar.ButtonInactiveBackgroundColor = background;
+                        titleBar.ButtonForegroundColor = foreground;
+                        titleBar.ButtonInactiveForegroundColor = inactiveForeground;
+                        titleBar.ButtonHoverBackgroundColor = hover;
+                        titleBar.ButtonHoverForegroundColor = foreground;
+                        titleBar.ButtonPressedBackgroundColor = hover;
+                        titleBar.ButtonPressedForegroundColor = foreground;
+                    }));
+#endif
                 });
 
             LoadAppSettings(builder);
@@ -34,6 +63,7 @@ namespace UI
             builder.Services.AddTransient<TrackingViewModel>();
             builder.Services.AddTransient<StudentDetailViewModel>();
             builder.Services.AddTransient<StudentListViewModel>();
+            builder.Services.AddTransient<CommissionImportViewModel>();
             builder.Services.AddTransient<SettingsViewModel>();
             builder.Services.AddTransient<AttendanceViewModel>();
             builder.Services.AddTransient<SubmissionsViewModel>();

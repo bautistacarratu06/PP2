@@ -7,4 +7,10 @@ namespace GestionEscolar.Core.Interfaces;
 public interface IStudentRepository
 {
     Task<IReadOnlyList<Student>> GetRosterAsync(int sectionId, CancellationToken cancellationToken = default);
+
+    Task<Student?> FindByDniAsync(string dni, CancellationToken cancellationToken = default);
+
+    Task<Student?> FindByStudentNumberAsync(int sectionId, string studentNumber, CancellationToken cancellationToken = default);
+
+    Task<Student> AddAsync(Student student, CancellationToken cancellationToken = default);
 }

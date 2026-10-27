@@ -29,6 +29,7 @@ public sealed class SqlServerFixture : IAsyncLifetime
         services.AddSingleton<ISectionRepository, EfSectionRepository>();
         services.AddSingleton<IStudentDetailsRepository, EfStudentDetailsRepository>();
         services.AddSingleton<IStudentRepository, EfStudentRepository>();
+        services.AddSingleton<ICommissionImportRepository, EfCommissionImportRepository>();
         services.AddSingleton<ICalendarRepository, EfCalendarRepository>();
         services.AddSingleton<IAttendanceRepository, EfAttendanceRepository>();
         services.AddSingleton<ISubmissionRepository, EfSubmissionRepository>();

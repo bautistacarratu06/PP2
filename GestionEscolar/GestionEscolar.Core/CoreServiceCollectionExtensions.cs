@@ -18,6 +18,7 @@ public static class CoreServiceCollectionExtensions
         services.AddTransient<SectionService>();
         services.AddTransient<StudentDetailsService>();
         services.AddTransient<StudentService>();
+        services.AddTransient<CommissionImportService>();
         services.AddTransient<CalendarService>();
         services.AddTransient<AttendanceService>();
         services.AddTransient<SubmissionService>();

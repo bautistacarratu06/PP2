@@ -15,6 +15,7 @@ public sealed class EfTrackingRepository(IDbContextFactory<CourseTrackingDbConte
     {
         var present = AttendanceStatus.Presente.ToDbValue();
         var delivered = SubmissionStatus.Entrego.ToDbValue();
+        var today = DateTime.Today;
 
         await using var db = await _contexts.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
         var rows = await db.Students
@@ -25,17 +26,28 @@ public sealed class EfTrackingRepository(IDbContextFactory<CourseTrackingDbConte
             .Select(student => new
             {
                 student.Id,
+                student.SectionId,
+                student.Dni,
                 student.FirstName,
                 student.LastName,
                 student.StudentNumber,
                 student.Phone,
                 student.Email,
-                TotalClasses = student.Section.ClassSessions.Count(),
+                student.EnrolledOn,
+                TotalClasses = student.Section.ClassSessions.Count(session =>
+                    session.SessionDate >= student.EnrolledOn && session.SessionDate <= today),
                 AttendedClasses = student.AttendanceRecords.Count(record =>
-                    record.Status == present && record.ClassSession.SectionId == student.SectionId),
-                TotalAssignments = student.Section.Assignments.Count(),
+                    record.Status == present
+                    && record.ClassSession.SectionId == student.SectionId
+                    && record.ClassSession.SessionDate >= student.EnrolledOn
+                    && record.ClassSession.SessionDate <= today),
+                TotalAssignments = student.Section.Assignments.Count(assignment =>
+                    assignment.DueDate >= student.EnrolledOn && assignment.DueDate <= today),
                 SubmittedAssignments = student.Submissions.Count(submission =>
-                    submission.Status == delivered && submission.Assignment.SectionId == student.SectionId),
+                    submission.Status == delivered
+                    && submission.Assignment.SectionId == student.SectionId
+                    && submission.Assignment.DueDate >= student.EnrolledOn
+                    && submission.Assignment.DueDate <= today),
                 LastContact = student.Interventions.Max(intervention => (DateTime?)intervention.InterventionDate)
             })
             .ToListAsync(cancellationToken)
@@ -46,10 +58,15 @@ public sealed class EfTrackingRepository(IDbContextFactory<CourseTrackingDbConte
             Student = new Student
             {
                 Id = row.Id,
+                SectionId = row.SectionId,
+                Dni = row.Dni,
+                LastName = row.LastName,
+                FirstName = row.FirstName,
                 Name = row.FirstName + " " + row.LastName,
                 StudentNumber = row.StudentNumber,
                 Phone = row.Phone ?? string.Empty,
-                Email = row.Email ?? string.Empty
+                Email = row.Email ?? string.Empty,
+                EnrolledOn = row.EnrolledOn
             },
             TotalClasses = row.TotalClasses,
             AttendedClasses = row.AttendedClasses,

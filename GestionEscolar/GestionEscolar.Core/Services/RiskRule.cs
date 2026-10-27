@@ -13,6 +13,36 @@ public static class RiskRule
 
     public readonly record struct Evaluation(int Score, RiskLevel Level);
 
+    // Una clase o un trabajo entra si su fecha es hoy o anterior y no es anterior a la incorporación.
+    public readonly record struct DatedActivity(DateTime Date, bool Completed);
+
+    public readonly record struct WindowCount(int Completed, int Total);
+
+    public static bool IsInWindow(DateTime when, DateTime enrolledOn, DateTime today)
+    {
+        var day = when.Date;
+        return day >= enrolledOn.Date && day <= today.Date;
+    }
+
+    public static WindowCount Count(DateTime enrolledOn, DateTime today, IEnumerable<DatedActivity> activities)
+    {
+        ArgumentNullException.ThrowIfNull(activities);
+
+        var completed = 0;
+        var total = 0;
+        foreach (var activity in activities)
+        {
+            if (!IsInWindow(activity.Date, enrolledOn, today))
+                continue;
+
+            total++;
+            if (activity.Completed)
+                completed++;
+        }
+
+        return new WindowCount(completed, total);
+    }
+
     public static Evaluation Evaluate(
         int attendedClasses,
         int totalClasses,

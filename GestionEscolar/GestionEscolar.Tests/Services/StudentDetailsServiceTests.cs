@@ -63,6 +63,56 @@ public class StudentDetailsServiceTests
         Assert.Null(await new StudentDetailsService(Repo()).GetAsync(999, 1));
     }
 
+    [Fact]
+    public async Task Given_ChannelOutcomeAndAPastDate_When_Registering_Then_TheDetailListsTheContact()
+    {
+        var repo = Repo();
+        var service = new StudentDetailsService(repo);
+        var today = new DateTime(2026, 10, 27);
+
+        await service.RegisterContactAsync(2, today.AddDays(-3), ContactChannel.Llamada, ContactOutcome.NoContesto, "volver a llamar", today);
+        await service.RegisterContactAsync(2, today, ContactChannel.WhatsApp, ContactOutcome.SinNovedades, null, today);
+
+        var detail = await service.GetAsync(2, 1);
+        Assert.NotNull(detail);
+        Assert.Equal(3, detail.Interventions.Count);
+        Assert.Contains(detail.Interventions, item =>
+            item.Date == today.AddDays(-3)
+            && item.Channel == "Llamada"
+            && item.Outcome == "No contestó"
+            && item.Note == "volver a llamar");
+        Assert.Contains(detail.Interventions, item =>
+            item.Date == today
+            && item.Channel == "WhatsApp"
+            && item.Outcome == "Contactado - sin novedades"
+            && item.Note is null);
+        Assert.Equal(today, detail.Interventions[0].Date);
+    }
+
+    [Theory]
+    [InlineData(false, true, 0, "medio")]
+    [InlineData(true, false, 0, "resultado")]
+    [InlineData(true, true, 1, "posterior")]
+    public async Task Given_MissingChannelOutcomeOrAFutureDate_When_Registering_Then_NothingIsWritten(
+        bool withChannel, bool withOutcome, int dayOffset, string expected)
+    {
+        var repo = Repo();
+        var service = new StudentDetailsService(repo);
+        var today = new DateTime(2026, 10, 27);
+        var before = repo.Interventions.Count;
+
+        var error = await Assert.ThrowsAsync<ContactValidationException>(() => service.RegisterContactAsync(
+            2,
+            today.AddDays(dayOffset),
+            withChannel ? ContactChannel.Correo : null,
+            withOutcome ? ContactOutcome.AbandonoConfirmado : null,
+            "nota",
+            today));
+
+        Assert.Contains(expected, error.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(before, repo.Interventions.Count);
+    }
+
     [Theory]
     [InlineData("presente", AttendanceStatus.Presente)]
     [InlineData("ausente", AttendanceStatus.Ausente)]

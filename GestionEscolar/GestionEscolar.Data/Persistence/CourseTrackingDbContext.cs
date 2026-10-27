@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace GestionEscolar.Data.Persistence;
 
@@ -44,6 +45,12 @@ public sealed class CourseTrackingDbContext(DbContextOptions<CourseTrackingDbCon
             entity.Property(e => e.FirstName).HasColumnName("first_name").HasMaxLength(80).IsRequired();
             entity.Property(e => e.Phone).HasColumnName("phone").HasMaxLength(30);
             entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(120);
+            entity.Property(e => e.EnrolledOn)
+                .HasColumnName("enrolled_on")
+                .HasColumnType("date")
+                .HasDefaultValueSql("CAST(SYSDATETIME() AS date)")
+                .HasAnnotation("Relational:DefaultConstraintName", "df_student_enrolled_on")
+                .Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Save);
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
                 .HasColumnType("datetime2(0)")
@@ -167,7 +174,7 @@ public sealed class CourseTrackingDbContext(DbContextOptions<CourseTrackingDbCon
                 .HasColumnType("date")
                 .HasDefaultValueSql("CAST(SYSDATETIME() AS date)")
                 .HasAnnotation("Relational:DefaultConstraintName", "df_intervention_date")
-                .ValueGeneratedOnAdd();
+                .Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Save);
             entity.Property(e => e.Channel).HasColumnName("channel").HasMaxLength(20).IsRequired();
             entity.Property(e => e.Outcome).HasColumnName("outcome").HasMaxLength(60).IsRequired();
             entity.Property(e => e.Note).HasColumnName("note").HasMaxLength(500);

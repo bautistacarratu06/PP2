@@ -246,6 +246,12 @@ namespace GestionEscolar.Data.Migrations
                         .HasColumnType("nvarchar(120)")
                         .HasColumnName("email");
 
+                    b.Property<DateTime>("EnrolledOn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("date")
+                        .HasColumnName("enrolled_on")
+                        .HasDefaultValueSql("CAST(SYSDATETIME() AS date)", "df_student_enrolled_on");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(80)

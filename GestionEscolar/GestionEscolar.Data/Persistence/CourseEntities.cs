@@ -34,6 +34,8 @@ public sealed class StudentEntity
 
     public string? Email { get; set; }
 
+    public DateTime EnrolledOn { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public SectionEntity Section { get; set; } = null!;

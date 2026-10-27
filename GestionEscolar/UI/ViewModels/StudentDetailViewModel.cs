@@ -21,11 +21,21 @@ namespace UI.ViewModels
         private const string DateFormat = "dd'/'MM'/'yyyy";
 
         private readonly StudentDetailsService _detailsService;
+        private int _studentId;
+        private int? _sectionId;
 
         public StudentDetailViewModel(StudentDetailsService detailsService)
         {
             _detailsService = detailsService;
         }
+
+        public DateTime Today => DateTime.Today;
+
+        public IReadOnlyList<string> ChannelOptions { get; } =
+            Enum.GetValues<ContactChannel>().Select(channel => channel.ToDbValue()).ToList();
+
+        public IReadOnlyList<string> OutcomeOptions { get; } =
+            Enum.GetValues<ContactOutcome>().Select(outcome => outcome.ToDbValue()).ToList();
 
         [ObservableProperty]
         public partial string Name { get; set; } = string.Empty;
@@ -65,7 +75,28 @@ namespace UI.ViewModels
         [NotifyPropertyChangedFor(nameof(HasError))]
         public partial string ErrorMessage { get; set; } = string.Empty;
 
+        [ObservableProperty]
+        public partial bool IsContactOpen { get; set; }
+
+        [ObservableProperty]
+        public partial DateTime ContactDate { get; set; } = DateTime.Today;
+
+        [ObservableProperty]
+        public partial string? SelectedChannel { get; set; }
+
+        [ObservableProperty]
+        public partial string? SelectedOutcome { get; set; }
+
+        [ObservableProperty]
+        public partial string Note { get; set; } = string.Empty;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasContactError))]
+        public partial string ContactError { get; set; } = string.Empty;
+
         public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+        public bool HasContactError => !string.IsNullOrEmpty(ContactError);
 
         public ObservableCollection<HistoryItem> Attendance { get; } = new();
 
@@ -127,8 +158,57 @@ namespace UI.ViewModels
             BadgeBackground = row.BadgeBackground;
             BadgeForeground = row.BadgeForeground;
 
-            int? sectionId = query.TryGetValue(SectionIdQueryKey, out var id) && id is int sid && sid > 0 ? sid : null;
-            _ = LoadAsync(row.Student.Id, sectionId);
+            _sectionId = query.TryGetValue(SectionIdQueryKey, out var id) && id is int sid && sid > 0 ? sid : null;
+            _studentId = row.Student.Id;
+            _ = LoadAsync(_studentId, _sectionId);
+        }
+
+        [RelayCommand]
+        private void OpenContact()
+        {
+            ContactDate = DateTime.Today;
+            SelectedChannel = null;
+            SelectedOutcome = null;
+            Note = string.Empty;
+            ContactError = string.Empty;
+            IsContactOpen = true;
+        }
+
+        [RelayCommand]
+        private void CancelContact() => IsContactOpen = false;
+
+        [RelayCommand]
+        private async Task SaveContactAsync()
+        {
+            if (_studentId <= 0)
+                return;
+
+            try
+            {
+                await _detailsService.RegisterContactAsync(
+                    _studentId,
+                    ContactDate,
+                    DbStatusValues.ParseContactChannel(SelectedChannel),
+                    DbStatusValues.ParseContactOutcome(SelectedOutcome),
+                    Note,
+                    DateTime.Today);
+                IsContactOpen = false;
+                ContactError = string.Empty;
+                await LoadAsync(_studentId, _sectionId);
+            }
+            catch (ContactValidationException ex)
+            {
+                ContactError = ex.Message;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                ContactError = "Elegí un medio y un resultado.";
+            }
+            catch (Exception ex)
+            {
+                ContactError = "No se pudo guardar el contacto.";
+                System.Diagnostics.Debug.WriteLine(ex);
+            }
         }
 
         private async Task LoadAsync(int studentId, int? sectionId)

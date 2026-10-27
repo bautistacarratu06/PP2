@@ -1,4 +1,4 @@
-using GestionEscolar.Core.Models;
+﻿using GestionEscolar.Core.Models;
 using GestionEscolar.Core.Services;
 
 namespace UI.Services;
@@ -48,6 +48,16 @@ public sealed class SectionSelection
             return;
 
         Current = section;
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    // Vuelve a leer las comisiones y deja elegida la que se acaba de crear o importar.
+    public async Task ReloadAsync(Section section)
+    {
+        ArgumentNullException.ThrowIfNull(section);
+        var items = await _sections.GetAllAsync().ConfigureAwait(false);
+        Items = items;
+        Current = items.FirstOrDefault(item => item.Id == section.Id) ?? section;
         Changed?.Invoke(this, EventArgs.Empty);
     }
 }

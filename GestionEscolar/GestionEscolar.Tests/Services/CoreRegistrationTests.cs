@@ -23,6 +23,7 @@ public class CoreRegistrationTests
                 typeof(SectionService),
                 typeof(StudentDetailsService),
                 typeof(StudentService),
+                typeof(CommissionImportService),
                 typeof(CalendarService),
                 typeof(AttendanceService),
                 typeof(SubmissionService)
