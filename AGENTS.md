@@ -20,34 +20,37 @@ The git root is this folder. The solution is `GestionEscolar/GestionEscolar.slnx
 
 | Path | Role |
 |---|---|
-| `GestionEscolar/GestionEscolar.Core` | Domain: models, enums, services, repository interfaces. `net10.0`, no MAUI, no SQL. |
-| `GestionEscolar/GestionEscolar.Data` | SQL Server implementations of the Core interfaces (`Repositories/Sql*Repository.cs`, `DatabaseInstance`). |
-| `GestionEscolar/GestionEscolar.Data/Database/Migrations` | Numbered `NNNN_*.up.sql` scripts. |
+| `GestionEscolar/GestionEscolar.Core` | Domain: models, enums, services, repository interfaces. `net10.0`, no MAUI, no SQL, no Entity Framework. |
+| `GestionEscolar/GestionEscolar.Data` | SQL Server via Entity Framework (`Persistence/CourseTrackingDbContext`, `Repositories/Ef*Repository.cs`). |
+| `GestionEscolar/GestionEscolar.Data/Migrations` | EF Core migrations. New schema changes go here. |
+| `GestionEscolar/GestionEscolar.Data/Database/Migrations` | Historical `0001`–`0010` `*.up.sql` scripts. Do not edit them and do not add new ones. |
 | `GestionEscolar/UI` | MAUI Shell app: `Views/` (XAML), `ViewModels/` (CommunityToolkit.Mvvm), `Converters/`, `MauiProgram.cs` (DI), `AppShell.xaml` (flyout). |
 | `GestionEscolar/GestionEscolar.Tests` | xUnit tests for Core, using in-memory fakes in `Fakes/`. |
+| `GestionEscolar/GestionEscolar.Data.Tests` | xUnit tests for the EF repositories against SQL Server Express. |
 | `scripts/` | `run-tests.cmd`, `run-database.cmd`, `run-desktop.cmd`, `hooks/pre-push.cmd`. |
 
 ## Architecture rules
 
-- Dependencies point to Core: `UI → Data → Core`, `Tests → Core`. Core references nothing else.
+- Dependencies point to Core: `UI → Data → Core`, `Tests → Core`, `Data.Tests → Data → Core`. Core references nothing else.
 - No SQL in ViewModels or Views. ViewModels call Core services. Services depend on Core interfaces, which are implemented in Data.
 - Register everything in `UI/MauiProgram.cs`:
   - repositories as singletons;
   - services, ViewModels and pages as transient.
   - Shell resolves pages through DI.
-- Data access:
+- Data access goes through Entity Framework in `GestionEscolar.Data`:
   - async all the way (`async`/`await` with `CancellationToken`);
-  - parameterized `SqlCommand` only, never string-concatenated SQL.
+  - one `CourseTrackingDbContext` per operation (`IDbContextFactory`), closed when the operation ends;
+  - LINQ only. Do not concatenate SQL.
 - Use enums, not magic strings. DB status values (`presente`/`ausente`, `entregó`/`no entregó`) are mapped only in `DbStatusValues` (`ToDbValue` / `Parse*`).
 - ViewModels:
   - use `[ObservableProperty]` partial properties and `[RelayCommand]`;
   - section-scoped screens derive from `SectionScopedViewModel`.
-- Keep formatting/display (dates, "Apellido, Nombre" labels) in UI or SQL projections, not in Core models.
+- Keep formatting/display (dates, "Apellido, Nombre" labels) in UI or Data projections, not in Core models.
 - Schema changes:
-  - add a new numbered migration;
-  - apply it with `sqlcmd`;
-  - never edit applied migrations.
-- New Core logic gets tests with fakes.
+  - add an EF migration under `GestionEscolar.Data/Migrations` (`dotnet tool run dotnet-ef migrations add`);
+  - apply it with `dotnet tool run dotnet-ef database update --project GestionEscolar\GestionEscolar.Data\GestionEscolar.Data.csproj`;
+  - never edit an applied EF migration or the historical `0001`–`0010` SQL scripts.
+- New Core logic gets tests with fakes. Repository behavior is covered in `GestionEscolar.Data.Tests`.
 
 ## Build and test
 
@@ -60,7 +63,7 @@ dotnet format GestionEscolar\GestionEscolar.slnx --verify-no-changes
 ```
 
 - Close `UI.exe` before building; it locks the output DLLs. Alternatively, build elsewhere with `-p:BaseOutputPath=%TEMP%\uibuild\`.
-- **`scripts\run-database.cmd` no longer drops anything.** The `DROP DATABASE` / `DROP TABLE` statements in the migrations are commented out until DDL and DML scripts are separated. On an empty server it creates and seeds `course_tracking`. On an existing database the table scripts are no-ops (`IF OBJECT_ID(...) IS NULL`), but the seed in `0010` fails on `uq_section_name` and the script stops with an error. Existing data is kept, but no new migration runs after that point. To reset, drop the database manually first, and only if the user asks. Use `sqlcmd -S .\SQLEXPRESS -d course_tracking -E` for targeted changes and checks.
+- **New schema changes do not go through `scripts\run-database.cmd`.** That script only replays the historical `0001`–`0010` SQL scripts. It no longer drops anything: the `DROP DATABASE` / `DROP TABLE` statements in those scripts are commented out. On an empty server it creates and seeds `course_tracking`. On an existing database the table scripts are no-ops (`IF OBJECT_ID(...) IS NULL`), but the seed in `0010` fails on `uq_section_name` and the script stops with an error. Existing data is kept. Apply later schema changes with `dotnet ef database update`. To reset, drop the database manually first, and only if the user asks. Use `sqlcmd -S .\SQLEXPRESS -d course_tracking -E` for targeted checks.
 
 ## Git hooks (Husky.Net)
 
