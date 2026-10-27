@@ -71,8 +71,9 @@
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="Inter"/>
         <Setter Property="FontSize" Value="13"/>
-        <Setter Property="MinimumHeightRequest" Value="44"/>
-        <Setter Property="MinimumWidthRequest" Value="44"/>
+        <!-- FieldBorder owns height; avoid a second padded frame inside. -->
+        <Setter Property="MinimumHeightRequest" Value="0"/>
+        <Setter Property="MinimumWidthRequest" Value="0"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">
@@ -115,8 +116,9 @@
         <Setter Property="FontFamily" Value="Inter"/>
         <Setter Property="FontSize" Value="13" />
         <Setter Property="PlaceholderColor" Value="{StaticResource TextTertiary}" />
-        <Setter Property="MinimumHeightRequest" Value="44"/>
-        <Setter Property="MinimumWidthRequest" Value="44"/>
+        <!-- FieldBorder / SearchBox own the chrome; native min size would nest a second frame. -->
+        <Setter Property="MinimumHeightRequest" Value="0"/>
+        <Setter Property="MinimumWidthRequest" Value="0"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">
@@ -178,8 +180,9 @@
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="Inter"/>
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="MinimumHeightRequest" Value="44"/>
-        <Setter Property="MinimumWidthRequest" Value="44"/>
+        <!-- FieldBorder owns the chrome; keep the native dropdown glyph only. -->
+        <Setter Property="MinimumHeightRequest" Value="0"/>
+        <Setter Property="MinimumWidthRequest" Value="0"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">

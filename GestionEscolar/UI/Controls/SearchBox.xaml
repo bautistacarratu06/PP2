@@ -21,6 +21,8 @@
             <Entry
                 Grid.Column="1"
                 BackgroundColor="Transparent"
+                MinimumHeightRequest="0"
+                MinimumWidthRequest="0"
                 Placeholder="Buscar por nombre o legajo"
                 Text="{Binding Text, Source={x:Reference Root}, Mode=TwoWay}"
                 VerticalOptions="Center" />

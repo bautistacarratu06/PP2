@@ -26,7 +26,14 @@ namespace UI
                     fonts.AddFont("Inter-SemiBold.ttf", "InterSemibold");
                     fonts.AddFont("Inter-Bold.ttf", "InterBold");
                     fonts.AddFont("JetBrainsMono-Regular.ttf", "JetBrainsMono");
-                })
+                });
+
+#if WINDOWS
+            // FieldBorder / SearchBox son el único marco; sin esto WinUI dibuja un segundo borde.
+            BorderlessInputs.Configure();
+#endif
+
+            builder
                 .ConfigureLifecycleEvents(events =>
                 {
 #if WINDOWS

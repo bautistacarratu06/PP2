@@ -34,12 +34,18 @@
                     Size="14"
                     VerticalOptions="Center" />
             </HorizontalStackLayout>
+            <!-- Opacity 0: hit-test overlay only; outer Border + custom chevron are the chrome. -->
             <Picker
                 x:Name="Picker"
                 BackgroundColor="Transparent"
+                HorizontalOptions="Fill"
+                MinimumHeightRequest="0"
+                MinimumWidthRequest="0"
+                Opacity="0"
+                SelectedIndexChanged="OnSelected"
                 TextColor="Transparent"
                 TitleColor="Transparent"
-                SelectedIndexChanged="OnSelected"
+                VerticalOptions="Fill"
                 ItemDisplayBinding="{Binding Name, x:DataType=models:Section}" />
         </Grid>
     </Border>
