@@ -202,7 +202,7 @@
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Conflicts}" Spacing="10">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="vm:ConflictChoice">
-                                    <Border Padding="14" Stroke="{StaticResource Line}" StrokeShape="RoundRectangle 12" StrokeThickness="1">
+                                    <Border Padding="14" Stroke="{StaticResource Line}" StrokeShape="RoundRectangle 14" StrokeThickness="1">
                                         <VerticalStackLayout Spacing="8">
                                             <Label FontFamily="InterSemibold" Text="{Binding Title}" />
                                             <Label FontFamily="JetBrainsMono" FontSize="12" Text="{Binding Detail}" TextColor="{StaticResource TextSecondary}" />

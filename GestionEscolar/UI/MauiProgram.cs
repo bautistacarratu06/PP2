@@ -13,6 +13,9 @@ namespace UI
     {
         public static MauiApp CreateMauiApp()
         {
+            System.IO.File.WriteAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ui-boot.txt"), "create " + DateTime.Now.ToString("O") + System.Environment.NewLine);
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+                System.IO.File.AppendAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ui-boot.txt"), "unhandled " + e.ExceptionObject + System.Environment.NewLine);
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
@@ -30,6 +33,7 @@ namespace UI
                     // Una sola vez: el color del caption no se ve si queda una franja transparente sobre Mica.
                     events.AddWindows(windows => windows.OnWindowCreated(window =>
                     {
+                        System.IO.File.AppendAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ui-boot.txt"), "window-created" + System.Environment.NewLine);
                         window.SystemBackdrop = null;
 
                         var background = global::Windows.UI.Color.FromArgb(255, 0x0A, 0x0A, 0x0A);
@@ -49,6 +53,24 @@ namespace UI
                         titleBar.ButtonHoverForegroundColor = foreground;
                         titleBar.ButtonPressedBackgroundColor = hover;
                         titleBar.ButtonPressedForegroundColor = foreground;
+
+                        // Maximizada: llena el área de trabajo y deja la barra de título.
+                        try
+                        {
+                            if (window.AppWindow.Presenter is global::Microsoft.UI.Windowing.OverlappedPresenter presenter)
+                            {
+                                presenter.Maximize();
+                                System.IO.File.AppendAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ui-boot.txt"), "maximized" + System.Environment.NewLine);
+                            }
+                            else
+                            {
+                                System.IO.File.AppendAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ui-boot.txt"), "presenter=" + (window.AppWindow.Presenter?.GetType().FullName ?? "null") + System.Environment.NewLine);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.IO.File.AppendAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ui-boot.txt"), ex + System.Environment.NewLine);
+                        }
                     }));
 #endif
                 });

@@ -172,6 +172,10 @@ public partial class StudentListViewModel : ObservableObject
             return;
         }
 
+        if (IsBusy)
+            return;
+
+        IsBusy = true;
         try
         {
             await _students.AddAsync(
@@ -190,6 +194,10 @@ public partial class StudentListViewModel : ObservableObject
         {
             AddError = "No se pudo guardar el estudiante.";
             System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 }

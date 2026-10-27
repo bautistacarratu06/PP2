@@ -180,9 +180,10 @@ namespace UI.ViewModels
         [RelayCommand]
         private async Task SaveContactAsync()
         {
-            if (_studentId <= 0)
+            if (_studentId <= 0 || IsBusy)
                 return;
 
+            IsBusy = true;
             try
             {
                 await _detailsService.RegisterContactAsync(
@@ -208,6 +209,10 @@ namespace UI.ViewModels
             {
                 ContactError = "No se pudo guardar el contacto.";
                 System.Diagnostics.Debug.WriteLine(ex);
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 

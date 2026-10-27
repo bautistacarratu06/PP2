@@ -79,6 +79,9 @@ public partial class CommissionImportViewModel : ObservableObject
     [RelayCommand]
     private async Task OpenAsync()
     {
+        if (IsBusy)
+            return;
+
         Step = 0;
         ChosenFileName = string.Empty;
         ErrorMessage = string.Empty;
@@ -91,6 +94,7 @@ public partial class CommissionImportViewModel : ObservableObject
         Conflicts.Clear();
         Sections.Clear();
         IsOpen = true;
+        IsBusy = true;
         try
         {
             var sections = await _import.GetSectionsAsync();
@@ -102,6 +106,10 @@ public partial class CommissionImportViewModel : ObservableObject
         {
             ErrorMessage = "No se pudieron cargar las comisiones.";
             System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
@@ -120,17 +128,22 @@ public partial class CommissionImportViewModel : ObservableObject
 
     public async Task AcceptFileAsync(string? path)
     {
+        if (IsBusy)
+            return;
+
         if (!CommissionImportService.IsCsvFile(path))
         {
             ClearFile("El archivo tiene que ser un CSV.");
             return;
         }
 
+        IsBusy = true;
         try
         {
             var text = await File.ReadAllTextAsync(path!);
             _rows = _import.Read(new StringReader(text));
             ChosenFileName = Path.GetFileName(path!);
+            ForgetPreview();
             ErrorMessage = string.Empty;
         }
         catch (ImportValidationException ex)
@@ -141,6 +154,10 @@ public partial class CommissionImportViewModel : ObservableObject
         {
             ClearFile("No se pudo leer el archivo.");
             System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
@@ -238,8 +255,12 @@ public partial class CommissionImportViewModel : ObservableObject
 
     private async Task ConfirmAsync()
     {
-        if (_preview is null)
+        if (_preview is null || _rows.Count == 0 || ChosenFileName.Length == 0)
+        {
+            ErrorMessage = "Elegí un archivo CSV.";
+            Step = 0;
             return;
+        }
 
         if (CreateNew && _preview.Conflicts.Count > 0)
         {
@@ -287,7 +308,18 @@ public partial class CommissionImportViewModel : ObservableObject
     {
         _rows = [];
         ChosenFileName = string.Empty;
+        ForgetPreview();
         ErrorMessage = message;
+    }
+
+    private void ForgetPreview()
+    {
+        _preview = null;
+        Conflicts.Clear();
+        InsertText = string.Empty;
+        BlockedText = string.Empty;
+        if (Step > 0)
+            Step = 0;
     }
 }
 
