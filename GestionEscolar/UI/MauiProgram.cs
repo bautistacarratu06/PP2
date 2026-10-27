@@ -35,7 +35,6 @@ namespace UI
             builder.Services.AddTransient<CalendarViewModel>();
 
             // Páginas (Shell las resuelve por DI, tanto en ShellContent como en rutas registradas)
-            builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<TrackingPage>();
             builder.Services.AddTransient<SubmissionsPage>();
             builder.Services.AddTransient<AttendancePage>();

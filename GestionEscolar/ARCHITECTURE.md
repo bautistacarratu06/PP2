@@ -138,7 +138,6 @@ Acceso a SQL Server. Implementa las interfaces de Core con SQL parametrizado y a
   | Asistencia | `AttendancePage` | `Attendance` |
   | Calendario | `CalendarPage` | `Calendar` |
   | Ajustes | `SettingsViewPage` | — |
-  | Home | `MainPage` | — |
 
   `StudentDetailPage` se registra como ruta con `Routing.RegisterRoute` (`AppShell.xaml.cs`).
 - **Views** (`Views/*.xaml`): el code-behind se limita a lógica visual, navegación y ejecutar `LoadCommand` en `OnAppearing`.
