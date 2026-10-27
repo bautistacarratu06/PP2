@@ -5,7 +5,7 @@
 
     <!-- Paleta del mock. Un solo tema: claro y oscuro usan los mismos valores. -->
     <Color x:Key="Bg">#0A0A0A</Color>
-    <Color x:Key="Side">#0E0E0E</Color>
+    <Color x:Key="Side">#0A0A0A</Color>
     <Color x:Key="Surface">#131313</Color>
     <Color x:Key="Raised">#1B1B1B</Color>
     <Color x:Key="Line">#232323</Color>
