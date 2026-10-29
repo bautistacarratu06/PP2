@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz E — Migraciones y riesgo</title>
+  <link rel="stylesheet" href="../assets/lesson.css" />
+</head>
+<body>
+  <main>
+    <header class="page">
+      <p class="eyebrow">GestionEscolar · retrieval · E</p>
+      <h1>Quiz: migraciones, enums y <code>RiskRule</code></h1>
+      <p class="lede">EF migrations vs scripts históricos, <code>DbStatusValues</code>, pesos de riesgo.</p>
+      <nav class="nav-lessons">
+        <a href="0001-quiz-entidades-y-mapa.html">A</a>
+        <a href="0002-quiz-relaciones-y-puente.html">B</a>
+        <a href="0003-quiz-ef-dbcontext.html">C</a>
+        <a href="0004-quiz-save-asistencia.html">D</a>
+        <a href="0005-quiz-migraciones-riesgo.html">E</a>
+        <a href="../reference/glosario.html">Glosario</a>
+      </nav>
+    </header>
+
+    <section class="brief">
+      <strong>Antes de marcar</strong>
+      <ul>
+        <li>Schema nuevo = migraciones EF. Los <code>0001</code>–<code>0010</code> no se tocan.</li>
+        <li><code>RiskRule</code> en Core: 60% inasistencia, 40% entregas; umbrales desde <code>setting</code>.</li>
+      </ul>
+      <p class="cite">Fuentes: <a href="../../../AGENTS.md">AGENTS.md</a>, <code>RiskRule</code>, <code>DbStatusValues</code>.</p>
+    </section>
+
+    <h2>Práctica</h2>
+    <div class="quiz" data-quiz>
+      <div class="q" data-type="mc"
+           data-answer="Migraciones EF + database update"
+           data-explain="Camino actual: GestionEscolar.Data/Migrations + dotnet ef database update. Los .up.sql son historia/bootstrap.">
+        <p class="prompt">1. DDL nuevo del esquema hoy debería salir de:</p>
+        <button type="button" class="choice">Un 0011.up.sql en Database/</button>
+        <button type="button" class="choice">Migraciones EF + database update</button>
+        <button type="button" class="choice">Editar a mano en SSMS sin más</button>
+        <button type="button" class="choice">run-database.cmd con datos vivos</button>
+      </div>
+
+      <div class="q" data-type="tf" data-answer="Falso"
+           data-explain="No se editan ni se les agregan scripts nuevos; AGENTS/ARCHITECTURE lo dicen.">
+        <p class="prompt">2. Los scripts históricos <code>0001</code>–<code>0010</code> se siguen editando y se les agregan scripts nuevos por feature.</p>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="Traduce enums a strings del CHECK"
+           data-explain="Ida y vuelta con los CHECK: presente/ausente, entregó/no entregó, etc.">
+        <p class="prompt">3. ¿Para qué existe <code>DbStatusValues</code>?</p>
+        <button type="button" class="choice">Calcular el score de riesgo</button>
+        <button type="button" class="choice">Traduce enums a strings del CHECK</button>
+        <button type="button" class="choice">Formatear Apellido, Nombre UI</button>
+        <button type="button" class="choice">Elegir la comisión por defecto</button>
+      </div>
+
+      <div class="q" data-type="fill"
+           data-answer="60|40"
+           data-explain="AbsenceWeight = 60%, MissingDeliveryWeight = 40%.">
+        <p class="prompt">4. <code>RiskRule</code> pondera inasistencia al ________ % y entregas faltantes al ________ %.</p>
+      </div>
+
+      <div class="q" data-type="tf" data-answer="Falso"
+           data-explain="vw_student_risk no está en el DbContext; Seguimiento usa filas + RiskRule.">
+        <p class="prompt">5. La pantalla de Seguimiento lee el nivel de riesgo desde <code>vw_student_risk</code> mapeada en el DbContext.</p>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="Core: cálculo puro sin SQL"
+           data-explain="Vive en Core; testeable con fakes, sin base.">
+        <p class="prompt">6. <code>RiskRule</code> vive en:</p>
+        <button type="button" class="choice">Data junto al DbContext</button>
+        <button type="button" class="choice">Core: cálculo puro sin SQL</button>
+        <button type="button" class="choice">Solo SQL como procedure</button>
+        <button type="button" class="choice">XAML del TrackingPage</button>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="Enums en Core; strings en DbStatusValues"
+           data-explain="Enums de dominio en Core; strings de base concentrados en el traductor.">
+        <p class="prompt">7. ¿Cuál afirmación es correcta?</p>
+        <button type="button" class="choice">Core guarda presente en todos lados</button>
+        <button type="button" class="choice">Enums en Core; strings en DbStatusValues</button>
+        <button type="button" class="choice">EF mapea el enum nativo sin map</button>
+        <button type="button" class="choice">El CHECK acepta cualquier string</button>
+      </div>
+    </div>
+
+    <p class="footnote">Si algo no cierra, preguntale al agente. Fuente primaria: AGENTS.md + <code>RiskRule</code>.</p>
+  </main>
+  <div class="scorebar" data-scorebar>
+    <span>Respondidas: <strong data-score-done>0</strong> / <strong data-score-total>0</strong></span>
+    <span>Correctas: <strong data-score-ok>0</strong></span>
+  </div>
+  <script src="../assets/quiz.js"></script>
+</body>
+</html>

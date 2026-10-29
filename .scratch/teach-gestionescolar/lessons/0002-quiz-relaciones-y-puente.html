@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz B — Relaciones y puente</title>
+  <link rel="stylesheet" href="../assets/lesson.css" />
+</head>
+<body>
+  <main>
+    <header class="page">
+      <p class="eyebrow">GestionEscolar · retrieval · B</p>
+      <h1>Quiz: relaciones 1:N y puente</h1>
+      <p class="lede">Comisión→alumnos, <code>attendance_record</code>, <code>GetMarksAsync</code>, <code>submission</code>, principal key.</p>
+      <nav class="nav-lessons">
+        <a href="0001-quiz-entidades-y-mapa.html">A</a>
+        <a href="0002-quiz-relaciones-y-puente.html">B</a>
+        <a href="0003-quiz-ef-dbcontext.html">C</a>
+        <a href="0004-quiz-save-asistencia.html">D</a>
+        <a href="0005-quiz-migraciones-riesgo.html">E</a>
+        <a href="../reference/glosario.html">Glosario</a>
+      </nav>
+    </header>
+
+    <section class="brief">
+      <strong>Antes de marcar</strong>
+      <ul>
+        <li>1:N vía <code>student.section_id</code>; el N:M clase↔alumno es el puente de asistencia.</li>
+        <li>FKs a alumno usan <code>HasPrincipalKey(Id)</code> porque la PK es <code>dni</code>.</li>
+      </ul>
+      <p class="cite">Fuente: <a href="../../../GestionEscolar/GestionEscolar.Data/Persistence/CourseTrackingDbContext.cs">CourseTrackingDbContext</a>.</p>
+    </section>
+
+    <h2>Práctica</h2>
+    <div class="quiz" data-quiz>
+      <div class="q" data-type="mc"
+           data-answer="Uno a muchos con student.section_id"
+           data-explain="HasOne(Section).WithMany(Students).HasForeignKey(SectionId).">
+        <p class="prompt">1. Comisión → alumnos es:</p>
+        <button type="button" class="choice">Muchos a muchos con tabla puente</button>
+        <button type="button" class="choice">Uno a muchos con student.section_id</button>
+        <button type="button" class="choice">Uno a uno con un solo alumno</button>
+        <button type="button" class="choice">Sin foreign key; une por nombre</button>
+      </div>
+
+      <div class="q" data-type="fill"
+           data-answer="attendance_record|uq_attendance_record_session_student"
+           data-explain="Puente N:M clase↔alumno = attendance_record; único (class_session_id, student_id).">
+        <p class="prompt">2. El “N:M” clase↔alumno se modela con la tabla ________ y el índice único ________.</p>
+      </div>
+
+      <div class="q" data-type="tf" data-answer="Falso"
+           data-explain="Los alumnos viven en la comisión; la asistencia es el puente, no una lista embebida.">
+        <p class="prompt">3. <code>class_session</code> guarda adentro la lista de alumnos presentes de ese día.</p>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="Toda la comisión; sin fila queda null"
+           data-explain="Join sesión → sección → students; status opcional si no hay fila.">
+        <p class="prompt">4. Al listar marcas, <code>GetMarksAsync</code>:</p>
+        <button type="button" class="choice">Solo filas ya en attendance_record</button>
+        <button type="button" class="choice">Toda la comisión; sin fila queda null</button>
+        <button type="button" class="choice">Todos los alumnos de toda la DB</button>
+        <button type="button" class="choice">Solo alumnos con corrected_at set</button>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="submission con único assignment+student"
+           data-explain="Espejo del puente de asistencia para trabajos.">
+        <p class="prompt">5. ¿Qué tabla hace de puente trabajo↔alumno?</p>
+        <button type="button" class="choice">assignment sola sin tabla puente</button>
+        <button type="button" class="choice">intervention como nexo alumno</button>
+        <button type="button" class="choice">submission con único assignment+student</button>
+        <button type="button" class="choice">setting con claves de entrega</button>
+      </div>
+
+      <div class="q" data-type="tf" data-answer="Falso"
+           data-explain="El “detalle” se arma en servicios; no hay 1:1 de tabla aparte.">
+        <p class="prompt">6. Hay una relación 1:1 clara alumno↔detalle persistida en una tabla aparte.</p>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="Principal key Id; PK real es dni"
+           data-explain="HasPrincipalKey(s => s.Id): PK = dni, FKs apuntan al alternate key id.">
+        <p class="prompt">7. La FK <code>attendance_record.student_id</code> en EF usa:</p>
+        <button type="button" class="choice">Principal key Dni como destino</button>
+        <button type="button" class="choice">Principal key Id; PK real es dni</button>
+        <button type="button" class="choice">Sin principal key; EF adivina</button>
+        <button type="button" class="choice">Cascade delete forzado a student</button>
+      </div>
+    </div>
+
+    <p class="footnote">Si algo no cierra, preguntale al agente. Fuente primaria: el mapeo de FKs en el DbContext.</p>
+  </main>
+  <div class="scorebar" data-scorebar>
+    <span>Respondidas: <strong data-score-done>0</strong> / <strong data-score-total>0</strong></span>
+    <span>Correctas: <strong data-score-ok>0</strong></span>
+  </div>
+  <script src="../assets/quiz.js"></script>
+</body>
+</html>

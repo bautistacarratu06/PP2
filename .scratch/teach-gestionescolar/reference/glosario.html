@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glosario — GestionEscolar</title>
+  <link rel="stylesheet" href="../assets/lesson.css" />
+</head>
+<body>
+  <main>
+    <header class="page">
+      <p class="eyebrow">Referencia</p>
+      <h1>Glosario corto</h1>
+      <p class="lede">Nombres que las lecciones asumen. Volvé acá cuando se mezclen.</p>
+      <nav class="nav-lessons">
+        <a href="../lessons/0001-quiz-entidades-y-mapa.html">Quiz A</a>
+        <a href="../lessons/0002-quiz-relaciones-y-puente.html">Quiz B</a>
+        <a href="../lessons/0003-quiz-ef-dbcontext.html">Quiz C</a>
+        <a href="../lessons/0004-quiz-save-asistencia.html">Quiz D</a>
+        <a href="../lessons/0005-quiz-migraciones-riesgo.html">Quiz E</a>
+      </nav>
+    </header>
+
+    <dl>
+      <dt><code>Student</code> / <code>StudentEntity</code></dt>
+      <dd>Dominio (Core) vs fila EF (Data). El repo traduce.</dd>
+
+      <dt>PK / alternate key de alumno</dt>
+      <dd>PK = <code>dni</code>. Alternate key <code>id</code> (identity) es lo que usan las FKs.</dd>
+
+      <dt><code>attendance_record</code></dt>
+      <dd>Puente clase↔alumno. Único (<code>class_session_id</code>, <code>student_id</code>). Campo <code>corrected_at</code> si hubo corrección de estado.</dd>
+
+      <dt><code>submission</code></dt>
+      <dd>Puente trabajo↔alumno, espejo de asistencia.</dd>
+
+      <dt><code>IDbContextFactory</code></dt>
+      <dd>Crea un <code>CourseTrackingDbContext</code> corto por operación (<code>await using</code>).</dd>
+
+      <dt><code>DbStatusValues</code></dt>
+      <dd>Único traductor enums ↔ strings de CHECK SQL.</dd>
+
+      <dt><code>RiskRule</code></dt>
+      <dd>Cálculo puro en Core: 60% inasistencia, 40% entregas faltantes; umbrales desde <code>setting</code>.</dd>
+    </dl>
+
+    <p class="footnote">Pedile al agente follow-ups; este glosario es el ancla de nombres.</p>
+  </main>
+</body>
+</html>

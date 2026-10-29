@@ -1,0 +1,230 @@
+:root {
+  --bg: #f7f4ef;
+  --ink: #1c1917;
+  --muted: #57534e;
+  --line: #d6d3d1;
+  --card: #fffdf9;
+  --accent: #0f766e;
+  --ok: #166534;
+  --ok-bg: #dcfce7;
+  --bad: #991b1b;
+  --bad-bg: #fee2e2;
+  --focus: #115e59;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 18px;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--bg);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  line-height: 1.55;
+}
+
+main {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+header.page {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.eyebrow {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.35rem;
+}
+
+h1 {
+  font-size: 1.85rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0 0 0.5rem;
+}
+
+.lede {
+  color: var(--muted);
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.2rem;
+  margin: 2rem 0 0.75rem;
+}
+
+p,
+li {
+  margin: 0.6rem 0;
+}
+
+a {
+  color: var(--accent);
+}
+
+code,
+.mono {
+  font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  font-size: 0.88em;
+}
+
+.brief {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  margin: 1.25rem 0;
+}
+
+.brief ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.nav-lessons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 1rem 0 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.85rem;
+}
+
+.quiz {
+  margin: 1.5rem 0 2rem;
+}
+
+.q {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.1rem 1.15rem 1.2rem;
+  margin: 0 0 1rem;
+}
+
+.q .prompt {
+  margin: 0 0 0.85rem;
+  font-weight: 600;
+}
+
+.q .choices {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.q button.choice {
+  appearance: none;
+  text-align: left;
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.q button.choice:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.q button.choice:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.q button.choice.correct {
+  background: var(--ok-bg);
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.q button.choice.wrong {
+  background: var(--bad-bg);
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+.q .fill-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.q input.fill {
+  flex: 1 1 14rem;
+  font: inherit;
+  font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.q button.check {
+  appearance: none;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.55rem 0.9rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.q .feedback {
+  margin: 0.75rem 0 0;
+  font-size: 0.95rem;
+  min-height: 1.4em;
+}
+
+.q .feedback.ok {
+  color: var(--ok);
+}
+
+.q .feedback.bad {
+  color: var(--bad);
+}
+
+.scorebar {
+  position: sticky;
+  bottom: 0;
+  background: rgba(247, 244, 239, 0.95);
+  border-top: 1px solid var(--line);
+  padding: 0.75rem 1.25rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  backdrop-filter: blur(6px);
+}
+
+.footnote {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.cite {
+  font-size: 0.9rem;
+  color: var(--muted);
+}

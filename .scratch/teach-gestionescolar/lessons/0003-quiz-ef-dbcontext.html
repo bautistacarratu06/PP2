@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz C — EF y DbContext</title>
+  <link rel="stylesheet" href="../assets/lesson.css" />
+</head>
+<body>
+  <main>
+    <header class="page">
+      <p class="eyebrow">GestionEscolar · retrieval · C</p>
+      <h1>Quiz: EF como ORM y DbContext</h1>
+      <p class="lede">Factory, un context por operación, tracking vs <code>AsNoTracking</code>.</p>
+      <nav class="nav-lessons">
+        <a href="0001-quiz-entidades-y-mapa.html">A</a>
+        <a href="0002-quiz-relaciones-y-puente.html">B</a>
+        <a href="0003-quiz-ef-dbcontext.html">C</a>
+        <a href="0004-quiz-save-asistencia.html">D</a>
+        <a href="0005-quiz-migraciones-riesgo.html">E</a>
+        <a href="../reference/glosario.html">Glosario</a>
+      </nav>
+    </header>
+
+    <section class="brief">
+      <strong>Antes de marcar</strong>
+      <ul>
+        <li>App: <code>IDbContextFactory</code> vía DI. Design-time: otro factory para <code>dotnet ef</code>.</li>
+        <li>Lecturas de grilla: sin tracking. Updates: trackear → mutar → <code>SaveChangesAsync</code>.</li>
+      </ul>
+      <p class="cite">Fuentes: <a href="../../../AGENTS.md">AGENTS.md</a>, repos <code>Ef*</code>, <a href="https://learn.microsoft.com/ef/core/dbcontext-configuration/">docs EF lifetime</a>.</p>
+    </section>
+
+    <h2>Práctica</h2>
+    <div class="quiz" data-quiz>
+      <div class="q" data-type="mc"
+           data-answer="Objetos y LINQ; EF genera el SQL"
+           data-explain="DbSets + LINQ → proveedor SQL Server. La UI no concatena SQL.">
+        <p class="prompt">1. Un ORM acá significa, en la práctica:</p>
+        <button type="button" class="choice">La UI escribe SQL concatenado</button>
+        <button type="button" class="choice">Objetos y LINQ; EF genera el SQL</button>
+        <button type="button" class="choice">No hace falta connection string</button>
+        <button type="button" class="choice">Core abre el DbContext solo</button>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="AddGestionEscolarData registra el factory"
+           data-explain="DataServiceCollectionExtensions.AddGestionEscolarData registra AddDbContextFactory.">
+        <p class="prompt">2. ¿Quién registra <code>AddDbContextFactory&lt;CourseTrackingDbContext&gt;</code>?</p>
+        <button type="button" class="choice">MauiProgram crea new DbContext</button>
+        <button type="button" class="choice">AddGestionEscolarData registra el factory</button>
+        <button type="button" class="choice">Cada ViewModel en el ctor</button>
+        <button type="button" class="choice">Solo tests; la app usa ADO</button>
+      </div>
+
+      <div class="q" data-type="fill"
+           data-answer="CreateDbContextAsync|await using"
+           data-explain="Cada método: CreateDbContextAsync + await using (dispose al salir). Un context por operación.">
+        <p class="prompt">3. Cada método de <code>Ef*Repository</code> hace ________ y cierra el context con ________.</p>
+      </div>
+
+      <div class="q" data-type="tf" data-answer="Falso"
+           data-explain="CourseTrackingDbContextFactory (IDesignTime…) es para dotnet ef. La app usa IDbContextFactory de DI.">
+        <p class="prompt">4. <code>CourseTrackingDbContextFactory</code> (design-time) es el que usa la app MAUI en cada click.</p>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="Leer sin retener en el tracker"
+           data-explain="Lectura de grilla sin change tracker.">
+        <p class="prompt">5. <code>AsNoTracking</code> en <code>GetMarksAsync</code> / nómina sirve para:</p>
+        <button type="button" class="choice">Forzar UPDATE automático siempre</button>
+        <button type="button" class="choice">Leer sin retener en el tracker</button>
+        <button type="button" class="choice">Desactivar todas las foreign keys</button>
+        <button type="button" class="choice">Cachear el result en Redis</button>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="Trackea para mutar y SaveChanges"
+           data-explain="Sin AsNoTracking en el update path: track → cambio de propiedad → SaveChangesAsync = UPDATE.">
+        <p class="prompt">6. En el update de asistencia, el <code>FirstOrDefaultAsync</code> del registro:</p>
+        <button type="button" class="choice">También va con AsNoTracking</button>
+        <button type="button" class="choice">Trackea para mutar y SaveChanges</button>
+        <button type="button" class="choice">No pega a SQL hasta dispose</button>
+        <button type="button" class="choice">Solo si corrected_at ya existía</button>
+      </div>
+
+      <div class="q" data-type="tf" data-answer="Falso"
+           data-explain="Factory + context corto por método; no hay context global de UI.">
+        <p class="prompt">7. Los repos mantienen un <code>CourseTrackingDbContext</code> singleton vivo toda la sesión.</p>
+      </div>
+    </div>
+
+    <p class="footnote">Si algo no cierra, preguntale al agente. Fuente primaria: un <code>Ef*Repository</code> real del repo.</p>
+  </main>
+  <div class="scorebar" data-scorebar>
+    <span>Respondidas: <strong data-score-done>0</strong> / <strong data-score-total>0</strong></span>
+    <span>Correctas: <strong data-score-ok>0</strong></span>
+  </div>
+  <script src="../assets/quiz.js"></script>
+</body>
+</html>

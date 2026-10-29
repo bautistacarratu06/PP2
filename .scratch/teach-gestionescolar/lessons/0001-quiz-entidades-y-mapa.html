@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz A — Entidades y mapa</title>
+  <link rel="stylesheet" href="../assets/lesson.css" />
+</head>
+<body>
+  <main>
+    <header class="page">
+      <p class="eyebrow">GestionEscolar · retrieval · A</p>
+      <h1>Quiz: entidades y mapa</h1>
+      <p class="lede">Core vs Data, tablas del <code>DbContext</code>, PK/FK de alumno, riesgo y <code>setting</code>.</p>
+      <nav class="nav-lessons">
+        <a href="0001-quiz-entidades-y-mapa.html">A</a>
+        <a href="0002-quiz-relaciones-y-puente.html">B</a>
+        <a href="0003-quiz-ef-dbcontext.html">C</a>
+        <a href="0004-quiz-save-asistencia.html">D</a>
+        <a href="0005-quiz-migraciones-riesgo.html">E</a>
+        <a href="../reference/glosario.html">Glosario</a>
+      </nav>
+    </header>
+
+    <section class="brief">
+      <strong>Antes de marcar</strong>
+      <ul>
+        <li>Dominio en Core; filas EF en Data; el repo proyecta.</li>
+        <li>Ocho tablas en el modelo; el riesgo no es tabla.</li>
+      </ul>
+      <p class="cite">Fuentes: <a href="../../../AGENTS.md">AGENTS.md</a>, <a href="../../../GestionEscolar/GestionEscolar.Data/Persistence/CourseTrackingDbContext.cs">CourseTrackingDbContext</a>.</p>
+    </section>
+
+    <h2>Práctica</h2>
+    <div class="quiz" data-quiz>
+      <div class="q" data-type="mc"
+           data-answer="Dos tipos distintos; el repo traduce"
+           data-explain="Core no conoce EF. Data tiene filas; el Ef* proyecta a dominio.">
+        <p class="prompt">1. En GestionEscolar, <code>Student</code> (Core) y <code>StudentEntity</code> (Data) son:</p>
+        <button type="button" class="choice">Una clase compartida por ambos lados</button>
+        <button type="button" class="choice">Dos tipos distintos; el repo traduce</button>
+        <button type="button" class="choice">Student hereda siempre de Entity</button>
+        <button type="button" class="choice">Solo Entity existe; Core es dynamic</button>
+      </div>
+
+      <div class="q" data-type="tf" data-answer="Falso"
+           data-explain="Core es dominio puro: sin MAUI, sin SQL, sin EF.">
+        <p class="prompt">2. El proyecto Core referencia Entity Framework para mapear las tablas.</p>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="Ocho tablas de dominio; sin vista risk"
+           data-explain="section, student, class_session, assignment, attendance_record, submission, intervention, setting. vw_student_risk no está en el modelo.">
+        <p class="prompt">3. ¿Qué modela <code>CourseTrackingDbContext</code>?</p>
+        <button type="button" class="choice">Cuatro tablas; incluye risk propio</button>
+        <button type="button" class="choice">Ocho tablas de dominio; sin vista risk</button>
+        <button type="button" class="choice">Solo student y section; resto vista</button>
+        <button type="button" class="choice">Ocho tablas más la vista como DbSet</button>
+      </div>
+
+      <div class="q" data-type="fill"
+           data-answer="dni|id"
+           data-explain="PK de student = dni; las FKs de asistencia/entrega/intervención apuntan al alternate key id.">
+        <p class="prompt">4. Completá: la PK de <code>student</code> es ________; las FKs de asistencia apuntan a ________. (dos tokens, ej. <span class="mono">dni / id</span>)</p>
+      </div>
+
+      <div class="q" data-type="tf" data-answer="Falso"
+           data-explain="Alto/Medio/Bajo lo calcula RiskRule en dominio; no hay tabla risk en el DbContext.">
+        <p class="prompt">5. El nivel de riesgo Alto/Medio/Bajo se guarda como entidad/tabla propia en el modelo EF.</p>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="Clave-valor de umbrales, sin FK alumno"
+           data-explain="setting guarda high_threshold / medium_threshold sueltos, sin FK a comisión ni alumno.">
+        <p class="prompt">6. ¿Qué rol tiene <code>setting</code> en el mapa?</p>
+        <button type="button" class="choice">FK a cada alumno con umbral propio</button>
+        <button type="button" class="choice">Clave-valor de umbrales, sin FK alumno</button>
+        <button type="button" class="choice">Puente comisión con criterio riesgo</button>
+        <button type="button" class="choice">Cache local de la clase RiskRule</button>
+      </div>
+    </div>
+
+    <p class="footnote">Si algo no cierra, preguntale al agente (es el docente). Fuente primaria: el <code>CourseTrackingDbContext</code> del repo.</p>
+  </main>
+  <div class="scorebar" data-scorebar>
+    <span>Respondidas: <strong data-score-done>0</strong> / <strong data-score-total>0</strong></span>
+    <span>Correctas: <strong data-score-ok>0</strong></span>
+  </div>
+  <script src="../assets/quiz.js"></script>
+</body>
+</html>

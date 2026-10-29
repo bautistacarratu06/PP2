@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz D — Save asistencia</title>
+  <link rel="stylesheet" href="../assets/lesson.css" />
+</head>
+<body>
+  <main>
+    <header class="page">
+      <p class="eyebrow">GestionEscolar · retrieval · D</p>
+      <h1>Quiz: Save asistencia y <code>corrected_at</code></h1>
+      <p class="lede">Capas UI→servicio→repo, INSERT vs UPDATE, idempotencia, <code>DbStatusValues</code>.</p>
+      <nav class="nav-lessons">
+        <a href="0001-quiz-entidades-y-mapa.html">A</a>
+        <a href="0002-quiz-relaciones-y-puente.html">B</a>
+        <a href="0003-quiz-ef-dbcontext.html">C</a>
+        <a href="0004-quiz-save-asistencia.html">D</a>
+        <a href="0005-quiz-migraciones-riesgo.html">E</a>
+        <a href="../reference/glosario.html">Glosario</a>
+      </nav>
+    </header>
+
+    <section class="brief">
+      <strong>Antes de marcar</strong>
+      <ul>
+        <li>Primera marca = INSERT con <code>corrected_at</code> null. Cambio de estado = setea <code>CorrectedAt</code>.</li>
+        <li>Mismo estado otra vez = return temprano. Strings de DB solo vía <code>DbStatusValues</code>.</li>
+      </ul>
+      <p class="cite">Fuentes: <code>EfAttendanceRepository</code>, tests de asistencia en Data.Tests.</p>
+    </section>
+
+    <h2>Práctica</h2>
+    <div class="quiz" data-quiz>
+      <div class="q" data-type="mc"
+           data-answer="VM → AttendanceService → puerto → EF"
+           data-explain="ViewModel → AttendanceService → IAttendanceRepository → EfAttendanceRepository → SQL.">
+        <p class="prompt">1. Orden correcto al guardar desde la pantalla:</p>
+        <button type="button" class="choice">VM → EfAttendance directo → SQL</button>
+        <button type="button" class="choice">VM → AttendanceService → puerto → EF</button>
+        <button type="button" class="choice">VM → RiskRule → SQL directo</button>
+        <button type="button" class="choice">VM → DbStatusValues → design factory</button>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="INSERT; corrected_at queda null"
+           data-explain="Primera marca = alta limpia, sin corrección.">
+        <p class="prompt">2. Primera marca (no hay fila, alumno de la comisión):</p>
+        <button type="button" class="choice">UPDATE con corrected_at = now</button>
+        <button type="button" class="choice">INSERT; corrected_at queda null</button>
+        <button type="button" class="choice">No hace nada en ese caso</button>
+        <button type="button" class="choice">Borra todas las marcas previas</button>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="Return temprano; no toca corrected"
+           data-explain="Idempotente a nivel estado; no refresca corrected_at.">
+        <p class="prompt">3. Hay fila y mandás el mismo estado otra vez:</p>
+        <button type="button" class="choice">UPDATE igual y refresca fecha</button>
+        <button type="button" class="choice">Return temprano; no toca corrected</button>
+        <button type="button" class="choice">DELETE más INSERT de nuevo</button>
+        <button type="button" class="choice">Lanza excepción de negocio</button>
+      </div>
+
+      <div class="q" data-type="fill"
+           data-answer="CorrectedAt|SaveChangesAsync"
+           data-explain="Si cambia el status: setea CorrectedAt (Clock.Now) y después SaveChangesAsync.">
+        <p class="prompt">4. Si cambias presente → ausente, el repo setea ________ y después llama ________.</p>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="Check enrolled falla; return sin write"
+           data-explain="Guard de inscripción antes del Add: no escribe si no está en la comisión.">
+        <p class="prompt">5. Alumno que no está en la comisión, en un INSERT intentado:</p>
+        <button type="button" class="choice">Inserta igual sin validar nada</button>
+        <button type="button" class="choice">Check enrolled falla; return sin write</button>
+        <button type="button" class="choice">Tira InvalidOperation siempre</button>
+        <button type="button" class="choice">Crea el alumno al vuelo ahí</button>
+      </div>
+
+      <div class="q" data-type="tf" data-answer="Verdadero"
+           data-explain="Carrera del unique: atrapa DbUpdateException, ChangeTracker.Clear(), releer y actualizar.">
+        <p class="prompt">6. Si dos INSERTs concurrentes chocan el índice único, el código puede atrapar <code>DbUpdateException</code>, hacer <code>ChangeTracker.Clear()</code>, releer y actualizar.</p>
+      </div>
+
+      <div class="q" data-type="mc"
+           data-answer="DbStatusValues.ToDbValue traduce"
+           data-explain="Un solo lugar para los strings de CHECK (presente / ausente, etc.).">
+        <p class="prompt">7. ¿Quién traduce <code>AttendanceStatus.Presente</code> al string del CHECK?</p>
+        <button type="button" class="choice">El ViewModel con switch local</button>
+        <button type="button" class="choice">DbStatusValues.ToDbValue traduce</button>
+        <button type="button" class="choice">SQL Server con un trigger</button>
+        <button type="button" class="choice">RiskRule al evaluar el score</button>
+      </div>
+    </div>
+
+    <p class="footnote">Si algo no cierra, preguntale al agente. Fuente primaria: <code>SaveAsync</code> de asistencia + tests.</p>
+  </main>
+  <div class="scorebar" data-scorebar>
+    <span>Respondidas: <strong data-score-done>0</strong> / <strong data-score-total>0</strong></span>
+    <span>Correctas: <strong data-score-ok>0</strong></span>
+  </div>
+  <script src="../assets/quiz.js"></script>
+</body>
+</html>
