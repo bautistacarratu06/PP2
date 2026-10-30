@@ -1,1 +1,2 @@
 dotnet tool run dotnet-ef database update --project ..\GestionEscolar\GestionEscolar.Data\GestionEscolar.Data.csproj
+pause
