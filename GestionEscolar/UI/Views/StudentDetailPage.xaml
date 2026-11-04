@@ -63,33 +63,73 @@
                 <Border Padding="20" Style="{StaticResource Card}">
                     <VerticalStackLayout>
                         <Label Margin="0,0,0,8" Style="{StaticResource CardTitle}" Text="Historial de asistencia" />
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Attendance}">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="vm:HistoryItem">
-                                    <Grid Padding="0,12" ColumnDefinitions="*,Auto">
-                                        <Label Text="{Binding Label}" VerticalOptions="Center" />
-                                        <controls:StatusPill Grid.Column="1" Kind="{Binding Kind}" Text="{Binding Status}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
-                        </VerticalStackLayout>
-                        <Label IsVisible="{Binding HasNoAttendance}" Text="Sin clases registradas." TextColor="{StaticResource TextTertiary}" />
+                        <controls:GridLoadingView
+                            IsLoading="{Binding IsBusy}"
+                            HasError="{Binding HasError}"
+                            ErrorMessage="{Binding ErrorMessage}">
+                            <controls:GridLoadingView.SkeletonView>
+                                <controls:SkeletonGrid RowCount="3" RowHeight="44">
+                                    <controls:SkeletonGrid.RowTemplate>
+                                        <DataTemplate>
+                                            <Grid Padding="0,12" ColumnDefinitions="*,Auto">
+                                                <controls:SkeletonBlock WidthRequest="140" HeightRequest="14" HorizontalOptions="Start" VerticalOptions="Center" />
+                                                <controls:SkeletonBlock Grid.Column="1" WidthRequest="60" HeightRequest="22" Radius="11" VerticalOptions="Center" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </controls:SkeletonGrid.RowTemplate>
+                                </controls:SkeletonGrid>
+                            </controls:GridLoadingView.SkeletonView>
+
+                            <VerticalStackLayout>
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Attendance}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:HistoryItem">
+                                            <Grid Padding="0,12" ColumnDefinitions="*,Auto">
+                                                <Label Text="{Binding Label}" VerticalOptions="Center" />
+                                                <controls:StatusPill Grid.Column="1" Kind="{Binding Kind}" Text="{Binding Status}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                                <Label IsVisible="{Binding HasNoAttendance}" Text="Sin clases registradas." TextColor="{StaticResource TextTertiary}" />
+                            </VerticalStackLayout>
+                        </controls:GridLoadingView>
                     </VerticalStackLayout>
                 </Border>
                 <Border Padding="20" Style="{StaticResource Card}">
                     <VerticalStackLayout>
                         <Label Margin="0,0,0,8" Style="{StaticResource CardTitle}" Text="Historial de entregas" />
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Submissions}">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="vm:HistoryItem">
-                                    <Grid Padding="0,12" ColumnDefinitions="*,Auto">
-                                        <Label Text="{Binding Label}" VerticalOptions="Center" />
-                                        <controls:StatusPill Grid.Column="1" Kind="{Binding Kind}" Text="{Binding Status}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
-                        </VerticalStackLayout>
-                        <Label IsVisible="{Binding HasNoSubmissions}" Text="Sin trabajos registrados." TextColor="{StaticResource TextTertiary}" />
+                        <controls:GridLoadingView
+                            IsLoading="{Binding IsBusy}"
+                            HasError="{Binding HasError}"
+                            ErrorMessage="{Binding ErrorMessage}">
+                            <controls:GridLoadingView.SkeletonView>
+                                <controls:SkeletonGrid RowCount="3" RowHeight="44">
+                                    <controls:SkeletonGrid.RowTemplate>
+                                        <DataTemplate>
+                                            <Grid Padding="0,12" ColumnDefinitions="*,Auto">
+                                                <controls:SkeletonBlock WidthRequest="180" HeightRequest="14" HorizontalOptions="Start" VerticalOptions="Center" />
+                                                <controls:SkeletonBlock Grid.Column="1" WidthRequest="64" HeightRequest="22" Radius="11" VerticalOptions="Center" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </controls:SkeletonGrid.RowTemplate>
+                                </controls:SkeletonGrid>
+                            </controls:GridLoadingView.SkeletonView>
+
+                            <VerticalStackLayout>
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Submissions}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:HistoryItem">
+                                            <Grid Padding="0,12" ColumnDefinitions="*,Auto">
+                                                <Label Text="{Binding Label}" VerticalOptions="Center" />
+                                                <controls:StatusPill Grid.Column="1" Kind="{Binding Kind}" Text="{Binding Status}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                                <Label IsVisible="{Binding HasNoSubmissions}" Text="Sin trabajos registrados." TextColor="{StaticResource TextTertiary}" />
+                            </VerticalStackLayout>
+                        </controls:GridLoadingView>
                     </VerticalStackLayout>
                 </Border>
                 <Border Padding="20" Style="{StaticResource Card}">
@@ -133,14 +173,33 @@
                                 <Button Command="{Binding CancelContactCommand}" Style="{StaticResource GhostButton}" Text="Cancelar" />
                             </HorizontalStackLayout>
                         </VerticalStackLayout>
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Interventions}">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="vm:HistoryItem">
-                                    <Label Padding="0,12" Text="{Binding Label}" />
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
-                        </VerticalStackLayout>
-                        <Label IsVisible="{Binding HasNoInterventions}" Text="Sin contactos registrados." TextColor="{StaticResource TextTertiary}" />
+                        <controls:GridLoadingView
+                            IsLoading="{Binding IsBusy}"
+                            HasError="{Binding HasError}"
+                            ErrorMessage="{Binding ErrorMessage}">
+                            <controls:GridLoadingView.SkeletonView>
+                                <controls:SkeletonGrid RowCount="2" RowHeight="40">
+                                    <controls:SkeletonGrid.RowTemplate>
+                                        <DataTemplate>
+                                            <Grid Padding="0,10">
+                                                <controls:SkeletonBlock WidthRequest="220" HeightRequest="14" HorizontalOptions="Start" VerticalOptions="Center" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </controls:SkeletonGrid.RowTemplate>
+                                </controls:SkeletonGrid>
+                            </controls:GridLoadingView.SkeletonView>
+
+                            <VerticalStackLayout>
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Interventions}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:HistoryItem">
+                                            <Label Padding="0,12" Text="{Binding Label}" />
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                                <Label IsVisible="{Binding HasNoInterventions}" Text="Sin contactos registrados." TextColor="{StaticResource TextTertiary}" />
+                            </VerticalStackLayout>
+                        </controls:GridLoadingView>
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>

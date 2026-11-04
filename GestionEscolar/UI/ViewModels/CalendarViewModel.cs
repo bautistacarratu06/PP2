@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionEscolar.Core.Enums;
@@ -53,6 +53,7 @@ namespace UI.ViewModels
         protected override async Task OnSectionChangedAsync()
         {
             Items.Clear();
+            HasNoItems = false;
             if (SelectedSection is null)
                 return;
 
