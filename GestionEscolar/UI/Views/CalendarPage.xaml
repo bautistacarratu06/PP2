@@ -33,31 +33,54 @@
             <Label IsVisible="{Binding HasStatus}" Text="{Binding StatusMessage}" TextColor="{StaticResource TextTertiary}" />
 
             <Border Style="{StaticResource Card}">
-                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="vm:CalendarRow">
-                            <VerticalStackLayout>
-                                <controls:HoverRow Padding="20,0" ColumnDefinitions="*,Auto,110" ColumnSpacing="12" HeightRequest="54">
-                                    <Label FontFamily="InterSemibold" Text="{Binding Name}" VerticalOptions="Center" />
-                                    <controls:StatusPill
-                                        Grid.Column="1"
-                                        Kind="{Binding KindKey}"
-                                        Text="{Binding Kind}"
-                                        VerticalOptions="Center" />
-                                    <Label
-                                        Grid.Column="2"
-                                        FontFamily="JetBrainsMono"
-                                        FontSize="12"
-                                        HorizontalTextAlignment="End"
-                                        Text="{Binding DateText}"
-                                        TextColor="{StaticResource TextSecondary}"
-                                        VerticalOptions="Center" />
-                                </controls:HoverRow>
-                                <BoxView HeightRequest="1" Color="{StaticResource Line}" />
-                            </VerticalStackLayout>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </VerticalStackLayout>
+                <controls:GridLoadingView
+                    IsLoading="{Binding IsBusy}"
+                    HasError="{Binding HasError}"
+                    ErrorMessage="{Binding ErrorMessage}">
+                    <controls:GridLoadingView.SkeletonView>
+                        <controls:SkeletonGrid RowCount="5" RowHeight="54">
+                            <controls:SkeletonGrid.RowTemplate>
+                                <DataTemplate>
+                                    <Grid
+                                        Padding="20,0"
+                                        ColumnDefinitions="*,Auto,110"
+                                        ColumnSpacing="12"
+                                        HeightRequest="54">
+                                        <controls:SkeletonBlock WidthRequest="180" HeightRequest="14" HorizontalOptions="Start" VerticalOptions="Center" />
+                                        <controls:SkeletonBlock Grid.Column="1" WidthRequest="64" HeightRequest="22" Radius="11" VerticalOptions="Center" />
+                                        <controls:SkeletonBlock Grid.Column="2" WidthRequest="80" HeightRequest="14" HorizontalOptions="End" VerticalOptions="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </controls:SkeletonGrid.RowTemplate>
+                        </controls:SkeletonGrid>
+                    </controls:GridLoadingView.SkeletonView>
+
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CalendarRow">
+                                <VerticalStackLayout>
+                                    <controls:HoverRow Padding="20,0" ColumnDefinitions="*,Auto,110" ColumnSpacing="12" HeightRequest="54">
+                                        <Label FontFamily="InterSemibold" Text="{Binding Name}" VerticalOptions="Center" />
+                                        <controls:StatusPill
+                                            Grid.Column="1"
+                                            Kind="{Binding KindKey}"
+                                            Text="{Binding Kind}"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            Grid.Column="2"
+                                            FontFamily="JetBrainsMono"
+                                            FontSize="12"
+                                            HorizontalTextAlignment="End"
+                                            Text="{Binding DateText}"
+                                            TextColor="{StaticResource TextSecondary}"
+                                            VerticalOptions="Center" />
+                                    </controls:HoverRow>
+                                    <BoxView HeightRequest="1" Color="{StaticResource Line}" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </controls:GridLoadingView>
                 <Border.Triggers>
                     <DataTrigger Binding="{Binding HasNoItems}" TargetType="Border" Value="True">
                         <Setter Property="IsVisible" Value="False" />

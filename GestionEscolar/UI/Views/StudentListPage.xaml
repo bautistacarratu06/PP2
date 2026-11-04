@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="UI.Views.StudentListPage"
     x:DataType="vm:StudentListViewModel"
@@ -88,7 +88,34 @@
                             <Label Grid.Column="3" Style="{StaticResource ColumnHeader}" Text="CORREO" />
                         </Grid>
                         <BoxView HeightRequest="1" Color="{StaticResource Line}" />
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding FilteredStudents}">
+                        <controls:GridLoadingView
+                            IsLoading="{Binding IsBusy}"
+                            HasError="{Binding HasError}"
+                            ErrorMessage="{Binding ErrorMessage}">
+                            <controls:GridLoadingView.SkeletonView>
+                                <controls:SkeletonGrid RowCount="5" RowHeight="64">
+                                    <controls:SkeletonGrid.RowTemplate>
+                                        <DataTemplate>
+                                            <Grid
+                                                Padding="20,0"
+                                                ColumnDefinitions="2.2*,130,150,2*"
+                                                ColumnSpacing="12"
+                                                HeightRequest="64">
+                                                <HorizontalStackLayout Spacing="12" VerticalOptions="Center">
+                                                    <controls:SkeletonBlock WidthRequest="32" HeightRequest="32" IsCircle="True" />
+                                                    <controls:SkeletonBlock WidthRequest="140" HeightRequest="14" VerticalOptions="Center" />
+                                                </HorizontalStackLayout>
+                                                <controls:SkeletonBlock Grid.Column="1" WidthRequest="70" HeightRequest="14" VerticalOptions="Center" />
+                                                <controls:SkeletonBlock Grid.Column="2" WidthRequest="90" HeightRequest="14" VerticalOptions="Center" />
+                                                <controls:SkeletonBlock Grid.Column="3" WidthRequest="160" HeightRequest="14" VerticalOptions="Center" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </controls:SkeletonGrid.RowTemplate>
+                                </controls:SkeletonGrid>
+                            </controls:GridLoadingView.SkeletonView>
+
+                            <VerticalStackLayout>
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding FilteredStudents}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="vm:StudentRow">
                                     <VerticalStackLayout>
@@ -128,11 +155,8 @@
                             IsVisible="{Binding ShowSearchEmpty}"
                             Style="{StaticResource EmptyLabel}"
                             Text="{Binding EmptyText}" />
-                        <Label
-                            IsVisible="{Binding HasError}"
-                            Padding="20,12"
-                            Text="{Binding ErrorMessage}"
-                            TextColor="{StaticResource Danger}" />
+                        </VerticalStackLayout>
+                    </controls:GridLoadingView>
                     </VerticalStackLayout>
                 </Border>
 

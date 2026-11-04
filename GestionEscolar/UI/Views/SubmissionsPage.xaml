@@ -35,39 +35,61 @@
                         VerticalOptions="Center" />
                 </Grid>
                 <BoxView HeightRequest="1" Color="{StaticResource Line}" />
-                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Rows}">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="vm:StatusRow">
-                            <VerticalStackLayout>
-                                <controls:HoverRow Padding="20,0" ColumnDefinitions="*,Auto" HeightRequest="60">
-                                    <HorizontalStackLayout Spacing="12" VerticalOptions="Center">
-                                        <controls:Avatar FullName="{Binding DisplayName}" />
-                                        <Label
-                                            FontFamily="InterSemibold"
-                                            FontSize="14"
-                                            Text="{Binding DisplayName}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                    <controls:SegmentedControl
-                                        Grid.Column="1"
-                                        Mode="submission"
-                                        SelectedKey="{Binding SelectedStatus}"
-                                        VerticalOptions="Center" />
-                                </controls:HoverRow>
-                                <BoxView HeightRequest="1" Color="{StaticResource Line}" />
-                            </VerticalStackLayout>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </VerticalStackLayout>
-                <Label
-                    IsVisible="{Binding HasNoAssignments}"
-                    Style="{StaticResource EmptyLabel}"
-                    Text="No hay trabajos para esta comisión. Agregalos en Calendario." />
-                <Label
-                    IsVisible="{Binding HasError}"
-                    Padding="20,12"
-                    Text="{Binding ErrorMessage}"
-                    TextColor="{StaticResource Danger}" />
+                <controls:GridLoadingView
+                    IsLoading="{Binding IsBusy}"
+                    HasError="{Binding HasError}"
+                    ErrorMessage="{Binding ErrorMessage}">
+                    <controls:GridLoadingView.SkeletonView>
+                        <controls:SkeletonGrid RowCount="5" RowHeight="60">
+                            <controls:SkeletonGrid.RowTemplate>
+                                <DataTemplate>
+                                    <Grid
+                                        Padding="20,0"
+                                        ColumnDefinitions="*,Auto"
+                                        ColumnSpacing="12"
+                                        HeightRequest="60">
+                                        <HorizontalStackLayout Spacing="12" VerticalOptions="Center">
+                                            <controls:SkeletonBlock WidthRequest="32" HeightRequest="32" IsCircle="True" />
+                                            <controls:SkeletonBlock WidthRequest="140" HeightRequest="14" VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                        <controls:SkeletonBlock Grid.Column="1" WidthRequest="164" HeightRequest="32" Radius="8" VerticalOptions="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </controls:SkeletonGrid.RowTemplate>
+                        </controls:SkeletonGrid>
+                    </controls:GridLoadingView.SkeletonView>
+
+                    <VerticalStackLayout>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Rows}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:StatusRow">
+                                    <VerticalStackLayout>
+                                        <controls:HoverRow Padding="20,0" ColumnDefinitions="*,Auto" HeightRequest="60">
+                                            <HorizontalStackLayout Spacing="12" VerticalOptions="Center">
+                                                <controls:Avatar FullName="{Binding DisplayName}" />
+                                                <Label
+                                                    FontFamily="InterSemibold"
+                                                    FontSize="14"
+                                                    Text="{Binding DisplayName}"
+                                                    VerticalOptions="Center" />
+                                            </HorizontalStackLayout>
+                                            <controls:SegmentedControl
+                                                Grid.Column="1"
+                                                Mode="submission"
+                                                SelectedKey="{Binding SelectedStatus}"
+                                                VerticalOptions="Center" />
+                                        </controls:HoverRow>
+                                        <BoxView HeightRequest="1" Color="{StaticResource Line}" />
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                        <Label
+                            IsVisible="{Binding HasNoAssignments}"
+                            Style="{StaticResource EmptyLabel}"
+                            Text="No hay trabajos para esta comisión. Agregalos en Calendario." />
+                    </VerticalStackLayout>
+                </controls:GridLoadingView>
             </VerticalStackLayout>
         </Border>
     </controls:PageShell>
