@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="UI.Controls.FloatingActionBar"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:UI.Controls"
+    x:Name="Root"
+    InputTransparent="False"
+    IsVisible="{Binding IsActive, Source={x:Reference Root}}">
+
+    <Border
+        BackgroundColor="{StaticResource Raised}"
+        HeightRequest="56"
+        HorizontalOptions="Center"
+        Padding="16,8"
+        Stroke="{StaticResource Line}"
+        StrokeShape="RoundRectangle 14"
+        StrokeThickness="1"
+        VerticalOptions="Center">
+        <HorizontalStackLayout Spacing="16" VerticalOptions="Center">
+            <!-- Count of selected items -->
+            <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                <Border
+                    BackgroundColor="{StaticResource Surface}"
+                    HeightRequest="26"
+                    Padding="8,0"
+                    Stroke="{StaticResource Line}"
+                    StrokeShape="RoundRectangle 8"
+                    StrokeThickness="1"
+                    VerticalOptions="Center">
+                    <Label
+                        FontFamily="InterSemibold"
+                        FontSize="12"
+                        HorizontalOptions="Center"
+                        Text="{Binding SelectedCount, Source={x:Reference Root}}"
+                        TextColor="{StaticResource Accent}"
+                        VerticalOptions="Center" />
+                </Border>
+                <Label
+                    FontFamily="InterMedium"
+                    FontSize="13"
+                    Text="{Binding SelectedCountText, Source={x:Reference Root}}"
+                    TextColor="{StaticResource TextPrimary}"
+                    VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <!-- Deseleccionar button -->
+            <Button
+                Command="{Binding ClearSelectionCommand, Source={x:Reference Root}}"
+                FontFamily="InterMedium"
+                FontSize="12"
+                HeightRequest="32"
+                Padding="8,4"
+                Style="{StaticResource LinkButton}"
+                Text="Deseleccionar"
+                TextColor="{StaticResource TextTertiary}"
+                VerticalOptions="Center" />
+
+            <!-- Vertical divider line -->
+            <BoxView
+                Color="{StaticResource Line}"
+                HeightRequest="24"
+                VerticalOptions="Center"
+                WidthRequest="1" />
+
+            <!-- Slot for contextual action buttons -->
+            <ContentView
+                x:Name="ActionsContainer"
+                Content="{Binding ActionsContent, Source={x:Reference Root}}"
+                VerticalOptions="Center" />
+        </HorizontalStackLayout>
+    </Border>
+</ContentView>
+

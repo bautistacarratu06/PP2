@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="UI.Views.TrackingPage"
     x:DataType="vm:TrackingViewModel"
@@ -61,10 +61,11 @@
                         <Label Grid.Column="4" Style="{StaticResource ColumnHeader}" Text="CONTACTO" />
                     </Grid>
                     <BoxView HeightRequest="1" Color="{StaticResource Line}" />
-                    <controls:GridLoadingView
-                        IsLoading="{Binding IsBusy}"
-                        HasError="{Binding HasError}"
-                        ErrorMessage="{Binding ErrorMessage}">
+                    <ScrollView MaximumHeightRequest="520">
+                        <controls:GridLoadingView
+                            IsLoading="{Binding IsBusy}"
+                            HasError="{Binding HasError}"
+                            ErrorMessage="{Binding ErrorMessage}">
                         <controls:GridLoadingView.SkeletonView>
                             <controls:SkeletonGrid RowCount="5" RowHeight="64">
                                 <controls:SkeletonGrid.RowTemplate>
@@ -142,7 +143,8 @@
                                 </VerticalStackLayout>
                                 <Label IsVisible="{Binding HasNoResults}" Style="{StaticResource EmptyLabel}" Text="Sin resultados para esa búsqueda." />
                             </VerticalStackLayout>
-                    </controls:GridLoadingView>
+                        </controls:GridLoadingView>
+                    </ScrollView>
                 </VerticalStackLayout>
             </Border>
         </VerticalStackLayout>

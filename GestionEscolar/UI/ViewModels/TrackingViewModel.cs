@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionEscolar.Core.Enums;
@@ -20,6 +20,8 @@ namespace UI.ViewModels
             _selection = selection;
             _selection.Changed += (_, _) => MainThread.BeginInvokeOnMainThread(() => _ = LoadCommand.ExecuteAsync(null));
         }
+
+        public bool CanPerformBulkActions => false;
 
         public ObservableCollection<StudentRiskResult> Students { get; } = new();
 

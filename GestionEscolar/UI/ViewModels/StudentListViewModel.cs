@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionEscolar.Core.Models;
@@ -22,6 +22,8 @@ public partial class StudentListViewModel : ObservableObject
     }
 
     public CommissionImportViewModel Import { get; }
+
+    public bool CanPerformBulkActions => false;
 
     public DateTime Today => DateTime.Today;
 

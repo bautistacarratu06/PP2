@@ -1,4 +1,5 @@
-﻿using GestionEscolar.Core.Enums;
+using CommunityToolkit.Mvvm.ComponentModel;
+using GestionEscolar.Core.Enums;
 using GestionEscolar.Core.Models;
 using UI.Formatting;
 
@@ -6,7 +7,7 @@ namespace UI.ViewModels
 {
     // Fila de grilla para la UI (Nómina y Seguimiento). Todo el formato vive acá,
     // los modelos de Core quedan como datos puros.
-    public sealed class StudentRow
+    public sealed partial class StudentRow : ObservableObject
     {
         // Fila de Nómina: solo datos de contacto.
         public StudentRow(Student student, int rowNumber = 0)
@@ -27,6 +28,9 @@ namespace UI.ViewModels
         public Student Student { get; }
         public StudentRiskResult? Risk { get; }
         public int RowNumber { get; }
+
+        [ObservableProperty]
+        public partial bool IsSelected { get; set; }
 
         public string Name => PersonName.AsSurnameFirst(Student.Name);
         public string Initials => PersonName.Initials(Name);
