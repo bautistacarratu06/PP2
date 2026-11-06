@@ -21,6 +21,23 @@ public sealed class FakeAttendanceRepository : IAttendanceRepository
         Records[(classSessionId, studentId)] = status;
         return Task.CompletedTask;
     }
+
+    public bool FailNextSaveMany { get; set; }
+
+    public Task SaveManyAsync(
+        int classSessionId,
+        IReadOnlyList<int> studentIds,
+        AttendanceStatus status,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(studentIds);
+        if (FailNextSaveMany)
+            throw new InvalidOperationException("Fallo simulado al guardar asistencias.");
+
+        foreach (var studentId in studentIds)
+            Records[(classSessionId, studentId)] = status;
+        return Task.CompletedTask;
+    }
 }
 
 public sealed class FakeSubmissionRepository : ISubmissionRepository
@@ -37,6 +54,23 @@ public sealed class FakeSubmissionRepository : ISubmissionRepository
     public Task SaveAsync(int assignmentId, int studentId, SubmissionStatus status, CancellationToken cancellationToken = default)
     {
         Records[(assignmentId, studentId)] = status;
+        return Task.CompletedTask;
+    }
+
+    public bool FailNextSaveMany { get; set; }
+
+    public Task SaveManyAsync(
+        int assignmentId,
+        IReadOnlyList<int> studentIds,
+        SubmissionStatus status,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(studentIds);
+        if (FailNextSaveMany)
+            throw new InvalidOperationException("Fallo simulado al guardar entregas.");
+
+        foreach (var studentId in studentIds)
+            Records[(assignmentId, studentId)] = status;
         return Task.CompletedTask;
     }
 }

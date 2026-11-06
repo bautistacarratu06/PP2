@@ -98,6 +98,66 @@ public sealed class EfAttendanceRepository(IDbContextFactory<CourseTrackingDbCon
         }
     }
 
+    public async Task SaveManyAsync(
+        int classSessionId,
+        IReadOnlyList<int> studentIds,
+        AttendanceStatus status,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(studentIds);
+        if (studentIds.Count == 0)
+            return;
+
+        var stored = status.ToDbValue();
+        var ids = studentIds.Distinct().ToList();
+        await using var db = await _contexts.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        await using var tx = await db.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var enrolledIds = await db.ClassSessions
+                .Where(session => session.Id == classSessionId)
+                .SelectMany(session => session.Section.Students)
+                .Where(student => ids.Contains(student.Id))
+                .Select(student => student.Id)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            var existing = await db.AttendanceRecords
+                .Where(record => record.ClassSessionId == classSessionId && enrolledIds.Contains(record.StudentId))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            var byStudent = existing.ToDictionary(record => record.StudentId);
+            var now = Clock.Now();
+            foreach (var studentId in enrolledIds)
+            {
+                if (byStudent.TryGetValue(studentId, out var record))
+                {
+                    if (record.Status == stored)
+                        continue;
+                    record.Status = stored;
+                    record.CorrectedAt = now;
+                    continue;
+                }
+
+                db.AttendanceRecords.Add(new AttendanceRecordEntity
+                {
+                    ClassSessionId = classSessionId,
+                    StudentId = studentId,
+                    Status = stored
+                });
+            }
+
+            await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+    }
+
     private static class Clock
     {
         public static DateTime Now()

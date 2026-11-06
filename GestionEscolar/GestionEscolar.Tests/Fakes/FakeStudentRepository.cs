@@ -59,6 +59,24 @@ public sealed class FakeStudentRepository : IStudentRepository
         return Task.FromResult(Clone(stored));
     }
 
+    public bool FailNextDeactivate { get; set; }
+
+    public Task DeactivateAsync(IReadOnlyList<int> studentIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(studentIds);
+        if (FailNextDeactivate)
+            throw new InvalidOperationException("Fallo simulado al desactivar.");
+
+        var ids = studentIds.ToHashSet();
+        foreach (var student in _students.Where(s => ids.Contains(s.Id)))
+            student.IsActive = false;
+
+        return Task.CompletedTask;
+    }
+
+    public Student? GetById(int id) =>
+        _students.FirstOrDefault(s => s.Id == id) is { } found ? Clone(found) : null;
+
     private static Student Clone(Student student) => new()
     {
         Id = student.Id,
@@ -70,6 +88,7 @@ public sealed class FakeStudentRepository : IStudentRepository
         StudentNumber = student.StudentNumber,
         Phone = student.Phone,
         Email = student.Email,
-        EnrolledOn = student.EnrolledOn
+        EnrolledOn = student.EnrolledOn,
+        IsActive = student.IsActive
     };
 }

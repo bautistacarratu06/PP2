@@ -6,10 +6,7 @@ public partial class SidebarView : ContentView
 {
     private static readonly (string Title, string Route, string Icon)[] Items =
     [
-        ("Nómina", "StudentListPage", "users"),
-        ("Seguimiento", "TrackingPage", "activity"),
-        ("Entregas", "Submissions", "inbox"),
-        ("Asistencia", "Attendance", "check"),
+        ("Estudiantes", "StudentsPage", "users"),
         ("Calendario", "Calendar", "calendar"),
         ("Ajustes", "SettingsPage", "sliders")
     ];
@@ -101,9 +98,9 @@ public partial class SidebarView : ContentView
     {
         var location = Shell.Current?.CurrentState?.Location.OriginalString ?? string.Empty;
         var active = location.Contains("StudentDetailPage", StringComparison.Ordinal)
-            ? "TrackingPage"
+            ? "StudentsPage"
             : Items.Select(item => item.Route).LastOrDefault(route => location.Contains(route, StringComparison.Ordinal))
-              ?? "StudentListPage";
+              ?? "StudentsPage";
 
         foreach (var item in Items)
         {

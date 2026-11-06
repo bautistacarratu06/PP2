@@ -53,6 +53,10 @@ namespace UI.ViewModels
 
         public string ContactLabel => ContactWhen.Relative(Risk?.Data.LastContact);
 
+        public bool IsActive => Student.IsActive;
+
+        public string ActiveLabel => Student.IsActive ? "Activo" : "Inactivo";
+
         public string Justification
         {
             get

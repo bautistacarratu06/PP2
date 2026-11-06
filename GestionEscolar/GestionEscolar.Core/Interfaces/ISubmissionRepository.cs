@@ -10,4 +10,7 @@ public interface ISubmissionRepository
 
     // Upsert por (trabajo, alumno).
     Task SaveAsync(int assignmentId, int studentId, SubmissionStatus status, CancellationToken cancellationToken = default);
+
+    // Upsert por lote en una sola transacción.
+    Task SaveManyAsync(int assignmentId, IReadOnlyList<int> studentIds, SubmissionStatus status, CancellationToken cancellationToken = default);
 }

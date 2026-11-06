@@ -310,7 +310,7 @@ namespace UI.ViewModels
         partial void OnStudentNumberChanged(string value) => OnPropertyChanged(nameof(HeaderSubtitle));
 
         [RelayCommand]
-        private Task BackAsync() => Shell.Current.GoToAsync("//TrackingPage");
+        private Task BackAsync() => Shell.Current.GoToAsync("//StudentsPage");
     }
 
     public sealed record HistoryItem(string Label, string Status, string Kind);

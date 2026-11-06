@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="UI.Views.StudentsPage"
+    x:DataType="vm:StudentsViewModel"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:UI.Controls"
+    xmlns:vm="clr-namespace:UI.ViewModels"
+    Shell.NavBarIsVisible="False">
+
+    <Grid>
+        <controls:PageShell Title="Estudiantes" Subtitle="Nómina, riesgo, asistencias y entregas en una sola vista.">
+            <VerticalStackLayout Spacing="20">
+                <HorizontalStackLayout Spacing="8">
+                    <Button Command="{Binding ShowAddCommand}" Style="{StaticResource PrimaryButton}" Text="Cargar estudiante" />
+                    <Button Command="{Binding Import.OpenCommand}" Style="{StaticResource GhostButton}" Text="Cargar comisión" />
+                    <Button
+                        Command="{Binding ClearFiltersCommand}"
+                        IsVisible="{Binding HasActiveFilters}"
+                        Style="{StaticResource GhostButton}"
+                        Text="Limpiar filtros" />
+                </HorizontalStackLayout>
+
+                <Border IsVisible="{Binding IsAdding}" Padding="20" Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Style="{StaticResource CardTitle}" Text="Nuevo estudiante" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Style="{StaticResource FieldLabel}" Text="Apellido" />
+                                <Border Style="{StaticResource FieldBorder}">
+                                    <Entry Placeholder="Apellido" Text="{Binding LastName}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Style="{StaticResource FieldLabel}" Text="Nombre" />
+                                <Border Style="{StaticResource FieldBorder}">
+                                    <Entry Placeholder="Nombre" Text="{Binding FirstName}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Row="1" Spacing="6">
+                                <Label Style="{StaticResource FieldLabel}" Text="Legajo" />
+                                <Border Style="{StaticResource FieldBorder}">
+                                    <Entry FontFamily="JetBrainsMono" Placeholder="Legajo" Text="{Binding StudentNumber}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Grid.Row="1" Spacing="6">
+                                <Label Style="{StaticResource FieldLabel}" Text="DNI" />
+                                <Border Style="{StaticResource FieldBorder}">
+                                    <Entry FontFamily="JetBrainsMono" Placeholder="DNI" Text="{Binding Dni}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Row="2" Spacing="6">
+                                <Label Style="{StaticResource FieldLabel}" Text="Fecha de incorporación" />
+                                <Border Style="{StaticResource FieldBorder}">
+                                    <DatePicker Date="{Binding EnrolledOn}" Format="dd/MM/yyyy" MaximumDate="{Binding Today}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Grid.Row="2" Spacing="6">
+                                <Label Style="{StaticResource FieldLabel}" Text="Teléfono" />
+                                <Border Style="{StaticResource FieldBorder}">
+                                    <Entry FontFamily="JetBrainsMono" Placeholder="Opcional" Text="{Binding Phone}" />
+                                </Border>
+                            </VerticalStackLayout>
+                        </Grid>
+                        <VerticalStackLayout Spacing="6">
+                            <Label Style="{StaticResource FieldLabel}" Text="Correo" />
+                            <Border Style="{StaticResource FieldBorder}">
+                                <Entry Placeholder="Opcional" Text="{Binding Email}" />
+                            </Border>
+                        </VerticalStackLayout>
+                        <Label IsVisible="{Binding HasAddError}" Text="{Binding AddError}" TextColor="{StaticResource Danger}" />
+                        <HorizontalStackLayout Spacing="8">
+                            <Button Command="{Binding SaveStudentCommand}" Style="{StaticResource PrimaryButton}" Text="Guardar" />
+                            <Button Command="{Binding CancelAddCommand}" Style="{StaticResource GhostButton}" Text="Cancelar" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="16">
+                    <controls:KpiCard
+                        CaptionText="Riesgo alto"
+                        Command="{Binding ToggleRiskCommand}"
+                        CommandParameter="Alto"
+                        IsActive="{Binding HighActive}"
+                        Level="Alto"
+                        Total="{Binding TotalCount}"
+                        Value="{Binding HighRiskCount}" />
+                    <controls:KpiCard
+                        Grid.Column="1"
+                        CaptionText="Riesgo medio"
+                        Command="{Binding ToggleRiskCommand}"
+                        CommandParameter="Medio"
+                        IsActive="{Binding MediumActive}"
+                        Level="Medio"
+                        Total="{Binding TotalCount}"
+                        Value="{Binding MediumRiskCount}" />
+                    <controls:KpiCard
+                        Grid.Column="2"
+                        CaptionText="Riesgo bajo"
+                        Command="{Binding ToggleRiskCommand}"
+                        CommandParameter="Bajo"
+                        IsActive="{Binding LowActive}"
+                        Level="Bajo"
+                        Total="{Binding TotalCount}"
+                        Value="{Binding LowRiskCount}" />
+                </Grid>
+
+                <Label IsVisible="{Binding HasStatus}" Text="{Binding StatusMessage}" TextColor="{StaticResource Success}" />
+
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout>
+                        <Grid Padding="16,14" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <controls:SearchBox Text="{Binding SearchText}" />
+                            <Label
+                                Grid.Column="1"
+                                Style="{StaticResource CountLabel}"
+                                Text="{Binding FilteredCount, StringFormat='{0} estudiantes'}" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="{StaticResource Line}" />
+
+                        <ScrollView Orientation="Horizontal">
+                            <VerticalStackLayout MinimumWidthRequest="1480">
+                                <Grid
+                                    Padding="16,0"
+                                    ColumnDefinitions="40,*,110,120,180,110,150,150,130,90"
+                                    ColumnSpacing="10"
+                                    HeightRequest="42">
+                                    <CheckBox IsChecked="{Binding IsAllSelected}" VerticalOptions="Center" />
+                                    <HorizontalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                        <Label Style="{StaticResource ColumnHeader}" Text="ESTUDIANTE" />
+                                        <Button Command="{Binding SortByColumnCommand}" CommandParameter="Name" Style="{StaticResource LinkButton}" Text="↕" />
+                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Name" Style="{StaticResource LinkButton}" Text="▾" />
+                                    </HorizontalStackLayout>
+                                    <HorizontalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                                        <Label Style="{StaticResource ColumnHeader}" Text="LEGAJO" />
+                                        <Button Command="{Binding SortByColumnCommand}" CommandParameter="StudentNumber" Style="{StaticResource LinkButton}" Text="↕" />
+                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Legajo" Style="{StaticResource LinkButton}" Text="▾" />
+                                    </HorizontalStackLayout>
+                                    <Label Grid.Column="3" Style="{StaticResource ColumnHeader}" Text="TELÉFONO" VerticalOptions="Center" />
+                                    <HorizontalStackLayout Grid.Column="4" Spacing="4" VerticalOptions="Center">
+                                        <Label Style="{StaticResource ColumnHeader}" Text="CORREO" />
+                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Email" Style="{StaticResource LinkButton}" Text="▾" />
+                                    </HorizontalStackLayout>
+                                    <HorizontalStackLayout Grid.Column="5" Spacing="4" VerticalOptions="Center">
+                                        <Label Style="{StaticResource ColumnHeader}" Text="RIESGO" />
+                                        <Button Command="{Binding SortByColumnCommand}" CommandParameter="Risk" Style="{StaticResource LinkButton}" Text="↕" />
+                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Risk" Style="{StaticResource LinkButton}" Text="▾" />
+                                    </HorizontalStackLayout>
+                                    <HorizontalStackLayout Grid.Column="6" Spacing="4" VerticalOptions="Center">
+                                        <Label Style="{StaticResource ColumnHeader}" Text="ASISTENCIA" />
+                                        <Button Command="{Binding SortByColumnCommand}" CommandParameter="Attendance" Style="{StaticResource LinkButton}" Text="↕" />
+                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Attendance" Style="{StaticResource LinkButton}" Text="▾" />
+                                    </HorizontalStackLayout>
+                                    <HorizontalStackLayout Grid.Column="7" Spacing="4" VerticalOptions="Center">
+                                        <Label Style="{StaticResource ColumnHeader}" Text="ENTREGAS" />
+                                        <Button Command="{Binding SortByColumnCommand}" CommandParameter="Delivery" Style="{StaticResource LinkButton}" Text="↕" />
+                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Delivery" Style="{StaticResource LinkButton}" Text="▾" />
+                                    </HorizontalStackLayout>
+                                    <HorizontalStackLayout Grid.Column="8" Spacing="4" VerticalOptions="Center">
+                                        <Label Style="{StaticResource ColumnHeader}" Text="CONTACTO" />
+                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Contact" Style="{StaticResource LinkButton}" Text="▾" />
+                                    </HorizontalStackLayout>
+                                    <HorizontalStackLayout Grid.Column="9" Spacing="4" VerticalOptions="Center">
+                                        <Label Style="{StaticResource ColumnHeader}" Text="ESTADO" />
+                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Active" Style="{StaticResource LinkButton}" Text="▾" />
+                                    </HorizontalStackLayout>
+                                </Grid>
+
+                                <Border Margin="16,0,16,8" Padding="12" Stroke="{StaticResource Line}" StrokeShape="RoundRectangle 10" StrokeThickness="1">
+                                    <Border.Triggers>
+                                        <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="Border" Value="">
+                                            <Setter Property="IsVisible" Value="False" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <VerticalStackLayout Spacing="10">
+                                        <VerticalStackLayout IsVisible="False" Spacing="6">
+                                            <VerticalStackLayout.Triggers>
+                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Name">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                            </VerticalStackLayout.Triggers>
+                                            <Label Style="{StaticResource FieldLabel}" Text="Estudiante contiene" />
+                                            <Entry Placeholder="Apellido o nombre" Text="{Binding NameFilter}" />
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout IsVisible="False" Spacing="6">
+                                            <VerticalStackLayout.Triggers>
+                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Legajo">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                            </VerticalStackLayout.Triggers>
+                                            <Label Style="{StaticResource FieldLabel}" Text="Legajo contiene" />
+                                            <Entry FontFamily="JetBrainsMono" Placeholder="LEG-…" Text="{Binding LegajoFilter}" />
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout IsVisible="False" Spacing="6">
+                                            <VerticalStackLayout.Triggers>
+                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Email">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                            </VerticalStackLayout.Triggers>
+                                            <Label Style="{StaticResource FieldLabel}" Text="Correo contiene" />
+                                            <Entry Placeholder="correo@" Text="{Binding EmailFilter}" />
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout IsVisible="False" Spacing="6">
+                                            <VerticalStackLayout.Triggers>
+                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Risk">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                            </VerticalStackLayout.Triggers>
+                                            <Label Style="{StaticResource FieldLabel}" Text="Riesgo" />
+                                            <HorizontalStackLayout Spacing="12">
+                                                <CheckBox IsChecked="{Binding FilterRiskAlto}" />
+                                                <Label Text="Alto" VerticalOptions="Center" />
+                                                <CheckBox IsChecked="{Binding FilterRiskMedio}" />
+                                                <Label Text="Medio" VerticalOptions="Center" />
+                                                <CheckBox IsChecked="{Binding FilterRiskBajo}" />
+                                                <Label Text="Bajo" VerticalOptions="Center" />
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout IsVisible="False" Spacing="6">
+                                            <VerticalStackLayout.Triggers>
+                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Attendance">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                            </VerticalStackLayout.Triggers>
+                                            <Label Style="{StaticResource FieldLabel}" Text="Asistencia %" />
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Entry Keyboard="Numeric" Placeholder="Mín" Text="{Binding AttendanceMinText}" WidthRequest="80" />
+                                                <Entry Keyboard="Numeric" Placeholder="Máx" Text="{Binding AttendanceMaxText}" WidthRequest="80" />
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout IsVisible="False" Spacing="6">
+                                            <VerticalStackLayout.Triggers>
+                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Delivery">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                            </VerticalStackLayout.Triggers>
+                                            <Label Style="{StaticResource FieldLabel}" Text="Entregas %" />
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Entry Keyboard="Numeric" Placeholder="Mín" Text="{Binding DeliveryMinText}" WidthRequest="80" />
+                                                <Entry Keyboard="Numeric" Placeholder="Máx" Text="{Binding DeliveryMaxText}" WidthRequest="80" />
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout IsVisible="False" Spacing="6">
+                                            <VerticalStackLayout.Triggers>
+                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Contact">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                            </VerticalStackLayout.Triggers>
+                                            <Label Style="{StaticResource FieldLabel}" Text="Contacto" />
+                                            <HorizontalStackLayout Spacing="12">
+                                                <CheckBox IsChecked="{Binding FilterContactSin}" />
+                                                <Label Text="Sin contactar" VerticalOptions="Center" />
+                                                <CheckBox IsChecked="{Binding FilterContactCon}" />
+                                                <Label Text="Contactado" VerticalOptions="Center" />
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout IsVisible="False" Spacing="6">
+                                            <VerticalStackLayout.Triggers>
+                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Active">
+                                                    <Setter Property="IsVisible" Value="True" />
+                                                </DataTrigger>
+                                            </VerticalStackLayout.Triggers>
+                                            <Label Style="{StaticResource FieldLabel}" Text="Estado" />
+                                            <Picker SelectedItem="{Binding ActiveFilterKey}">
+                                                <Picker.Items>
+                                                    <x:String>Activos</x:String>
+                                                    <x:String>Inactivos</x:String>
+                                                    <x:String>Todos</x:String>
+                                                </Picker.Items>
+                                            </Picker>
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <BoxView HeightRequest="1" Color="{StaticResource Line}" />
+                                <ScrollView MaximumHeightRequest="560">
+                                    <controls:GridLoadingView
+                                        ErrorMessage="{Binding ErrorMessage}"
+                                        HasError="{Binding HasError}"
+                                        IsLoading="{Binding IsBusy}">
+                                        <controls:GridLoadingView.SkeletonView>
+                                            <controls:SkeletonGrid RowCount="6" RowHeight="64">
+                                                <controls:SkeletonGrid.RowTemplate>
+                                                    <DataTemplate>
+                                                        <Grid
+                                                            Padding="16,0"
+                                                            ColumnDefinitions="40,*,110,120,180,110,150,150,130,90"
+                                                            ColumnSpacing="10"
+                                                            HeightRequest="64">
+                                                            <controls:SkeletonBlock WidthRequest="18" HeightRequest="18" VerticalOptions="Center" />
+                                                            <HorizontalStackLayout Grid.Column="1" Spacing="12" VerticalOptions="Center">
+                                                                <controls:SkeletonBlock WidthRequest="32" HeightRequest="32" IsCircle="True" />
+                                                                <controls:SkeletonBlock WidthRequest="140" HeightRequest="14" />
+                                                            </HorizontalStackLayout>
+                                                            <controls:SkeletonBlock Grid.Column="2" WidthRequest="70" HeightRequest="12" VerticalOptions="Center" />
+                                                            <controls:SkeletonBlock Grid.Column="3" WidthRequest="90" HeightRequest="12" VerticalOptions="Center" />
+                                                            <controls:SkeletonBlock Grid.Column="4" WidthRequest="140" HeightRequest="12" VerticalOptions="Center" />
+                                                            <controls:SkeletonBlock Grid.Column="5" WidthRequest="64" HeightRequest="22" Radius="11" VerticalOptions="Center" />
+                                                            <controls:SkeletonBlock Grid.Column="6" WidthRequest="100" HeightRequest="8" VerticalOptions="Center" />
+                                                            <controls:SkeletonBlock Grid.Column="7" WidthRequest="100" HeightRequest="8" VerticalOptions="Center" />
+                                                            <controls:SkeletonBlock Grid.Column="8" WidthRequest="80" HeightRequest="12" VerticalOptions="Center" />
+                                                            <controls:SkeletonBlock Grid.Column="9" WidthRequest="50" HeightRequest="12" VerticalOptions="Center" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </controls:SkeletonGrid.RowTemplate>
+                                            </controls:SkeletonGrid>
+                                        </controls:GridLoadingView.SkeletonView>
+
+                                        <VerticalStackLayout>
+                                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding FilteredStudents}">
+                                                <BindableLayout.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:StudentRow">
+                                                        <VerticalStackLayout>
+                                                            <controls:HoverRow
+                                                                Padding="16,0"
+                                                                ColumnDefinitions="40,*,110,120,180,110,150,150,130,90"
+                                                                ColumnSpacing="10"
+                                                                HeightRequest="64">
+                                                                <CheckBox IsChecked="{Binding IsSelected}" VerticalOptions="Center" />
+                                                                <HorizontalStackLayout
+                                                                    Grid.Column="1"
+                                                                    Spacing="12"
+                                                                    VerticalOptions="Center">
+                                                                    <HorizontalStackLayout.GestureRecognizers>
+                                                                        <TapGestureRecognizer
+                                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.OpenCommand}"
+                                                                            CommandParameter="{Binding .}" />
+                                                                    </HorizontalStackLayout.GestureRecognizers>
+                                                                    <controls:Avatar FullName="{Binding Name}" />
+                                                                    <Label
+                                                                        FontFamily="InterSemibold"
+                                                                        FontSize="14"
+                                                                        Text="{Binding Name}"
+                                                                        VerticalOptions="Center"
+                                                                        LineBreakMode="TailTruncation" />
+                                                                </HorizontalStackLayout>
+                                                                <Label
+                                                                    Grid.Column="2"
+                                                                    FontFamily="JetBrainsMono"
+                                                                    FontSize="12"
+                                                                    Text="{Binding StudentNumber}"
+                                                                    VerticalOptions="Center" />
+                                                                <Label
+                                                                    Grid.Column="3"
+                                                                    FontFamily="JetBrainsMono"
+                                                                    FontSize="12"
+                                                                    Text="{Binding Phone}"
+                                                                    VerticalOptions="Center"
+                                                                    LineBreakMode="TailTruncation" />
+                                                                <Label
+                                                                    Grid.Column="4"
+                                                                    FontSize="13"
+                                                                    Text="{Binding Email}"
+                                                                    TextColor="{StaticResource TextSecondary}"
+                                                                    VerticalOptions="Center"
+                                                                    LineBreakMode="TailTruncation" />
+                                                                <controls:RiskPill
+                                                                    Grid.Column="5"
+                                                                    Level="{Binding RiskLevel}"
+                                                                    Score="{Binding RiskScore}"
+                                                                    VerticalOptions="Center" />
+                                                                <HorizontalStackLayout
+                                                                    Grid.Column="6"
+                                                                    Spacing="8"
+                                                                    VerticalOptions="Center">
+                                                                    <controls:Meter BarWidth="72" ShowLabel="False" Value="{Binding AttendanceRatio}" />
+                                                                    <Label
+                                                                        FontFamily="JetBrainsMono"
+                                                                        FontSize="12"
+                                                                        Text="{Binding AttendanceText}"
+                                                                        VerticalOptions="Center" />
+                                                                </HorizontalStackLayout>
+                                                                <HorizontalStackLayout
+                                                                    Grid.Column="7"
+                                                                    Spacing="8"
+                                                                    VerticalOptions="Center">
+                                                                    <controls:Meter BarWidth="72" ShowLabel="False" Value="{Binding DeliveryRatio}" />
+                                                                    <Label
+                                                                        FontFamily="JetBrainsMono"
+                                                                        FontSize="12"
+                                                                        Text="{Binding DeliveryText}"
+                                                                        VerticalOptions="Center" />
+                                                                </HorizontalStackLayout>
+                                                                <Label
+                                                                    Grid.Column="8"
+                                                                    FontSize="13"
+                                                                    Text="{Binding ContactLabel}"
+                                                                    VerticalOptions="Center"
+                                                                    LineBreakMode="TailTruncation" />
+                                                                <Label
+                                                                    Grid.Column="9"
+                                                                    FontSize="13"
+                                                                    Text="{Binding ActiveLabel}"
+                                                                    VerticalOptions="Center" />
+                                                            </controls:HoverRow>
+                                                            <BoxView HeightRequest="1" Color="{StaticResource Line}" />
+                                                        </VerticalStackLayout>
+                                                    </DataTemplate>
+                                                </BindableLayout.ItemTemplate>
+                                            </VerticalStackLayout>
+                                            <Label IsVisible="{Binding ShowSearchEmpty}" Style="{StaticResource EmptyLabel}" Text="Sin resultados para esos filtros." />
+                                        </VerticalStackLayout>
+                                    </controls:GridLoadingView>
+                                </ScrollView>
+                            </VerticalStackLayout>
+                        </ScrollView>
+                    </VerticalStackLayout>
+                </Border>
+
+                <VerticalStackLayout IsVisible="{Binding ShowEmptyRoster}" Spacing="12" HorizontalOptions="Center">
+                    <Label Style="{StaticResource EmptyLabel}" Text="Esta comisión todavía no tiene estudiantes." />
+                    <Button Command="{Binding ShowAddCommand}" HorizontalOptions="Center" Style="{StaticResource PrimaryButton}" Text="Cargar estudiante" />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </controls:PageShell>
+
+        <controls:FloatingActionBar
+            ClearSelectionCommand="{Binding ClearSelectionCommand}"
+            IsActive="{Binding HasSelection}"
+            SelectedCount="{Binding SelectedCount}"
+            SelectedCountText="{Binding SelectedCountText}"
+            VerticalOptions="End"
+            Margin="0,0,0,24">
+            <controls:FloatingActionBar.ActionsContent>
+                <Button Command="{Binding OpenActionsCommand}" Style="{StaticResource PrimaryButton}" Text="Acciones" />
+            </controls:FloatingActionBar.ActionsContent>
+        </controls:FloatingActionBar>
+
+        <!-- Modal Acciones -->
+        <Grid BackgroundColor="#B30B0D13" IsVisible="{Binding IsActionsOpen}" InputTransparent="False">
+            <Border
+                BackgroundColor="{StaticResource Surface}"
+                HorizontalOptions="Center"
+                MaximumWidthRequest="520"
+                Padding="24"
+                Stroke="{StaticResource Line}"
+                StrokeShape="RoundRectangle 14"
+                StrokeThickness="1"
+                VerticalOptions="Center"
+                WidthRequest="480">
+                <VerticalStackLayout Spacing="16">
+                    <Label FontFamily="InterSemibold" FontSize="18" Text="Acciones" TextColor="{StaticResource TextPrimary}" />
+                    <Label FontSize="13" Text="{Binding SelectedCountText}" TextColor="{StaticResource TextSecondary}" />
+
+                    <VerticalStackLayout IsVisible="{Binding IsActionsStep1}" Spacing="12">
+                        <Border Style="{StaticResource FieldBorder}">
+                            <Entry Placeholder="Buscar acción…" Text="{Binding ActionSearchText}" />
+                        </Border>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding FilteredActions}" Spacing="4">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ActionPaletteItem">
+                                    <Button
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectActionCommand}"
+                                        CommandParameter="{Binding .}"
+                                        Style="{StaticResource GhostButton}"
+                                        Text="{Binding Title}"
+                                        HorizontalOptions="Fill" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding IsActionsStep2}" Spacing="12">
+                        <VerticalStackLayout IsVisible="{Binding IsAttendanceAction}" Spacing="10">
+                            <Label Style="{StaticResource FieldLabel}" Text="Clase" />
+                            <Border Style="{StaticResource FieldBorder}">
+                                <Picker ItemsSource="{Binding ClassSessions}" SelectedItem="{Binding SelectedClassSession}" />
+                            </Border>
+                            <HorizontalStackLayout Spacing="8">
+                                <Button Command="{Binding ConfirmAttendanceCommand}" CommandParameter="Presente" Style="{StaticResource PrimaryButton}" Text="Marcar Presente" />
+                                <Button Command="{Binding ConfirmAttendanceCommand}" CommandParameter="Ausente" Style="{StaticResource GhostButton}" Text="Marcar Ausente" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout IsVisible="{Binding IsSubmissionsAction}" Spacing="10">
+                            <Label Style="{StaticResource FieldLabel}" Text="Trabajo" />
+                            <Border Style="{StaticResource FieldBorder}">
+                                <Picker ItemsSource="{Binding Assignments}" SelectedItem="{Binding SelectedAssignment}" />
+                            </Border>
+                            <HorizontalStackLayout Spacing="8">
+                                <Button Command="{Binding ConfirmSubmissionCommand}" CommandParameter="Entregó" Style="{StaticResource PrimaryButton}" Text="Marcar Entregó" />
+                                <Button Command="{Binding ConfirmSubmissionCommand}" CommandParameter="No entregó" Style="{StaticResource GhostButton}" Text="Marcar No entregó" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout IsVisible="{Binding IsDeactivateAction}" Spacing="10">
+                            <Label FontSize="14" LineHeight="1.3" Text="{Binding DeactivateConfirmText}" TextColor="{StaticResource TextSecondary}" />
+                            <Button Command="{Binding ConfirmDeactivateCommand}" Style="{StaticResource PrimaryButton}" Text="Confirmar desactivación" />
+                        </VerticalStackLayout>
+
+                        <HorizontalStackLayout Spacing="8">
+                            <Button Command="{Binding BackToActionsCommand}" Style="{StaticResource GhostButton}" Text="Volver" />
+                            <Button Command="{Binding CloseActionsCommand}" Style="{StaticResource LinkButton}" Text="Cancelar" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+
+                    <Label IsVisible="{Binding HasActionError}" Text="{Binding ActionError}" TextColor="{StaticResource Danger}" />
+                    <Button
+                        Command="{Binding CloseActionsCommand}"
+                        IsVisible="{Binding IsActionsStep1}"
+                        Style="{StaticResource GhostButton}"
+                        Text="Cancelar" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Wizard import comisión (mismo flujo que Nómina) -->
+        <Grid
+            x:Name="Wizard"
+            x:DataType="vm:CommissionImportViewModel"
+            BackgroundColor="{StaticResource Bg}"
+            IsVisible="{Binding IsOpen}">
+            <Border
+                Padding="24"
+                Style="{StaticResource Card}"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                WidthRequest="640">
+                <VerticalStackLayout Spacing="16">
+                    <Label Style="{StaticResource PageTitle}" FontSize="22" Text="Cargar comisión" />
+                    <VerticalStackLayout IsVisible="{Binding IsFileStep}" Spacing="12">
+                        <Label Style="{StaticResource PageSubtitle}" Text="Elegí el CSV con el botón o soltalo sobre este paso." />
+                        <Border Padding="28,24" Style="{StaticResource FieldBorder}">
+                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label HorizontalTextAlignment="Center" Text="Soltá el CSV acá" TextColor="{StaticResource TextSecondary}" />
+                                <Label IsVisible="{Binding HasChosenFile}" FontFamily="JetBrainsMono" HorizontalTextAlignment="Center" Text="{Binding ChosenFileName}" />
+                                <Button Command="{Binding PickFileCommand}" HorizontalOptions="Center" Style="{StaticResource GhostButton}" Text="Seleccionar archivo" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout IsVisible="{Binding IsDestinationStep}" Spacing="12">
+                        <Label Style="{StaticResource FieldLabel}" Text="Comisión" />
+                        <HorizontalStackLayout Spacing="8">
+                            <Button Clicked="OnNewCommission" Style="{StaticResource GhostButton}" Text="Nueva" />
+                            <Button Clicked="OnExistingCommission" Style="{StaticResource GhostButton}" Text="Existente" />
+                        </HorizontalStackLayout>
+                        <VerticalStackLayout IsVisible="{Binding CreateNew}" Spacing="6">
+                            <Label Style="{StaticResource FieldLabel}" Text="Nombre" />
+                            <Border Style="{StaticResource FieldBorder}">
+                                <Entry Placeholder="Hasta 20 caracteres" Text="{Binding NewName}" />
+                            </Border>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout IsVisible="{Binding ChooseExisting}" Spacing="6">
+                            <Label Style="{StaticResource FieldLabel}" Text="Comisión existente" />
+                            <Border Style="{StaticResource FieldBorder}">
+                                <Picker ItemsSource="{Binding Sections}" SelectedItem="{Binding SelectedSection}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout IsVisible="{Binding IsPreviewStep}" Spacing="12">
+                        <Label FontFamily="InterSemibold" Text="{Binding InsertText}" />
+                        <Label Text="{Binding BlockedText}" TextColor="{StaticResource Warning}" />
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Conflicts}" Spacing="10">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ConflictChoice">
+                                    <Border Padding="14" Stroke="{StaticResource Line}" StrokeShape="RoundRectangle 14" StrokeThickness="1">
+                                        <VerticalStackLayout Spacing="8">
+                                            <Label FontFamily="InterSemibold" Text="{Binding Title}" />
+                                            <Label FontFamily="JetBrainsMono" FontSize="12" Text="{Binding Detail}" TextColor="{StaticResource TextSecondary}" />
+                                            <Label Text="{Binding Explanation}" TextColor="{StaticResource TextSecondary}" />
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Button Command="{Binding ChooseOmitCommand}" Style="{StaticResource GhostButton}" Text="Omitir" />
+                                                <Button Command="{Binding ChooseMergeCommand}" IsEnabled="{Binding CanMerge}" Style="{StaticResource GhostButton}" Text="Fusionar" />
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                    <Label IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" TextColor="{StaticResource Danger}" />
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Command="{Binding BackCommand}" Style="{StaticResource GhostButton}" Text="Atrás" />
+                        <Button Command="{Binding NextCommand}" Style="{StaticResource PrimaryButton}" Text="{Binding NextLabel}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>

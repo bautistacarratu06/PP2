@@ -49,6 +49,32 @@ public class AttendanceAndSubmissionServiceTests
     }
 
     [Fact]
+    public async Task Given_Students_When_SavingAttendanceBatch_Then_AllReceiveStatus()
+    {
+        var att = new FakeAttendanceRepository();
+        att.StudentsBySession[1] = [(5, "Acosta, Elena"), (6, "Gómez, Ana")];
+        var service = new AttendanceService(new FakeCalendarRepository(), att);
+
+        await service.SaveManyAsync(1, [5, 6], AttendanceStatus.Presente);
+
+        Assert.Equal(AttendanceStatus.Presente, att.Records[(1, 5)]);
+        Assert.Equal(AttendanceStatus.Presente, att.Records[(1, 6)]);
+    }
+
+    [Fact]
+    public async Task Given_Students_When_SavingSubmissionBatch_Then_AllReceiveStatus()
+    {
+        var sub = new FakeSubmissionRepository();
+        sub.StudentsByAssignment[10] = [(5, "Acosta, Elena"), (6, "Gómez, Ana")];
+        var service = new SubmissionService(new FakeCalendarRepository(), sub);
+
+        await service.SaveManyAsync(10, [5, 6], SubmissionStatus.Entrego);
+
+        Assert.Equal(SubmissionStatus.Entrego, sub.Records[(10, 5)]);
+        Assert.Equal(SubmissionStatus.Entrego, sub.Records[(10, 6)]);
+    }
+
+    [Fact]
     public async Task Given_SubmissionSaved_When_SavingSameStudentAgain_Then_RecordIsUpdated()
     {
         var sub = new FakeSubmissionRepository();

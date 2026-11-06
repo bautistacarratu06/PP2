@@ -34,6 +34,7 @@ public sealed class EfTrackingRepository(IDbContextFactory<CourseTrackingDbConte
                 student.Phone,
                 student.Email,
                 student.EnrolledOn,
+                student.IsActive,
                 TotalClasses = student.Section.ClassSessions.Count(session =>
                     session.SessionDate >= student.EnrolledOn && session.SessionDate <= today),
                 AttendedClasses = student.AttendanceRecords.Count(record =>
@@ -66,7 +67,8 @@ public sealed class EfTrackingRepository(IDbContextFactory<CourseTrackingDbConte
                 StudentNumber = row.StudentNumber,
                 Phone = row.Phone ?? string.Empty,
                 Email = row.Email ?? string.Empty,
-                EnrolledOn = row.EnrolledOn
+                EnrolledOn = row.EnrolledOn,
+                IsActive = row.IsActive
             },
             TotalClasses = row.TotalClasses,
             AttendedClasses = row.AttendedClasses,

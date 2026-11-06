@@ -26,7 +26,8 @@ public sealed class EfStudentRepository(IDbContextFactory<CourseTrackingDbContex
                 student.StudentNumber,
                 student.Phone,
                 student.Email,
-                student.EnrolledOn))
+                student.EnrolledOn,
+                student.IsActive))
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -48,7 +49,8 @@ public sealed class EfStudentRepository(IDbContextFactory<CourseTrackingDbContex
                 student.StudentNumber,
                 student.Phone,
                 student.Email,
-                student.EnrolledOn))
+                student.EnrolledOn,
+                student.IsActive))
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -70,7 +72,8 @@ public sealed class EfStudentRepository(IDbContextFactory<CourseTrackingDbContex
                 student.StudentNumber,
                 student.Phone,
                 student.Email,
-                student.EnrolledOn))
+                student.EnrolledOn,
+                student.IsActive))
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
@@ -90,7 +93,8 @@ public sealed class EfStudentRepository(IDbContextFactory<CourseTrackingDbContex
             FirstName = student.FirstName,
             Phone = EmptyToNull(student.Phone),
             Email = EmptyToNull(student.Email),
-            EnrolledOn = student.EnrolledOn.Date
+            EnrolledOn = student.EnrolledOn.Date,
+            IsActive = true
         };
         db.Students.Add(entity);
         try
@@ -111,7 +115,37 @@ public sealed class EfStudentRepository(IDbContextFactory<CourseTrackingDbContex
             entity.StudentNumber,
             entity.Phone,
             entity.Email,
-            entity.EnrolledOn));
+            entity.EnrolledOn,
+            entity.IsActive));
+    }
+
+    public async Task DeactivateAsync(IReadOnlyList<int> studentIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(studentIds);
+        if (studentIds.Count == 0)
+            return;
+
+        await using var db = await _contexts.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        await using var tx = await db.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var ids = studentIds.Distinct().ToList();
+            var entities = await db.Students
+                .Where(student => ids.Contains(student.Id))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            foreach (var entity in entities)
+                entity.IsActive = false;
+
+            await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
     }
 
     private static Student Map(StudentRow row) => new()
@@ -125,7 +159,8 @@ public sealed class EfStudentRepository(IDbContextFactory<CourseTrackingDbContex
         StudentNumber = row.StudentNumber,
         Phone = row.Phone ?? string.Empty,
         Email = row.Email ?? string.Empty,
-        EnrolledOn = row.EnrolledOn
+        EnrolledOn = row.EnrolledOn,
+        IsActive = row.IsActive
     };
 
     private static string? EmptyToNull(string? value) =>
@@ -140,5 +175,6 @@ public sealed class EfStudentRepository(IDbContextFactory<CourseTrackingDbContex
         string StudentNumber,
         string? Phone,
         string? Email,
-        DateTime EnrolledOn);
+        DateTime EnrolledOn,
+        bool IsActive);
 }

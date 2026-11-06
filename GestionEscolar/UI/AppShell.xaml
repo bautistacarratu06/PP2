@@ -19,24 +19,9 @@
     </Shell.FlyoutContent>
 
     <ShellContent
-        Title="Nómina"
-        ContentTemplate="{DataTemplate views:StudentListPage}"
-        Route="StudentListPage" />
-
-    <ShellContent
-        Title="Seguimiento"
-        ContentTemplate="{DataTemplate views:TrackingPage}"
-        Route="TrackingPage" />
-
-    <ShellContent
-        Title="Entregas"
-        ContentTemplate="{DataTemplate views:SubmissionsPage}"
-        Route="Submissions" />
-
-    <ShellContent
-        Title="Asistencia"
-        ContentTemplate="{DataTemplate views:AttendancePage}"
-        Route="Attendance" />
+        Title="Estudiantes"
+        ContentTemplate="{DataTemplate views:StudentsPage}"
+        Route="StudentsPage" />
 
     <ShellContent
         Title="Calendario"

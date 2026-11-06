@@ -26,6 +26,13 @@ public class AttendanceService
     public Task SaveAsync(int classSessionId, int studentId, AttendanceStatus status, CancellationToken cancellationToken = default) =>
         _attendance.SaveAsync(classSessionId, studentId, status, cancellationToken);
 
+    public Task SaveManyAsync(
+        int classSessionId,
+        IReadOnlyList<int> studentIds,
+        AttendanceStatus status,
+        CancellationToken cancellationToken = default) =>
+        _attendance.SaveManyAsync(classSessionId, studentIds, status, cancellationToken);
+
     // Por defecto: la última clase hasta hoy; si todas son futuras, la primera.
     public static ClassSession? PickDefault(IEnumerable<ClassSession> sessions, DateTime today)
     {

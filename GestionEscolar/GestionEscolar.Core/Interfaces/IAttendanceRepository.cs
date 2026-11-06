@@ -10,4 +10,7 @@ public interface IAttendanceRepository
 
     // Upsert por (clase, alumno).
     Task SaveAsync(int classSessionId, int studentId, AttendanceStatus status, CancellationToken cancellationToken = default);
+
+    // Upsert por lote en una sola transacción.
+    Task SaveManyAsync(int classSessionId, IReadOnlyList<int> studentIds, AttendanceStatus status, CancellationToken cancellationToken = default);
 }

@@ -48,7 +48,7 @@ namespace UI.Views
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 if (Shell.Current is not null)
-                    await Shell.Current.GoToAsync("//TrackingPage");
+                    await Shell.Current.GoToAsync("//StudentsPage");
             });
     }
 }

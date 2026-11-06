@@ -89,4 +89,60 @@ public sealed class EfSubmissionRepository(IDbContextFactory<CourseTrackingDbCon
             await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
+
+    public async Task SaveManyAsync(
+        int assignmentId,
+        IReadOnlyList<int> studentIds,
+        SubmissionStatus status,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(studentIds);
+        if (studentIds.Count == 0)
+            return;
+
+        var stored = status.ToDbValue();
+        var ids = studentIds.Distinct().ToList();
+        await using var db = await _contexts.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        await using var tx = await db.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var enrolledIds = await db.Assignments
+                .Where(assignment => assignment.Id == assignmentId)
+                .SelectMany(assignment => assignment.Section.Students)
+                .Where(student => ids.Contains(student.Id))
+                .Select(student => student.Id)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            var existing = await db.Submissions
+                .Where(submission => submission.AssignmentId == assignmentId && enrolledIds.Contains(submission.StudentId))
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            var byStudent = existing.ToDictionary(submission => submission.StudentId);
+            foreach (var studentId in enrolledIds)
+            {
+                if (byStudent.TryGetValue(studentId, out var submission))
+                {
+                    submission.Status = stored;
+                    continue;
+                }
+
+                db.Submissions.Add(new SubmissionEntity
+                {
+                    AssignmentId = assignmentId,
+                    StudentId = studentId,
+                    Status = stored
+                });
+            }
+
+            await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+    }
 }

@@ -36,6 +36,8 @@ public sealed class StudentEntity
 
     public DateTime EnrolledOn { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     public DateTime CreatedAt { get; set; }
 
     public SectionEntity Section { get; set; } = null!;

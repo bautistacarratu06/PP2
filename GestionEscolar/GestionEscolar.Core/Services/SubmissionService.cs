@@ -26,6 +26,13 @@ public class SubmissionService
     public Task SaveAsync(int assignmentId, int studentId, SubmissionStatus status, CancellationToken cancellationToken = default) =>
         _submissions.SaveAsync(assignmentId, studentId, status, cancellationToken);
 
+    public Task SaveManyAsync(
+        int assignmentId,
+        IReadOnlyList<int> studentIds,
+        SubmissionStatus status,
+        CancellationToken cancellationToken = default) =>
+        _submissions.SaveManyAsync(assignmentId, studentIds, status, cancellationToken);
+
     // Por defecto: el último trabajo vencido hasta hoy; si todos son futuros, el primero.
     public static Assignment? PickDefault(IEnumerable<Assignment> assignments, DateTime today)
     {

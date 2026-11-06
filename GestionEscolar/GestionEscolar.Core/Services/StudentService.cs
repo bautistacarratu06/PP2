@@ -47,6 +47,15 @@ public class StudentService
         return Copy(await _repository.AddAsync(student, cancellationToken).ConfigureAwait(false));
     }
 
+    public async Task DeactivateAsync(IReadOnlyList<int> studentIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(studentIds);
+        if (studentIds.Count == 0)
+            return;
+
+        await _repository.DeactivateAsync(studentIds, cancellationToken).ConfigureAwait(false);
+    }
+
     private static Student Copy(Student row) => new()
     {
         Id = row.Id,
@@ -58,6 +67,7 @@ public class StudentService
         StudentNumber = row.StudentNumber,
         Phone = row.Phone,
         Email = row.Email,
-        EnrolledOn = row.EnrolledOn
+        EnrolledOn = row.EnrolledOn,
+        IsActive = row.IsActive
     };
 }

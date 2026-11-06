@@ -14,6 +14,7 @@ public static class CoreServiceCollectionExtensions
 
         services.AddSingleton(new RiskConfig());
         services.AddTransient<TrackingService>();
+        services.AddTransient<StudentsQueryService>();
         services.AddTransient<RiskSettingsService>();
         services.AddTransient<SectionService>();
         services.AddTransient<StudentDetailsService>();

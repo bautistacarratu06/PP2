@@ -14,7 +14,7 @@ public partial class PageShell : ContentView
         BindableProperty.Create(nameof(ShowBack), typeof(bool), typeof(PageShell), false);
 
     public static readonly BindableProperty BackTextProperty =
-        BindableProperty.Create(nameof(BackText), typeof(string), typeof(PageShell), "Seguimiento");
+        BindableProperty.Create(nameof(BackText), typeof(string), typeof(PageShell), "Estudiantes");
 
     public static readonly BindableProperty BackCommandProperty =
         BindableProperty.Create(nameof(BackCommand), typeof(ICommand), typeof(PageShell));
@@ -23,7 +23,7 @@ public partial class PageShell : ContentView
         BindableProperty.Create(nameof(ShellPadding), typeof(Thickness), typeof(PageShell), new Thickness(40, 36, 40, 56));
 
     public static readonly BindableProperty ContentWidthProperty =
-        BindableProperty.Create(nameof(ContentWidth), typeof(double), typeof(PageShell), 1160d);
+        BindableProperty.Create(nameof(ContentWidth), typeof(double), typeof(PageShell), 1560d);
 
     private Grid? _header;
     private SectionPicker? _picker;
@@ -91,7 +91,7 @@ public partial class PageShell : ContentView
 
         var narrow = Width < 760;
         ShellPadding = narrow ? new Thickness(18, 24, 18, 40) : new Thickness(40, 36, 40, 56);
-        ContentWidth = Math.Min(1160, Width - (narrow ? 36 : 80));
+        ContentWidth = Math.Min(1560, Width - (narrow ? 36 : 80));
         if (_header is null || _picker is null)
             return;
 

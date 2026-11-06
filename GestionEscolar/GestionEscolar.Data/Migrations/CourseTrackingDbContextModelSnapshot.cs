@@ -265,6 +265,12 @@ namespace GestionEscolar.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasColumnName("is_active")
+                        .HasDefaultValue(true, "df_student_is_active");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(80)

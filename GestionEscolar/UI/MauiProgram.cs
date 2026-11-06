@@ -89,22 +89,16 @@ namespace UI
             builder.Services.AddSingleton<SectionSelection>();
 
             // ViewModels
-            builder.Services.AddTransient<TrackingViewModel>();
+            builder.Services.AddTransient<StudentsViewModel>();
             builder.Services.AddTransient<StudentDetailViewModel>();
-            builder.Services.AddTransient<StudentListViewModel>();
             builder.Services.AddTransient<CommissionImportViewModel>();
             builder.Services.AddTransient<SettingsViewModel>();
-            builder.Services.AddTransient<AttendanceViewModel>();
-            builder.Services.AddTransient<SubmissionsViewModel>();
             builder.Services.AddTransient<CalendarViewModel>();
 
             // Páginas (Shell las resuelve por DI, tanto en ShellContent como en rutas registradas)
-            builder.Services.AddTransient<TrackingPage>();
-            builder.Services.AddTransient<SubmissionsPage>();
-            builder.Services.AddTransient<AttendancePage>();
+            builder.Services.AddTransient<StudentsPage>();
             builder.Services.AddTransient<CalendarPage>();
             builder.Services.AddTransient<StudentDetailPage>();
-            builder.Services.AddTransient<StudentListPage>();
             builder.Services.AddTransient<SettingsViewPage>();
 
 #if DEBUG

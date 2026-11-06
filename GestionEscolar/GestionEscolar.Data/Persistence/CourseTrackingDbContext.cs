@@ -51,6 +51,10 @@ public sealed class CourseTrackingDbContext(DbContextOptions<CourseTrackingDbCon
                 .HasDefaultValueSql("CAST(SYSDATETIME() AS date)")
                 .HasAnnotation("Relational:DefaultConstraintName", "df_student_enrolled_on")
                 .Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Save);
+            entity.Property(e => e.IsActive)
+                .HasColumnName("is_active")
+                .HasDefaultValue(true)
+                .HasAnnotation("Relational:DefaultConstraintName", "df_student_is_active");
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
                 .HasColumnType("datetime2(0)")

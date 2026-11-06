@@ -13,4 +13,5 @@ public class Student
     public string Phone { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public DateTime EnrolledOn { get; set; }
+    public bool IsActive { get; set; } = true;
 }

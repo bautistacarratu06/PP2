@@ -13,4 +13,7 @@ public interface IStudentRepository
     Task<Student?> FindByStudentNumberAsync(int sectionId, string studentNumber, CancellationToken cancellationToken = default);
 
     Task<Student> AddAsync(Student student, CancellationToken cancellationToken = default);
+
+    // Baja lógica por lote. Transaccional en la implementación de Data.
+    Task DeactivateAsync(IReadOnlyList<int> studentIds, CancellationToken cancellationToken = default);
 }
