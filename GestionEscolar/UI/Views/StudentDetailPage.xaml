@@ -138,39 +138,39 @@
                             <Label Style="{StaticResource CardTitle}" Text="Intervenciones" VerticalOptions="Center" />
                             <Button
                                 Grid.Column="1"
-                                Command="{Binding OpenContactCommand}"
+                                Command="{Binding Contact.OpenContactCommand}"
                                 Style="{StaticResource PrimaryButton}"
                                 Text="Registrar contacto" />
                         </Grid>
-                        <VerticalStackLayout IsVisible="{Binding IsContactOpen}" Spacing="10">
+                        <VerticalStackLayout IsVisible="{Binding Contact.IsContactOpen}" Spacing="10">
                             <VerticalStackLayout Spacing="6">
                                 <Label Style="{StaticResource FieldLabel}" Text="Fecha" />
                                 <Border Style="{StaticResource FieldBorder}">
-                                    <DatePicker Date="{Binding ContactDate}" Format="dd/MM/yyyy" MaximumDate="{Binding Today}" />
+                                    <DatePicker Date="{Binding Contact.ContactDate}" Format="dd/MM/yyyy" MaximumDate="{Binding Contact.Today}" />
                                 </Border>
                             </VerticalStackLayout>
                             <VerticalStackLayout Spacing="6">
                                 <Label Style="{StaticResource FieldLabel}" Text="Medio" />
                                 <Border Style="{StaticResource FieldBorder}">
-                                    <Picker ItemsSource="{Binding ChannelOptions}" SelectedItem="{Binding SelectedChannel}" />
+                                    <Picker ItemsSource="{Binding Contact.ChannelOptions}" SelectedItem="{Binding Contact.SelectedChannel}" />
                                 </Border>
                             </VerticalStackLayout>
                             <VerticalStackLayout Spacing="6">
                                 <Label Style="{StaticResource FieldLabel}" Text="Resultado" />
                                 <Border Style="{StaticResource FieldBorder}">
-                                    <Picker ItemsSource="{Binding OutcomeOptions}" SelectedItem="{Binding SelectedOutcome}" />
+                                    <Picker ItemsSource="{Binding Contact.OutcomeOptions}" SelectedItem="{Binding Contact.SelectedOutcome}" />
                                 </Border>
                             </VerticalStackLayout>
                             <VerticalStackLayout Spacing="6">
                                 <Label Style="{StaticResource FieldLabel}" Text="Nota" />
                                 <Border Style="{StaticResource FieldBorder}">
-                                    <Entry Placeholder="Opcional" Text="{Binding Note}" />
+                                    <Entry Placeholder="Opcional" Text="{Binding Contact.Note}" />
                                 </Border>
                             </VerticalStackLayout>
-                            <Label IsVisible="{Binding HasContactError}" Text="{Binding ContactError}" TextColor="{StaticResource Danger}" />
+                            <Label IsVisible="{Binding Contact.HasContactError}" Text="{Binding Contact.ContactError}" TextColor="{StaticResource Danger}" />
                             <HorizontalStackLayout Spacing="8">
-                                <Button Command="{Binding SaveContactCommand}" Style="{StaticResource PrimaryButton}" Text="Guardar" />
-                                <Button Command="{Binding CancelContactCommand}" Style="{StaticResource GhostButton}" Text="Cancelar" />
+                                <Button Command="{Binding Contact.SaveContactCommand}" Style="{StaticResource PrimaryButton}" Text="Guardar" />
+                                <Button Command="{Binding Contact.CancelContactCommand}" Style="{StaticResource GhostButton}" Text="Cancelar" />
                             </HorizontalStackLayout>
                         </VerticalStackLayout>
                         <controls:GridLoadingView

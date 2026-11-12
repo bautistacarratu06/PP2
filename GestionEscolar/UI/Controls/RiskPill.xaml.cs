@@ -1,3 +1,5 @@
+using UI.Formatting;
+
 namespace UI.Controls;
 
 public partial class RiskPill : ContentView
@@ -31,13 +33,7 @@ public partial class RiskPill : ContentView
 
     private void Apply()
     {
-        var (color, soft) = Level switch
-        {
-            "Alto" => ("#F87171", "#1FF87171"),
-            "Medio" => ("#FBBF24", "#1FFBBF24"),
-            "Bajo" => ("#34D399", "#1F34D399"),
-            _ => ("#8E8E93", "#1B1B1B")
-        };
+        var (color, soft) = RiskPalette.For(Level);
         var ink = Color.FromArgb(color);
         Capsule.BackgroundColor = Color.FromArgb(soft);
         Dot.Fill = ink;

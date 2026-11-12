@@ -12,66 +12,66 @@
         <controls:PageShell Title="Estudiantes" Subtitle="Nómina, riesgo, asistencias y entregas en una sola vista.">
             <VerticalStackLayout Spacing="20">
                 <HorizontalStackLayout Spacing="8">
-                    <Button Command="{Binding ShowAddCommand}" Style="{StaticResource PrimaryButton}" Text="Cargar estudiante" />
+                    <Button Command="{Binding AddStudent.ShowCommand}" Style="{StaticResource PrimaryButton}" Text="Cargar estudiante" />
                     <Button Command="{Binding Import.OpenCommand}" Style="{StaticResource GhostButton}" Text="Cargar comisión" />
                     <Button
-                        Command="{Binding ClearFiltersCommand}"
-                        IsVisible="{Binding HasActiveFilters}"
+                        Command="{Binding Filters.ClearCommand}"
+                        IsVisible="{Binding Filters.HasActiveFilters}"
                         Style="{StaticResource GhostButton}"
                         Text="Limpiar filtros" />
                 </HorizontalStackLayout>
 
-                <Border IsVisible="{Binding IsAdding}" Padding="20" Style="{StaticResource Card}">
+                <Border IsVisible="{Binding AddStudent.IsAdding}" Padding="20" Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="12">
                         <Label Style="{StaticResource CardTitle}" Text="Nuevo estudiante" />
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
                             <VerticalStackLayout Spacing="6">
                                 <Label Style="{StaticResource FieldLabel}" Text="Apellido" />
                                 <Border Style="{StaticResource FieldBorder}">
-                                    <Entry Placeholder="Apellido" Text="{Binding LastName}" />
+                                    <Entry Placeholder="Apellido" Text="{Binding AddStudent.LastName}" />
                                 </Border>
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1" Spacing="6">
                                 <Label Style="{StaticResource FieldLabel}" Text="Nombre" />
                                 <Border Style="{StaticResource FieldBorder}">
-                                    <Entry Placeholder="Nombre" Text="{Binding FirstName}" />
+                                    <Entry Placeholder="Nombre" Text="{Binding AddStudent.FirstName}" />
                                 </Border>
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Row="1" Spacing="6">
                                 <Label Style="{StaticResource FieldLabel}" Text="Legajo" />
                                 <Border Style="{StaticResource FieldBorder}">
-                                    <Entry FontFamily="JetBrainsMono" Placeholder="Legajo" Text="{Binding StudentNumber}" />
+                                    <Entry FontFamily="JetBrainsMono" Placeholder="Legajo" Text="{Binding AddStudent.StudentNumber}" />
                                 </Border>
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1" Grid.Row="1" Spacing="6">
                                 <Label Style="{StaticResource FieldLabel}" Text="DNI" />
                                 <Border Style="{StaticResource FieldBorder}">
-                                    <Entry FontFamily="JetBrainsMono" Placeholder="DNI" Text="{Binding Dni}" />
+                                    <Entry FontFamily="JetBrainsMono" Placeholder="DNI" Text="{Binding AddStudent.Dni}" />
                                 </Border>
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Row="2" Spacing="6">
                                 <Label Style="{StaticResource FieldLabel}" Text="Fecha de incorporación" />
                                 <Border Style="{StaticResource FieldBorder}">
-                                    <DatePicker Date="{Binding EnrolledOn}" Format="dd/MM/yyyy" MaximumDate="{Binding Today}" />
+                                    <DatePicker Date="{Binding AddStudent.EnrolledOn}" Format="dd/MM/yyyy" MaximumDate="{Binding AddStudent.Today}" />
                                 </Border>
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1" Grid.Row="2" Spacing="6">
                                 <Label Style="{StaticResource FieldLabel}" Text="Teléfono" />
                                 <Border Style="{StaticResource FieldBorder}">
-                                    <Entry FontFamily="JetBrainsMono" Placeholder="Opcional" Text="{Binding Phone}" />
+                                    <Entry FontFamily="JetBrainsMono" Placeholder="Opcional" Text="{Binding AddStudent.Phone}" />
                                 </Border>
                             </VerticalStackLayout>
                         </Grid>
                         <VerticalStackLayout Spacing="6">
                             <Label Style="{StaticResource FieldLabel}" Text="Correo" />
                             <Border Style="{StaticResource FieldBorder}">
-                                <Entry Placeholder="Opcional" Text="{Binding Email}" />
+                                <Entry Placeholder="Opcional" Text="{Binding AddStudent.Email}" />
                             </Border>
                         </VerticalStackLayout>
-                        <Label IsVisible="{Binding HasAddError}" Text="{Binding AddError}" TextColor="{StaticResource Danger}" />
+                        <Label IsVisible="{Binding AddStudent.HasAddError}" Text="{Binding AddStudent.AddError}" TextColor="{StaticResource Danger}" />
                         <HorizontalStackLayout Spacing="8">
-                            <Button Command="{Binding SaveStudentCommand}" Style="{StaticResource PrimaryButton}" Text="Guardar" />
-                            <Button Command="{Binding CancelAddCommand}" Style="{StaticResource GhostButton}" Text="Cancelar" />
+                            <Button Command="{Binding AddStudent.SaveCommand}" Style="{StaticResource PrimaryButton}" Text="Guardar" />
+                            <Button Command="{Binding AddStudent.CancelCommand}" Style="{StaticResource GhostButton}" Text="Cancelar" />
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
                 </Border>
@@ -79,27 +79,27 @@
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="16">
                     <controls:KpiCard
                         CaptionText="Riesgo alto"
-                        Command="{Binding ToggleRiskCommand}"
+                        Command="{Binding Filters.ToggleRiskCommand}"
                         CommandParameter="Alto"
-                        IsActive="{Binding HighActive}"
+                        IsActive="{Binding Filters.HighActive}"
                         Level="Alto"
                         Total="{Binding TotalCount}"
                         Value="{Binding HighRiskCount}" />
                     <controls:KpiCard
                         Grid.Column="1"
                         CaptionText="Riesgo medio"
-                        Command="{Binding ToggleRiskCommand}"
+                        Command="{Binding Filters.ToggleRiskCommand}"
                         CommandParameter="Medio"
-                        IsActive="{Binding MediumActive}"
+                        IsActive="{Binding Filters.MediumActive}"
                         Level="Medio"
                         Total="{Binding TotalCount}"
                         Value="{Binding MediumRiskCount}" />
                     <controls:KpiCard
                         Grid.Column="2"
                         CaptionText="Riesgo bajo"
-                        Command="{Binding ToggleRiskCommand}"
+                        Command="{Binding Filters.ToggleRiskCommand}"
                         CommandParameter="Bajo"
-                        IsActive="{Binding LowActive}"
+                        IsActive="{Binding Filters.LowActive}"
                         Level="Bajo"
                         Total="{Binding TotalCount}"
                         Value="{Binding LowRiskCount}" />
@@ -125,150 +125,150 @@
                                     ColumnDefinitions="40,*,110,120,180,110,150,150,130,90"
                                     ColumnSpacing="10"
                                     HeightRequest="42">
-                                    <CheckBox IsChecked="{Binding IsAllSelected}" VerticalOptions="Center" />
+                                    <CheckBox IsChecked="{Binding Selection.IsAllSelected}" VerticalOptions="Center" />
                                     <HorizontalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
                                         <Label Style="{StaticResource ColumnHeader}" Text="ESTUDIANTE" />
-                                        <Button Command="{Binding SortByColumnCommand}" CommandParameter="Name" Style="{StaticResource LinkButton}" Text="↕" />
-                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Name" Style="{StaticResource LinkButton}" Text="▾" />
+                                        <Button Command="{Binding Filters.SortByColumnCommand}" CommandParameter="Name" Style="{StaticResource LinkButton}" Text="↕" />
+                                        <Button Command="{Binding Filters.ToggleFilterColumnCommand}" CommandParameter="Name" Style="{StaticResource LinkButton}" Text="▾" />
                                     </HorizontalStackLayout>
                                     <HorizontalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
                                         <Label Style="{StaticResource ColumnHeader}" Text="LEGAJO" />
-                                        <Button Command="{Binding SortByColumnCommand}" CommandParameter="StudentNumber" Style="{StaticResource LinkButton}" Text="↕" />
-                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Legajo" Style="{StaticResource LinkButton}" Text="▾" />
+                                        <Button Command="{Binding Filters.SortByColumnCommand}" CommandParameter="StudentNumber" Style="{StaticResource LinkButton}" Text="↕" />
+                                        <Button Command="{Binding Filters.ToggleFilterColumnCommand}" CommandParameter="Legajo" Style="{StaticResource LinkButton}" Text="▾" />
                                     </HorizontalStackLayout>
                                     <Label Grid.Column="3" Style="{StaticResource ColumnHeader}" Text="TELÉFONO" VerticalOptions="Center" />
                                     <HorizontalStackLayout Grid.Column="4" Spacing="4" VerticalOptions="Center">
                                         <Label Style="{StaticResource ColumnHeader}" Text="CORREO" />
-                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Email" Style="{StaticResource LinkButton}" Text="▾" />
+                                        <Button Command="{Binding Filters.ToggleFilterColumnCommand}" CommandParameter="Email" Style="{StaticResource LinkButton}" Text="▾" />
                                     </HorizontalStackLayout>
                                     <HorizontalStackLayout Grid.Column="5" Spacing="4" VerticalOptions="Center">
                                         <Label Style="{StaticResource ColumnHeader}" Text="RIESGO" />
-                                        <Button Command="{Binding SortByColumnCommand}" CommandParameter="Risk" Style="{StaticResource LinkButton}" Text="↕" />
-                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Risk" Style="{StaticResource LinkButton}" Text="▾" />
+                                        <Button Command="{Binding Filters.SortByColumnCommand}" CommandParameter="Risk" Style="{StaticResource LinkButton}" Text="↕" />
+                                        <Button Command="{Binding Filters.ToggleFilterColumnCommand}" CommandParameter="Risk" Style="{StaticResource LinkButton}" Text="▾" />
                                     </HorizontalStackLayout>
                                     <HorizontalStackLayout Grid.Column="6" Spacing="4" VerticalOptions="Center">
                                         <Label Style="{StaticResource ColumnHeader}" Text="ASISTENCIA" />
-                                        <Button Command="{Binding SortByColumnCommand}" CommandParameter="Attendance" Style="{StaticResource LinkButton}" Text="↕" />
-                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Attendance" Style="{StaticResource LinkButton}" Text="▾" />
+                                        <Button Command="{Binding Filters.SortByColumnCommand}" CommandParameter="Attendance" Style="{StaticResource LinkButton}" Text="↕" />
+                                        <Button Command="{Binding Filters.ToggleFilterColumnCommand}" CommandParameter="Attendance" Style="{StaticResource LinkButton}" Text="▾" />
                                     </HorizontalStackLayout>
                                     <HorizontalStackLayout Grid.Column="7" Spacing="4" VerticalOptions="Center">
                                         <Label Style="{StaticResource ColumnHeader}" Text="ENTREGAS" />
-                                        <Button Command="{Binding SortByColumnCommand}" CommandParameter="Delivery" Style="{StaticResource LinkButton}" Text="↕" />
-                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Delivery" Style="{StaticResource LinkButton}" Text="▾" />
+                                        <Button Command="{Binding Filters.SortByColumnCommand}" CommandParameter="Delivery" Style="{StaticResource LinkButton}" Text="↕" />
+                                        <Button Command="{Binding Filters.ToggleFilterColumnCommand}" CommandParameter="Delivery" Style="{StaticResource LinkButton}" Text="▾" />
                                     </HorizontalStackLayout>
                                     <HorizontalStackLayout Grid.Column="8" Spacing="4" VerticalOptions="Center">
                                         <Label Style="{StaticResource ColumnHeader}" Text="CONTACTO" />
-                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Contact" Style="{StaticResource LinkButton}" Text="▾" />
+                                        <Button Command="{Binding Filters.ToggleFilterColumnCommand}" CommandParameter="Contact" Style="{StaticResource LinkButton}" Text="▾" />
                                     </HorizontalStackLayout>
                                     <HorizontalStackLayout Grid.Column="9" Spacing="4" VerticalOptions="Center">
                                         <Label Style="{StaticResource ColumnHeader}" Text="ESTADO" />
-                                        <Button Command="{Binding ToggleFilterColumnCommand}" CommandParameter="Active" Style="{StaticResource LinkButton}" Text="▾" />
+                                        <Button Command="{Binding Filters.ToggleFilterColumnCommand}" CommandParameter="Active" Style="{StaticResource LinkButton}" Text="▾" />
                                     </HorizontalStackLayout>
                                 </Grid>
 
                                 <Border Margin="16,0,16,8" Padding="12" Stroke="{StaticResource Line}" StrokeShape="RoundRectangle 10" StrokeThickness="1">
                                     <Border.Triggers>
-                                        <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="Border" Value="">
+                                        <DataTrigger Binding="{Binding Filters.OpenFilterColumn}" TargetType="Border" Value="">
                                             <Setter Property="IsVisible" Value="False" />
                                         </DataTrigger>
                                     </Border.Triggers>
                                     <VerticalStackLayout Spacing="10">
                                         <VerticalStackLayout IsVisible="False" Spacing="6">
                                             <VerticalStackLayout.Triggers>
-                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Name">
+                                                <DataTrigger Binding="{Binding Filters.OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Name">
                                                     <Setter Property="IsVisible" Value="True" />
                                                 </DataTrigger>
                                             </VerticalStackLayout.Triggers>
                                             <Label Style="{StaticResource FieldLabel}" Text="Estudiante contiene" />
-                                            <Entry Placeholder="Apellido o nombre" Text="{Binding NameFilter}" />
+                                            <Entry Placeholder="Apellido o nombre" Text="{Binding Filters.NameFilter}" />
                                         </VerticalStackLayout>
 
                                         <VerticalStackLayout IsVisible="False" Spacing="6">
                                             <VerticalStackLayout.Triggers>
-                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Legajo">
+                                                <DataTrigger Binding="{Binding Filters.OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Legajo">
                                                     <Setter Property="IsVisible" Value="True" />
                                                 </DataTrigger>
                                             </VerticalStackLayout.Triggers>
                                             <Label Style="{StaticResource FieldLabel}" Text="Legajo contiene" />
-                                            <Entry FontFamily="JetBrainsMono" Placeholder="LEG-…" Text="{Binding LegajoFilter}" />
+                                            <Entry FontFamily="JetBrainsMono" Placeholder="LEG-…" Text="{Binding Filters.LegajoFilter}" />
                                         </VerticalStackLayout>
 
                                         <VerticalStackLayout IsVisible="False" Spacing="6">
                                             <VerticalStackLayout.Triggers>
-                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Email">
+                                                <DataTrigger Binding="{Binding Filters.OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Email">
                                                     <Setter Property="IsVisible" Value="True" />
                                                 </DataTrigger>
                                             </VerticalStackLayout.Triggers>
                                             <Label Style="{StaticResource FieldLabel}" Text="Correo contiene" />
-                                            <Entry Placeholder="correo@" Text="{Binding EmailFilter}" />
+                                            <Entry Placeholder="correo@" Text="{Binding Filters.EmailFilter}" />
                                         </VerticalStackLayout>
 
                                         <VerticalStackLayout IsVisible="False" Spacing="6">
                                             <VerticalStackLayout.Triggers>
-                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Risk">
+                                                <DataTrigger Binding="{Binding Filters.OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Risk">
                                                     <Setter Property="IsVisible" Value="True" />
                                                 </DataTrigger>
                                             </VerticalStackLayout.Triggers>
                                             <Label Style="{StaticResource FieldLabel}" Text="Riesgo" />
                                             <HorizontalStackLayout Spacing="12">
-                                                <CheckBox IsChecked="{Binding FilterRiskAlto}" />
+                                                <CheckBox IsChecked="{Binding Filters.FilterRiskAlto}" />
                                                 <Label Text="Alto" VerticalOptions="Center" />
-                                                <CheckBox IsChecked="{Binding FilterRiskMedio}" />
+                                                <CheckBox IsChecked="{Binding Filters.FilterRiskMedio}" />
                                                 <Label Text="Medio" VerticalOptions="Center" />
-                                                <CheckBox IsChecked="{Binding FilterRiskBajo}" />
+                                                <CheckBox IsChecked="{Binding Filters.FilterRiskBajo}" />
                                                 <Label Text="Bajo" VerticalOptions="Center" />
                                             </HorizontalStackLayout>
                                         </VerticalStackLayout>
 
                                         <VerticalStackLayout IsVisible="False" Spacing="6">
                                             <VerticalStackLayout.Triggers>
-                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Attendance">
+                                                <DataTrigger Binding="{Binding Filters.OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Attendance">
                                                     <Setter Property="IsVisible" Value="True" />
                                                 </DataTrigger>
                                             </VerticalStackLayout.Triggers>
                                             <Label Style="{StaticResource FieldLabel}" Text="Asistencia %" />
                                             <HorizontalStackLayout Spacing="8">
-                                                <Entry Keyboard="Numeric" Placeholder="Mín" Text="{Binding AttendanceMinText}" WidthRequest="80" />
-                                                <Entry Keyboard="Numeric" Placeholder="Máx" Text="{Binding AttendanceMaxText}" WidthRequest="80" />
+                                                <Entry Keyboard="Numeric" Placeholder="Mín" Text="{Binding Filters.AttendanceMinText}" WidthRequest="80" />
+                                                <Entry Keyboard="Numeric" Placeholder="Máx" Text="{Binding Filters.AttendanceMaxText}" WidthRequest="80" />
                                             </HorizontalStackLayout>
                                         </VerticalStackLayout>
 
                                         <VerticalStackLayout IsVisible="False" Spacing="6">
                                             <VerticalStackLayout.Triggers>
-                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Delivery">
+                                                <DataTrigger Binding="{Binding Filters.OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Delivery">
                                                     <Setter Property="IsVisible" Value="True" />
                                                 </DataTrigger>
                                             </VerticalStackLayout.Triggers>
                                             <Label Style="{StaticResource FieldLabel}" Text="Entregas %" />
                                             <HorizontalStackLayout Spacing="8">
-                                                <Entry Keyboard="Numeric" Placeholder="Mín" Text="{Binding DeliveryMinText}" WidthRequest="80" />
-                                                <Entry Keyboard="Numeric" Placeholder="Máx" Text="{Binding DeliveryMaxText}" WidthRequest="80" />
+                                                <Entry Keyboard="Numeric" Placeholder="Mín" Text="{Binding Filters.DeliveryMinText}" WidthRequest="80" />
+                                                <Entry Keyboard="Numeric" Placeholder="Máx" Text="{Binding Filters.DeliveryMaxText}" WidthRequest="80" />
                                             </HorizontalStackLayout>
                                         </VerticalStackLayout>
 
                                         <VerticalStackLayout IsVisible="False" Spacing="6">
                                             <VerticalStackLayout.Triggers>
-                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Contact">
+                                                <DataTrigger Binding="{Binding Filters.OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Contact">
                                                     <Setter Property="IsVisible" Value="True" />
                                                 </DataTrigger>
                                             </VerticalStackLayout.Triggers>
                                             <Label Style="{StaticResource FieldLabel}" Text="Contacto" />
                                             <HorizontalStackLayout Spacing="12">
-                                                <CheckBox IsChecked="{Binding FilterContactSin}" />
+                                                <CheckBox IsChecked="{Binding Filters.FilterContactSin}" />
                                                 <Label Text="Sin contactar" VerticalOptions="Center" />
-                                                <CheckBox IsChecked="{Binding FilterContactCon}" />
+                                                <CheckBox IsChecked="{Binding Filters.FilterContactCon}" />
                                                 <Label Text="Contactado" VerticalOptions="Center" />
                                             </HorizontalStackLayout>
                                         </VerticalStackLayout>
 
                                         <VerticalStackLayout IsVisible="False" Spacing="6">
                                             <VerticalStackLayout.Triggers>
-                                                <DataTrigger Binding="{Binding OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Active">
+                                                <DataTrigger Binding="{Binding Filters.OpenFilterColumn}" TargetType="VerticalStackLayout" Value="Active">
                                                     <Setter Property="IsVisible" Value="True" />
                                                 </DataTrigger>
                                             </VerticalStackLayout.Triggers>
                                             <Label Style="{StaticResource FieldLabel}" Text="Estado" />
-                                            <Picker SelectedItem="{Binding ActiveFilterKey}">
+                                            <Picker SelectedItem="{Binding Filters.ActiveFilterKey}">
                                                 <Picker.Items>
                                                     <x:String>Activos</x:String>
                                                     <x:String>Inactivos</x:String>
@@ -416,25 +416,25 @@
 
                 <VerticalStackLayout IsVisible="{Binding ShowEmptyRoster}" Spacing="12" HorizontalOptions="Center">
                     <Label Style="{StaticResource EmptyLabel}" Text="Esta comisión todavía no tiene estudiantes." />
-                    <Button Command="{Binding ShowAddCommand}" HorizontalOptions="Center" Style="{StaticResource PrimaryButton}" Text="Cargar estudiante" />
+                    <Button Command="{Binding AddStudent.ShowCommand}" HorizontalOptions="Center" Style="{StaticResource PrimaryButton}" Text="Cargar estudiante" />
                 </VerticalStackLayout>
             </VerticalStackLayout>
         </controls:PageShell>
 
         <controls:FloatingActionBar
-            ClearSelectionCommand="{Binding ClearSelectionCommand}"
-            IsActive="{Binding HasSelection}"
-            SelectedCount="{Binding SelectedCount}"
-            SelectedCountText="{Binding SelectedCountText}"
+            ClearSelectionCommand="{Binding Selection.ClearCommand}"
+            IsActive="{Binding Selection.HasSelection}"
+            SelectedCount="{Binding Selection.SelectedCount}"
+            SelectedCountText="{Binding Selection.SelectedCountText}"
             VerticalOptions="End"
             Margin="0,0,0,24">
             <controls:FloatingActionBar.ActionsContent>
-                <Button Command="{Binding OpenActionsCommand}" Style="{StaticResource PrimaryButton}" Text="Acciones" />
+                <Button Command="{Binding Actions.OpenActionsCommand}" Style="{StaticResource PrimaryButton}" Text="Acciones" />
             </controls:FloatingActionBar.ActionsContent>
         </controls:FloatingActionBar>
 
         <!-- Modal Acciones -->
-        <Grid BackgroundColor="#B30B0D13" IsVisible="{Binding IsActionsOpen}" InputTransparent="False">
+        <Grid BackgroundColor="#B30B0D13" IsVisible="{Binding Actions.IsActionsOpen}" InputTransparent="False">
             <Border
                 BackgroundColor="{StaticResource Surface}"
                 HorizontalOptions="Center"
@@ -447,17 +447,17 @@
                 WidthRequest="480">
                 <VerticalStackLayout Spacing="16">
                     <Label FontFamily="InterSemibold" FontSize="18" Text="Acciones" TextColor="{StaticResource TextPrimary}" />
-                    <Label FontSize="13" Text="{Binding SelectedCountText}" TextColor="{StaticResource TextSecondary}" />
+                    <Label FontSize="13" Text="{Binding Selection.SelectedCountText}" TextColor="{StaticResource TextSecondary}" />
 
-                    <VerticalStackLayout IsVisible="{Binding IsActionsStep1}" Spacing="12">
+                    <VerticalStackLayout IsVisible="{Binding Actions.IsActionsStep1}" Spacing="12">
                         <Border Style="{StaticResource FieldBorder}">
-                            <Entry Placeholder="Buscar acción…" Text="{Binding ActionSearchText}" />
+                            <Entry Placeholder="Buscar acción…" Text="{Binding Actions.ActionSearchText}" />
                         </Border>
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding FilteredActions}" Spacing="4">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Actions.FilteredActions}" Spacing="4">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="vm:ActionPaletteItem">
                                     <Button
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectActionCommand}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.Actions.SelectActionCommand}"
                                         CommandParameter="{Binding .}"
                                         Style="{StaticResource GhostButton}"
                                         Text="{Binding Title}"
@@ -467,44 +467,44 @@
                         </VerticalStackLayout>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout IsVisible="{Binding IsActionsStep2}" Spacing="12">
-                        <VerticalStackLayout IsVisible="{Binding IsAttendanceAction}" Spacing="10">
+                    <VerticalStackLayout IsVisible="{Binding Actions.IsActionsStep2}" Spacing="12">
+                        <VerticalStackLayout IsVisible="{Binding Actions.IsAttendanceAction}" Spacing="10">
                             <Label Style="{StaticResource FieldLabel}" Text="Clase" />
                             <Border Style="{StaticResource FieldBorder}">
-                                <Picker ItemsSource="{Binding ClassSessions}" SelectedItem="{Binding SelectedClassSession}" />
+                                <Picker ItemsSource="{Binding Actions.ClassSessions}" SelectedItem="{Binding Actions.SelectedClassSession}" />
                             </Border>
                             <HorizontalStackLayout Spacing="8">
-                                <Button Command="{Binding ConfirmAttendanceCommand}" CommandParameter="Presente" Style="{StaticResource PrimaryButton}" Text="Marcar Presente" />
-                                <Button Command="{Binding ConfirmAttendanceCommand}" CommandParameter="Ausente" Style="{StaticResource GhostButton}" Text="Marcar Ausente" />
+                                <Button Command="{Binding Actions.ConfirmAttendanceCommand}" CommandParameter="Presente" Style="{StaticResource PrimaryButton}" Text="Marcar Presente" />
+                                <Button Command="{Binding Actions.ConfirmAttendanceCommand}" CommandParameter="Ausente" Style="{StaticResource GhostButton}" Text="Marcar Ausente" />
                             </HorizontalStackLayout>
                         </VerticalStackLayout>
 
-                        <VerticalStackLayout IsVisible="{Binding IsSubmissionsAction}" Spacing="10">
+                        <VerticalStackLayout IsVisible="{Binding Actions.IsSubmissionsAction}" Spacing="10">
                             <Label Style="{StaticResource FieldLabel}" Text="Trabajo" />
                             <Border Style="{StaticResource FieldBorder}">
-                                <Picker ItemsSource="{Binding Assignments}" SelectedItem="{Binding SelectedAssignment}" />
+                                <Picker ItemsSource="{Binding Actions.Assignments}" SelectedItem="{Binding Actions.SelectedAssignment}" />
                             </Border>
                             <HorizontalStackLayout Spacing="8">
-                                <Button Command="{Binding ConfirmSubmissionCommand}" CommandParameter="Entregó" Style="{StaticResource PrimaryButton}" Text="Marcar Entregó" />
-                                <Button Command="{Binding ConfirmSubmissionCommand}" CommandParameter="No entregó" Style="{StaticResource GhostButton}" Text="Marcar No entregó" />
+                                <Button Command="{Binding Actions.ConfirmSubmissionCommand}" CommandParameter="Entregó" Style="{StaticResource PrimaryButton}" Text="Marcar Entregó" />
+                                <Button Command="{Binding Actions.ConfirmSubmissionCommand}" CommandParameter="No entregó" Style="{StaticResource GhostButton}" Text="Marcar No entregó" />
                             </HorizontalStackLayout>
                         </VerticalStackLayout>
 
-                        <VerticalStackLayout IsVisible="{Binding IsDeactivateAction}" Spacing="10">
-                            <Label FontSize="14" LineHeight="1.3" Text="{Binding DeactivateConfirmText}" TextColor="{StaticResource TextSecondary}" />
-                            <Button Command="{Binding ConfirmDeactivateCommand}" Style="{StaticResource PrimaryButton}" Text="Confirmar desactivación" />
+                        <VerticalStackLayout IsVisible="{Binding Actions.IsDeactivateAction}" Spacing="10">
+                            <Label FontSize="14" LineHeight="1.3" Text="{Binding Actions.DeactivateConfirmText}" TextColor="{StaticResource TextSecondary}" />
+                            <Button Command="{Binding Actions.ConfirmDeactivateCommand}" Style="{StaticResource PrimaryButton}" Text="Confirmar desactivación" />
                         </VerticalStackLayout>
 
                         <HorizontalStackLayout Spacing="8">
-                            <Button Command="{Binding BackToActionsCommand}" Style="{StaticResource GhostButton}" Text="Volver" />
-                            <Button Command="{Binding CloseActionsCommand}" Style="{StaticResource LinkButton}" Text="Cancelar" />
+                            <Button Command="{Binding Actions.BackToActionsCommand}" Style="{StaticResource GhostButton}" Text="Volver" />
+                            <Button Command="{Binding Actions.CloseActionsCommand}" Style="{StaticResource LinkButton}" Text="Cancelar" />
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
 
-                    <Label IsVisible="{Binding HasActionError}" Text="{Binding ActionError}" TextColor="{StaticResource Danger}" />
+                    <Label IsVisible="{Binding Actions.HasActionError}" Text="{Binding Actions.ActionError}" TextColor="{StaticResource Danger}" />
                     <Button
-                        Command="{Binding CloseActionsCommand}"
-                        IsVisible="{Binding IsActionsStep1}"
+                        Command="{Binding Actions.CloseActionsCommand}"
+                        IsVisible="{Binding Actions.IsActionsStep1}"
                         Style="{StaticResource GhostButton}"
                         Text="Cancelar" />
                 </VerticalStackLayout>

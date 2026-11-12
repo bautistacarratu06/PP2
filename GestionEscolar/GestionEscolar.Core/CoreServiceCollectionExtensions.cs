@@ -13,16 +13,25 @@ public static class CoreServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.AddSingleton(new RiskConfig());
-        services.AddTransient<TrackingService>();
-        services.AddTransient<StudentsQueryService>();
-        services.AddTransient<RiskSettingsService>();
-        services.AddTransient<SectionService>();
-        services.AddTransient<StudentDetailsService>();
-        services.AddTransient<StudentService>();
-        services.AddTransient<CommissionImportService>();
-        services.AddTransient<CalendarService>();
-        services.AddTransient<AttendanceService>();
-        services.AddTransient<SubmissionService>();
+        AddWithContract<ITrackingService, TrackingService>(services);
+        AddWithContract<IStudentsQueryService, StudentsQueryService>(services);
+        AddWithContract<IRiskSettingsService, RiskSettingsService>(services);
+        AddWithContract<ISectionService, SectionService>(services);
+        AddWithContract<IStudentDetailsService, StudentDetailsService>(services);
+        AddWithContract<IStudentService, StudentService>(services);
+        AddWithContract<ICommissionImportService, CommissionImportService>(services);
+        AddWithContract<ICalendarService, CalendarService>(services);
+        AddWithContract<IAttendanceService, AttendanceService>(services);
+        AddWithContract<ISubmissionService, SubmissionService>(services);
         return services;
+    }
+
+    // Se mantiene el tipo concreto registrado y la interfaz resuelve esa misma instancia transitoria.
+    private static void AddWithContract<TContract, TImplementation>(IServiceCollection services)
+        where TContract : class
+        where TImplementation : class, TContract
+    {
+        services.AddTransient<TImplementation>();
+        services.AddTransient<TContract>(sp => sp.GetRequiredService<TImplementation>());
     }
 }

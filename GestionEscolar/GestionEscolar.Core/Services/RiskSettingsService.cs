@@ -5,7 +5,7 @@ namespace GestionEscolar.Core.Services;
 
 // Lee y guarda los umbrales y los aplica al RiskConfig en memoria que usa la regla
 // de seguimiento. Enteros de 0 a 100, y el medio estrictamente menor que el alto.
-public class RiskSettingsService
+public class RiskSettingsService : IRiskSettingsService
 {
     public const string NonNumericMessage = "Ingresá valores numéricos.";
     public const string InvalidThresholdMessage = "Los valores deben estar entre 0 y 100, y Medio debe ser menor que Alto.";
@@ -34,15 +34,26 @@ public class RiskSettingsService
         string? mediumText,
         CancellationToken cancellationToken = default)
     {
-        if (!int.TryParse(highText, out var high) || !int.TryParse(mediumText, out var medium))
-            return new RiskSettingsSaveResult(false, NonNumericMessage);
+        var parsed = ParseThresholds(highText, mediumText);
+        if (parsed.Error is not null)
+            return new RiskSettingsSaveResult(false, parsed.Error);
 
-        if (high is < 0 or > 100 || medium is < 0 or > 100 || medium >= high)
-            return new RiskSettingsSaveResult(false, InvalidThresholdMessage);
-
+        var (high, medium) = (parsed.High, parsed.Medium);
         await _repository.SaveAsync(high, medium, cancellationToken).ConfigureAwait(false);
         Apply(high, medium);
         return new RiskSettingsSaveResult(true, SavedMessage);
+    }
+
+    // Función pura: devuelve los dos enteros o el mensaje de error ya listo para mostrar.
+    public static (int High, int Medium, string? Error) ParseThresholds(string? highText, string? mediumText)
+    {
+        if (!int.TryParse(highText, out var high) || !int.TryParse(mediumText, out var medium))
+            return (0, 0, NonNumericMessage);
+
+        if (high is < 0 or > 100 || medium is < 0 or > 100 || medium >= high)
+            return (0, 0, InvalidThresholdMessage);
+
+        return (high, medium, null);
     }
 
     private void Apply(int high, int medium)

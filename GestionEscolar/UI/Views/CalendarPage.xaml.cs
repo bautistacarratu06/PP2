@@ -17,7 +17,14 @@ namespace UI.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            _viewModel.Subscribe();
             await _viewModel.LoadCommand.ExecuteAsync(null);
+        }
+
+        protected override void OnDisappearing()
+        {
+            _viewModel.Unsubscribe();
+            base.OnDisappearing();
         }
     }
 }

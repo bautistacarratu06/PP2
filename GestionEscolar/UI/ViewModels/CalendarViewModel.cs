@@ -14,12 +14,15 @@ namespace UI.ViewModels
         private const string ClassType = "Clase";
         private const string AssignmentType = "Trabajo";
 
-        private readonly CalendarService _service;
+        private readonly ICalendarService _service;
+        private readonly IClock _clock;
 
-        public CalendarViewModel(SectionSelection selection, CalendarService service) : base(selection)
+        public CalendarViewModel(SectionSelection selection, ICalendarService service, IClock clock) : base(selection)
         {
             _service = service;
+            _clock = clock;
             SelectedType = ClassType;
+            NewDate = clock.Today;
         }
 
         public IReadOnlyList<string> TypeOptions { get; } = [ClassType, AssignmentType];
@@ -32,7 +35,7 @@ namespace UI.ViewModels
         public partial string NewName { get; set; } = string.Empty;
 
         [ObservableProperty]
-        public partial DateTime NewDate { get; set; } = DateTime.Today;
+        public partial DateTime NewDate { get; set; }
 
         public bool IsAssignment => SelectedType == AssignmentType;
 
@@ -76,17 +79,7 @@ namespace UI.ViewModels
             StatusMessage = string.Empty;
             try
             {
-                if (IsAssignment)
-                {
-                    await _service.AddAssignmentAsync(SelectedSection.Id, NewName, NewDate);
-                    StatusMessage = $"Trabajo agregado: {NewName.Trim()} · {FormatDate(NewDate)}";
-                }
-                else
-                {
-                    await _service.AddClassAsync(SelectedSection.Id, NewDate);
-                    StatusMessage = $"Clase agregada: {FormatDate(NewDate)}";
-                }
-
+                StatusMessage = await AddEntryAsync(SelectedSection.Id);
                 NewName = string.Empty;
                 await RunAsync(OnSectionChangedAsync);
             }
@@ -98,6 +91,19 @@ namespace UI.ViewModels
             {
                 ReportError("No se pudo agregar.", ex);
             }
+        }
+
+        // Guarda la clase o el trabajo y devuelve el mensaje de éxito.
+        private async Task<string> AddEntryAsync(int sectionId)
+        {
+            if (!IsAssignment)
+            {
+                await _service.AddClassAsync(sectionId, NewDate);
+                return $"Clase agregada: {FormatDate(NewDate)}";
+            }
+
+            await _service.AddAssignmentAsync(sectionId, NewName, NewDate);
+            return $"Trabajo agregado: {NewName.Trim()} · {FormatDate(NewDate)}";
         }
     }
 

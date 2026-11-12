@@ -4,7 +4,7 @@ using GestionEscolar.Core.Models;
 namespace GestionEscolar.Core.Services;
 
 // Comisiones disponibles y cuál se elige por defecto en Seguimiento.
-public class SectionService
+public class SectionService : ISectionService
 {
     public const int PreferredDefaultId = 1;
 

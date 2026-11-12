@@ -10,15 +10,23 @@ namespace UI.ViewModels;
 
 public partial class CommissionImportViewModel : ObservableObject
 {
-    private readonly CommissionImportService _import;
+    private readonly ICommissionImportService _import;
     private readonly SectionSelection _selection;
+    private readonly CommissionImportFileStep _file;
+    private readonly IClock _clock;
     private IReadOnlyList<RosterCsvRow> _rows = [];
     private ImportPreview? _preview;
 
-    public CommissionImportViewModel(CommissionImportService import, SectionSelection selection)
+    public CommissionImportViewModel(
+        ICommissionImportService import,
+        SectionSelection selection,
+        CommissionImportFileStep file,
+        IClock clock)
     {
         _import = import;
         _selection = selection;
+        _file = file;
+        _clock = clock;
     }
 
     public ObservableCollection<Section> Sections { get; } = new();
@@ -82,25 +90,12 @@ public partial class CommissionImportViewModel : ObservableObject
         if (IsBusy)
             return;
 
-        Step = 0;
-        ChosenFileName = string.Empty;
-        ErrorMessage = string.Empty;
-        CreateNew = true;
-        NewName = string.Empty;
-        InsertText = string.Empty;
-        BlockedText = string.Empty;
-        _rows = [];
-        _preview = null;
-        Conflicts.Clear();
-        Sections.Clear();
+        ResetWizard();
         IsOpen = true;
         IsBusy = true;
         try
         {
-            var sections = await _import.GetSectionsAsync();
-            foreach (var section in sections)
-                Sections.Add(section);
-            SelectedSection = Sections.FirstOrDefault(section => section.Id == _selection.Current?.Id) ?? Sections.FirstOrDefault();
+            await LoadSectionsAsync();
         }
         catch (Exception ex)
         {
@@ -119,11 +114,11 @@ public partial class CommissionImportViewModel : ObservableObject
     [RelayCommand]
     private async Task PickFileAsync()
     {
-        var file = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Seleccionar CSV" });
-        if (file is null)
+        var path = await _file.PickPathAsync();
+        if (path is null)
             return;
 
-        await AcceptFileAsync(file.FullPath);
+        await AcceptFileAsync(path);
     }
 
     public async Task AcceptFileAsync(string? path)
@@ -131,18 +126,12 @@ public partial class CommissionImportViewModel : ObservableObject
         if (IsBusy)
             return;
 
-        if (!CommissionImportService.IsCsvFile(path))
-        {
-            ClearFile("El archivo tiene que ser un CSV.");
-            return;
-        }
-
         IsBusy = true;
         try
         {
-            var text = await File.ReadAllTextAsync(path!);
-            _rows = _import.Read(new StringReader(text));
-            ChosenFileName = Path.GetFileName(path!);
+            var file = await _file.LoadAsync(path);
+            _rows = file.Rows;
+            ChosenFileName = file.Name;
             ForgetPreview();
             ErrorMessage = string.Empty;
         }
@@ -181,42 +170,51 @@ public partial class CommissionImportViewModel : ObservableObject
             return;
 
         ErrorMessage = string.Empty;
-        if (Step == 0)
+        switch (Step)
         {
-            if (_rows.Count == 0 || ChosenFileName.Length == 0)
-            {
-                ErrorMessage = ChosenFileName.Length == 0
-                    ? "Elegí un archivo CSV."
-                    : "El CSV no tiene alumnos.";
-                return;
-            }
+            case 0:
+                AdvanceFromFile();
+                break;
+            case 1:
+                await AdvanceFromDestinationAsync();
+                break;
+            default:
+                await ConfirmAsync();
+                break;
+        }
+    }
 
-            Step = 1;
+    private void AdvanceFromFile()
+    {
+        if (_rows.Count == 0 || ChosenFileName.Length == 0)
+        {
+            ErrorMessage = ChosenFileName.Length == 0
+                ? "Elegí un archivo CSV."
+                : "El CSV no tiene alumnos.";
             return;
         }
 
-        if (Step == 1)
-        {
-            if (CreateNew)
-            {
-                var nameError = StudentEntryRules.SectionNameError(NewName, Sections);
-                if (nameError is not null)
-                {
-                    ErrorMessage = nameError;
-                    return;
-                }
-            }
-            else if (SelectedSection is null)
-            {
-                ErrorMessage = "Elegí una comisión.";
-                return;
-            }
+        Step = 1;
+    }
 
-            await LoadPreviewAsync();
+    private async Task AdvanceFromDestinationAsync()
+    {
+        var error = DestinationError();
+        if (error is not null)
+        {
+            ErrorMessage = error;
             return;
         }
 
-        await ConfirmAsync();
+        await LoadPreviewAsync();
+    }
+
+    private string? DestinationError()
+    {
+        if (CreateNew)
+            return SectionNameRule.Error(NewName, Sections);
+
+        return SelectedSection is null ? "Elegí una comisión." : null;
     }
 
     private async Task LoadPreviewAsync()
@@ -225,18 +223,7 @@ public partial class CommissionImportViewModel : ObservableObject
         try
         {
             var sectionId = CreateNew ? (int?)null : SelectedSection!.Id;
-            _preview = await _import.PreviewAsync(sectionId, _rows);
-            Conflicts.Clear();
-            foreach (var conflict in _preview.Conflicts)
-                Conflicts.Add(new ConflictChoice(conflict));
-
-            InsertText = _preview.InsertCount == 1
-                ? "Se va a insertar 1 alumno."
-                : $"Se van a insertar {_preview.InsertCount} alumnos.";
-            BlockedText = CreateNew && _preview.Conflicts.Count > 0
-                ? "El archivo tiene DNI o legajos repetidos, o un DNI que ya está guardado. Esta comisión nueva no se confirma."
-                : string.Empty;
-            Step = 2;
+            ShowPreview(await _import.PreviewAsync(sectionId, _rows));
         }
         catch (ImportValidationException ex)
         {
@@ -251,6 +238,22 @@ public partial class CommissionImportViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    private void ShowPreview(ImportPreview preview)
+    {
+        _preview = preview;
+        Conflicts.Clear();
+        foreach (var conflict in preview.Conflicts)
+            Conflicts.Add(new ConflictChoice(conflict));
+
+        InsertText = preview.InsertCount == 1
+            ? "Se va a insertar 1 alumno."
+            : $"Se van a insertar {preview.InsertCount} alumnos.";
+        BlockedText = CreateNew && preview.Conflicts.Count > 0
+            ? "El archivo tiene DNI o legajos repetidos, o un DNI que ya está guardado. Esta comisión nueva no se confirma."
+            : string.Empty;
+        Step = 2;
     }
 
     private async Task ConfirmAsync()
@@ -271,21 +274,7 @@ public partial class CommissionImportViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            Section section;
-            if (CreateNew)
-            {
-                section = await _import.CreateAsync(NewName, _rows, DateTime.Today);
-            }
-            else
-            {
-                await _import.ApplyAsync(
-                    SelectedSection!.Id,
-                    _preview,
-                    Conflicts.Select(choice => choice.Decision).ToList(),
-                    DateTime.Today);
-                section = SelectedSection;
-            }
-
+            var section = CreateNew ? await CreateSectionAsync() : await ApplyToExistingAsync(_preview);
             IsOpen = false;
             await _selection.ReloadAsync(section);
         }
@@ -302,6 +291,39 @@ public partial class CommissionImportViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    private Task<Section> CreateSectionAsync() => _import.CreateAsync(NewName, _rows, _clock.Today);
+
+    private async Task<Section> ApplyToExistingAsync(ImportPreview preview)
+    {
+        var section = SelectedSection!;
+        var decisions = Conflicts.Select(choice => choice.Decision).ToList();
+        await _import.ApplyAsync(section.Id, preview, decisions, _clock.Today);
+        return section;
+    }
+
+    private void ResetWizard()
+    {
+        Step = 0;
+        ChosenFileName = string.Empty;
+        ErrorMessage = string.Empty;
+        CreateNew = true;
+        NewName = string.Empty;
+        InsertText = string.Empty;
+        BlockedText = string.Empty;
+        _rows = [];
+        _preview = null;
+        Conflicts.Clear();
+        Sections.Clear();
+    }
+
+    private async Task LoadSectionsAsync()
+    {
+        var sections = await _import.GetSectionsAsync();
+        foreach (var section in sections)
+            Sections.Add(section);
+        SelectedSection = Sections.FirstOrDefault(section => section.Id == _selection.Current?.Id) ?? Sections.FirstOrDefault();
     }
 
     private void ClearFile(string message)

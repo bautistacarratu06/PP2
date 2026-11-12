@@ -5,7 +5,7 @@ using GestionEscolar.Core.Models;
 namespace GestionEscolar.Core.Services;
 
 // Registro de entregas: trabajos de la comisión, entrega por alumno y guardado.
-public class SubmissionService
+public class SubmissionService : ISubmissionService
 {
     private readonly ICalendarRepository _calendar;
     private readonly ISubmissionRepository _submissions;

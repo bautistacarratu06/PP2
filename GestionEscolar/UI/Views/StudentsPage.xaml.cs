@@ -21,7 +21,14 @@ public partial class StudentsPage : ContentPage
         base.OnAppearing();
         WireFileDrop(Handler?.PlatformView);
         WireFileDrop(Wizard.Handler?.PlatformView);
+        _viewModel.Subscribe();
         await _viewModel.LoadCommand.ExecuteAsync(null);
+    }
+
+    protected override void OnDisappearing()
+    {
+        _viewModel.Unsubscribe();
+        base.OnDisappearing();
     }
 
     protected override void OnHandlerChanged()

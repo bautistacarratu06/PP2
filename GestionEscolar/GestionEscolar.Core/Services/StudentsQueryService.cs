@@ -1,11 +1,11 @@
-using GestionEscolar.Core.Enums;
+﻿using GestionEscolar.Core.Enums;
 using GestionEscolar.Core.Interfaces;
 using GestionEscolar.Core.Models;
 
 namespace GestionEscolar.Core.Services;
 
 // Consulta unificada de la vista Estudiantes: riesgo, filtros, orden y resumen solo sobre activos.
-public class StudentsQueryService
+public class StudentsQueryService : IStudentsQueryService
 {
     private readonly ITrackingRepository _repository;
     private readonly RiskConfig _config;
@@ -54,39 +54,67 @@ public class StudentsQueryService
         IEnumerable<StudentRiskResult> students,
         StudentsQueryFilter filter)
     {
-        IEnumerable<StudentRiskResult> rows = students;
+        var rows = FilterByActiveStatus(students, filter);
+        rows = FilterByRisk(rows, filter);
+        rows = FilterByPercent(rows, filter);
+        rows = FilterByContact(rows, filter);
+        rows = FilterByText(rows, filter);
+        return FilterBySearch(rows, filter);
+    }
 
-        rows = filter.ActiveStatus switch
+    private static IEnumerable<StudentRiskResult> FilterByActiveStatus(
+        IEnumerable<StudentRiskResult> rows,
+        StudentsQueryFilter filter) =>
+        filter.ActiveStatus switch
         {
             ActiveStatusFilter.ActiveOnly => rows.Where(s => s.Data.Student.IsActive),
             ActiveStatusFilter.InactiveOnly => rows.Where(s => !s.Data.Student.IsActive),
             _ => rows
         };
 
-        if (filter.RiskLevels is { Count: > 0 } levels)
-            rows = rows.Where(s => levels.Contains(s.RiskLevel));
+    private static IEnumerable<StudentRiskResult> FilterByRisk(
+        IEnumerable<StudentRiskResult> rows,
+        StudentsQueryFilter filter) =>
+        filter.RiskLevels is { Count: > 0 } levels
+            ? rows.Where(s => levels.Contains(s.RiskLevel))
+            : rows;
 
+    private static IEnumerable<StudentRiskResult> FilterByPercent(
+        IEnumerable<StudentRiskResult> rows,
+        StudentsQueryFilter filter)
+    {
         if (filter.AttendanceMinPercent is int minAtt)
             rows = rows.Where(s => s.Data.AttendancePercent >= minAtt);
         if (filter.AttendanceMaxPercent is int maxAtt)
             rows = rows.Where(s => s.Data.AttendancePercent <= maxAtt);
-
         if (filter.DeliveryMinPercent is int minDel)
             rows = rows.Where(s => s.Data.DeliveryPercent >= minDel);
         if (filter.DeliveryMaxPercent is int maxDel)
             rows = rows.Where(s => s.Data.DeliveryPercent <= maxDel);
 
-        if (filter.ContactStatuses is { Count: > 0 } contacts)
-        {
-            rows = rows.Where(s =>
-            {
-                var status = s.Data.LastContact is null
-                    ? ContactStatusFilter.SinContactar
-                    : ContactStatusFilter.Contactado;
-                return contacts.Contains(status);
-            });
-        }
+        return rows;
+    }
 
+    private static IEnumerable<StudentRiskResult> FilterByContact(
+        IEnumerable<StudentRiskResult> rows,
+        StudentsQueryFilter filter)
+    {
+        if (filter.ContactStatuses is not { Count: > 0 } contacts)
+            return rows;
+
+        return rows.Where(s =>
+        {
+            var status = s.Data.LastContact is null
+                ? ContactStatusFilter.SinContactar
+                : ContactStatusFilter.Contactado;
+            return contacts.Contains(status);
+        });
+    }
+
+    private static IEnumerable<StudentRiskResult> FilterByText(
+        IEnumerable<StudentRiskResult> rows,
+        StudentsQueryFilter filter)
+    {
         if (!string.IsNullOrWhiteSpace(filter.NameContains))
         {
             var needle = filter.NameContains.Trim();
@@ -108,17 +136,22 @@ public class StudentsQueryService
             rows = rows.Where(s => Contains(s.Data.Student.Email, needle));
         }
 
-        if (!string.IsNullOrWhiteSpace(filter.SearchText))
-        {
-            var needle = filter.SearchText.Trim();
-            rows = rows.Where(s =>
-                Contains(s.Data.Student.Name, needle)
-                || Contains(s.Data.Student.LastName, needle)
-                || Contains(s.Data.Student.FirstName, needle)
-                || Contains(s.Data.Student.StudentNumber, needle));
-        }
-
         return rows;
+    }
+
+    private static IEnumerable<StudentRiskResult> FilterBySearch(
+        IEnumerable<StudentRiskResult> rows,
+        StudentsQueryFilter filter)
+    {
+        if (string.IsNullOrWhiteSpace(filter.SearchText))
+            return rows;
+
+        var needle = filter.SearchText.Trim();
+        return rows.Where(s =>
+            Contains(s.Data.Student.Name, needle)
+            || Contains(s.Data.Student.LastName, needle)
+            || Contains(s.Data.Student.FirstName, needle)
+            || Contains(s.Data.Student.StudentNumber, needle));
     }
 
     private static IOrderedEnumerable<StudentRiskResult> ApplySort(

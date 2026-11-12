@@ -5,7 +5,7 @@ using GestionEscolar.Core.Models;
 namespace GestionEscolar.Core.Services;
 
 // Registro de asistencia: clases de la comisión, asistencia por alumno y guardado.
-public class AttendanceService
+public class AttendanceService : IAttendanceService
 {
     private readonly ICalendarRepository _calendar;
     private readonly IAttendanceRepository _attendance;

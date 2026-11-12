@@ -40,31 +40,6 @@ public static class StudentEntryRules
         };
     }
 
-    public static string Label(Student student)
-    {
-        ArgumentNullException.ThrowIfNull(student);
-        if (string.IsNullOrWhiteSpace(student.LastName) && string.IsNullOrWhiteSpace(student.FirstName))
-            return student.Name;
-
-        return $"{student.LastName}, {student.FirstName}";
-    }
-
-    public static string? SectionNameError(string? name, IEnumerable<Section> existing)
-    {
-        ArgumentNullException.ThrowIfNull(existing);
-        var trimmed = name?.Trim() ?? string.Empty;
-        if (trimmed.Length == 0)
-            return "El nombre no puede estar vacío.";
-
-        if (trimmed.Length > MaxSectionNameLength)
-            return $"El nombre no puede superar {MaxSectionNameLength} caracteres.";
-
-        if (existing.Any(section => section.Name.Equals(trimmed, StringComparison.OrdinalIgnoreCase)))
-            return "Ya existe una comisión con ese nombre.";
-
-        return null;
-    }
-
     private static string Required(string? value, string message)
     {
         var trimmed = value?.Trim() ?? string.Empty;

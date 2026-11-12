@@ -5,7 +5,7 @@ using GestionEscolar.Core.Models;
 namespace GestionEscolar.Core.Services;
 
 // Nómina de una comisión: la lee y da de alta un alumno.
-public class StudentService
+public class StudentService : IStudentService
 {
     // Crea una propiedad interna de la clase que es de tipo IStudentRepository y se llama _repository.
     private readonly IStudentRepository _repository;
@@ -37,11 +37,11 @@ public class StudentService
             .FindByStudentNumberAsync(sectionId, student.StudentNumber, cancellationToken)
             .ConfigureAwait(false);
         if (byNumber is not null)
-            throw new StudentEnrollmentException($"El legajo {student.StudentNumber} ya pertenece a {StudentEntryRules.Label(byNumber)}.");
+            throw new StudentEnrollmentException($"El legajo {student.StudentNumber} ya pertenece a {StudentNameFormatter.Label(byNumber)}.");
 
         var byDni = await _repository.FindByDniAsync(student.Dni, cancellationToken).ConfigureAwait(false);
         if (byDni is not null)
-            throw new StudentEnrollmentException($"El DNI {student.Dni} ya pertenece a {StudentEntryRules.Label(byDni)}.");
+            throw new StudentEnrollmentException($"El DNI {student.Dni} ya pertenece a {StudentNameFormatter.Label(byDni)}.");
 
         student.SectionId = sectionId;
         return Copy(await _repository.AddAsync(student, cancellationToken).ConfigureAwait(false));

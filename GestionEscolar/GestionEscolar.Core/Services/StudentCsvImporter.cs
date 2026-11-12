@@ -38,26 +38,30 @@ public static class StudentCsvImporter
             if (string.IsNullOrWhiteSpace(line))
                 continue;
 
-            var fields = CsvParser.ParseLine(line);
-            var row = new StudentTrackingData();
-
-            try
-            {
-                for (var i = 0; i < headers.Count && i < fields.Count; i++)
-                {
-                    if (Setters.TryGetValue(headers[i], out var setter))
-                        setter(row, fields[i].Trim());
-                }
-            }
-            catch (FormatException ex)
-            {
-                throw new InvalidDataException($"Dato inválido en la línea {lineNumber}: {ex.Message}", ex);
-            }
-
-            rows.Add(row);
+            rows.Add(ReadRow(headers, CsvParser.ParseLine(line), lineNumber));
         }
 
         return rows;
+    }
+
+    private static StudentTrackingData ReadRow(List<string> headers, List<string> fields, int lineNumber)
+    {
+        var row = new StudentTrackingData();
+
+        try
+        {
+            for (var i = 0; i < headers.Count && i < fields.Count; i++)
+            {
+                if (Setters.TryGetValue(headers[i], out var setter))
+                    setter(row, fields[i].Trim());
+            }
+        }
+        catch (FormatException ex)
+        {
+            throw new InvalidDataException($"Dato inválido en la línea {lineNumber}: {ex.Message}", ex);
+        }
+
+        return row;
     }
 
     private static int ParseInt(string value) =>

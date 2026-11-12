@@ -6,7 +6,7 @@ namespace GestionEscolar.Core.Services;
 // Caso de uso de seguimiento: evalúa a cada alumno con la regla de riesgo y devuelve
 // esa lista junto con el resumen Alto/Medio/Bajo contado sobre la misma lista.
 // Usa el RiskConfig en memoria (el que RiskSettingsService carga de la tabla).
-public class TrackingService
+public class TrackingService : ITrackingService
 {
     private readonly ITrackingRepository _repository;
     private readonly RiskConfig _config;

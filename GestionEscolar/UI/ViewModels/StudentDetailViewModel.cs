@@ -1,41 +1,37 @@
 ﻿using System.Collections.ObjectModel;
-using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GestionEscolar.Core.Enums;
 using GestionEscolar.Core.Models;
 using GestionEscolar.Core.Services;
 using UI.Formatting;
+using UI.Services;
 
 namespace UI.ViewModels
 {
     // Recibe la fila de Seguimiento ("Student", un StudentRow) y la comisión elegida ("SectionId"/"SectionName").
     // El nivel y el score de riesgo vienen de la fila (iguales a la grilla); contacto, comisión e
-    // historiales se leen de la base con StudentDetailsService.
-    public partial class StudentDetailViewModel : ObservableObject, IQueryAttributable
+    // historiales se leen de la base con IStudentDetailsService. El formulario de contacto es Contact.
+    public partial class StudentDetailViewModel : BusyStateViewModel, IQueryAttributable
     {
         public const string StudentQueryKey = "Student";
         public const string SectionQueryKey = "SectionName";
         public const string SectionIdQueryKey = "SectionId";
 
-        private const string DateFormat = "dd'/'MM'/'yyyy";
+        private const string LoadFailedMessage = "No se pudo cargar el detalle del alumno.";
 
-        private readonly StudentDetailsService _detailsService;
+        private readonly IStudentDetailsService _detailsService;
+        private readonly IAppNavigation _navigation;
         private int _studentId;
         private int? _sectionId;
 
-        public StudentDetailViewModel(StudentDetailsService detailsService)
+        public StudentDetailViewModel(IStudentDetailsService detailsService, IAppNavigation navigation, IClock clock)
         {
             _detailsService = detailsService;
+            _navigation = navigation;
+            Contact = new ContactFormViewModel(detailsService, clock, () => _studentId, ReloadAsync);
         }
 
-        public DateTime Today => DateTime.Today;
-
-        public IReadOnlyList<string> ChannelOptions { get; } =
-            Enum.GetValues<ContactChannel>().Select(channel => channel.ToDbValue()).ToList();
-
-        public IReadOnlyList<string> OutcomeOptions { get; } =
-            Enum.GetValues<ContactOutcome>().Select(outcome => outcome.ToDbValue()).ToList();
+        public ContactFormViewModel Contact { get; }
 
         [ObservableProperty]
         public partial string Name { get; set; } = string.Empty;
@@ -66,37 +62,6 @@ namespace UI.ViewModels
 
         [ObservableProperty]
         public partial Color BadgeForeground { get; set; } = RiskBadge.For(null).Foreground;
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(HasNoAttendance), nameof(HasNoSubmissions), nameof(HasNoInterventions))]
-        public partial bool IsBusy { get; set; }
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(HasError))]
-        public partial string ErrorMessage { get; set; } = string.Empty;
-
-        [ObservableProperty]
-        public partial bool IsContactOpen { get; set; }
-
-        [ObservableProperty]
-        public partial DateTime ContactDate { get; set; } = DateTime.Today;
-
-        [ObservableProperty]
-        public partial string? SelectedChannel { get; set; }
-
-        [ObservableProperty]
-        public partial string? SelectedOutcome { get; set; }
-
-        [ObservableProperty]
-        public partial string Note { get; set; } = string.Empty;
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(HasContactError))]
-        public partial string ContactError { get; set; } = string.Empty;
-
-        public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
-
-        public bool HasContactError => !string.IsNullOrEmpty(ContactError);
 
         public ObservableCollection<HistoryItem> Attendance { get; } = new();
 
@@ -133,13 +98,29 @@ namespace UI.ViewModels
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
-            if (query.TryGetValue(SectionQueryKey, out var section) && section is string sectionName && sectionName.Length > 0)
+            var parsed = StudentDetailQuery.Read(query);
+            if (parsed.SectionName is { Length: > 0 } sectionName)
                 Commission = sectionName;
 
-            if (!query.TryGetValue(StudentQueryKey, out var value) || value is not StudentRow row)
+            if (parsed.Row is not { } row)
                 return;
 
-            // Datos de la fila: se muestran enseguida y el riesgo queda igual que en la grilla.
+            ShowRow(row);
+            _sectionId = parsed.SectionId;
+            _studentId = row.Student.Id;
+            _ = ReloadAsync();
+        }
+
+        protected override void OnBusyChanged()
+        {
+            OnPropertyChanged(nameof(HasNoAttendance));
+            OnPropertyChanged(nameof(HasNoSubmissions));
+            OnPropertyChanged(nameof(HasNoInterventions));
+        }
+
+        // Datos de la fila: se muestran enseguida y el riesgo queda igual que en la grilla.
+        private void ShowRow(StudentRow row)
+        {
             Name = row.Name;
             StudentNumber = row.StudentNumber;
             Phone = row.Phone;
@@ -155,140 +136,46 @@ namespace UI.ViewModels
                 AssignmentTotal = risk.Data.TotalAssignments;
                 NotifyMetrics();
             }
+
             BadgeBackground = row.BadgeBackground;
             BadgeForeground = row.BadgeForeground;
-
-            _sectionId = query.TryGetValue(SectionIdQueryKey, out var id) && id is int sid && sid > 0 ? sid : null;
-            _studentId = row.Student.Id;
-            _ = LoadAsync(_studentId, _sectionId);
         }
 
-        [RelayCommand]
-        private void OpenContact()
+        private Task ReloadAsync() =>
+            RunLoopAsync(() => LoadDetailAsync(_studentId, _sectionId), LoadFailedMessage);
+
+        private async Task LoadDetailAsync(int studentId, int? sectionId)
         {
-            ContactDate = DateTime.Today;
-            SelectedChannel = null;
-            SelectedOutcome = null;
-            Note = string.Empty;
-            ContactError = string.Empty;
-            IsContactOpen = true;
-        }
-
-        [RelayCommand]
-        private void CancelContact() => IsContactOpen = false;
-
-        [RelayCommand]
-        private async Task SaveContactAsync()
-        {
-            if (_studentId <= 0 || IsBusy)
-                return;
-
-            IsBusy = true;
-            try
-            {
-                await _detailsService.RegisterContactAsync(
-                    _studentId,
-                    ContactDate,
-                    DbStatusValues.ParseContactChannel(SelectedChannel),
-                    DbStatusValues.ParseContactOutcome(SelectedOutcome),
-                    Note,
-                    DateTime.Today);
-                IsContactOpen = false;
-                ContactError = string.Empty;
-                await LoadAsync(_studentId, _sectionId);
-            }
-            catch (ContactValidationException ex)
-            {
-                ContactError = ex.Message;
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                ContactError = "Elegí un medio y un resultado.";
-            }
-            catch (Exception ex)
-            {
-                ContactError = "No se pudo guardar el contacto.";
-                System.Diagnostics.Debug.WriteLine(ex);
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        private async Task LoadAsync(int studentId, int? sectionId)
-        {
-            IsBusy = true;
-            ErrorMessage = string.Empty;
             Attendance.Clear();
             Submissions.Clear();
             Interventions.Clear();
-            try
+            var detail = await _detailsService.GetAsync(studentId, sectionId);
+            if (detail is null)
             {
-                var detail = await _detailsService.GetAsync(studentId, sectionId);
-                if (detail is null)
-                {
-                    ErrorMessage = "No se encontró el alumno.";
-                    return;
-                }
-
-                Phone = detail.PhoneNumber;
-                Email = detail.Email;
-                StudentNumber = detail.StudentNumber;
-                if (string.IsNullOrEmpty(Commission) || sectionId is null || sectionId == detail.SectionId)
-                    Commission = detail.SectionName;
-
-                Name = PersonName.AsSurnameFirst($"{detail.Name} {detail.LastName}");
-                OnPropertyChanged(nameof(HeaderSubtitle));
-
-                foreach (var a in detail.AttendanceRecords)
-                {
-                    var status = AttendanceText(a.Status);
-                    Attendance.Add(new HistoryItem($"Clase · {Format(a.Date)}", status, KindFor(status)));
-                }
-
-                foreach (var s in detail.Submissions)
-                {
-                    var status = SubmissionText(s.Status);
-                    Submissions.Add(new HistoryItem($"{s.AssignmentName} · vence {Format(s.DueDate)}", status, KindFor(status)));
-                }
-
-                foreach (var i in detail.Interventions)
-                    Interventions.Add(new HistoryItem($"{Format(i.Date)} · {i.Channel} · {i.Description}", string.Empty, "neutral"));
+                ErrorMessage = "No se encontró el alumno.";
+                return;
             }
-            catch (Exception ex)
-            {
-                ErrorMessage = "No se pudo cargar el detalle del alumno.";
-                System.Diagnostics.Debug.WriteLine($"No se pudo cargar el detalle del alumno {studentId}: {ex}");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+
+            ShowDetail(detail, sectionId);
+            foreach (var record in detail.AttendanceRecords)
+                Attendance.Add(HistoryFormatter.Attendance(record));
+            foreach (var submission in detail.Submissions)
+                Submissions.Add(HistoryFormatter.Submission(submission));
+            foreach (var intervention in detail.Interventions)
+                Interventions.Add(HistoryFormatter.Intervention(intervention));
         }
 
-        private static string Format(DateTime date) => date.ToString(DateFormat, CultureInfo.InvariantCulture);
-
-        private static string AttendanceText(AttendanceStatus? status) => status switch
+        private void ShowDetail(StudentDetail detail, int? sectionId)
         {
-            AttendanceStatus.Presente => "Presente",
-            AttendanceStatus.Ausente => "Ausente",
-            _ => "Sin registro"
-        };
+            Phone = detail.PhoneNumber;
+            Email = detail.Email;
+            StudentNumber = detail.StudentNumber;
+            if (string.IsNullOrEmpty(Commission) || sectionId is null || sectionId == detail.SectionId)
+                Commission = detail.SectionName;
 
-        private static string SubmissionText(SubmissionStatus? status) => status switch
-        {
-            SubmissionStatus.Entrego => "Entregó",
-            SubmissionStatus.NoEntrego => "No entregó",
-            _ => "Sin registro"
-        };
-
-        private static string KindFor(string status) => status switch
-        {
-            "Presente" or "Entregó" => "success",
-            "Ausente" or "No entregó" => "danger",
-            _ => "neutral"
-        };
+            Name = PersonName.AsSurnameFirst($"{detail.Name} {detail.LastName}");
+            OnPropertyChanged(nameof(HeaderSubtitle));
+        }
 
         private static string Percent(double ratio) => $"{Math.Round(ratio * 100)}%";
 
@@ -310,8 +197,6 @@ namespace UI.ViewModels
         partial void OnStudentNumberChanged(string value) => OnPropertyChanged(nameof(HeaderSubtitle));
 
         [RelayCommand]
-        private Task BackAsync() => Shell.Current.GoToAsync("//StudentsPage");
+        private Task BackAsync() => _navigation.GoToStudentsAsync();
     }
-
-    public sealed record HistoryItem(string Label, string Status, string Kind);
 }

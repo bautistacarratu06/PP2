@@ -1,4 +1,5 @@
 using Microsoft.Maui.Controls.Shapes;
+using UI.Formatting;
 
 namespace UI.Controls;
 
@@ -43,9 +44,9 @@ public class SegmentedControl : Border
         ((SegmentedControl)bindable).Paint();
 
     private IReadOnlyList<(string Key, string Label, string Kind)> Options =>
-        Mode == "submission"
-            ? [("Entregó", "Entregó", "success"), ("No entregó", "No entregó", "danger")]
-            : [("Presente", "Presente", "success"), ("Ausente", "Ausente", "danger")];
+        (Mode == "submission" ? StatusLabels.SubmissionOptions : StatusLabels.AttendanceOptions)
+            .Select(label => (label, label, StatusLabels.Kind(label)))
+            .ToList();
 
     private void Build()
     {

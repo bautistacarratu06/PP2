@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using UI.Formatting;
 
 namespace UI.Controls;
 
@@ -78,12 +79,7 @@ public partial class KpiCard : ContentView
 
     private void Apply()
     {
-        var (ink, soft) = Level switch
-        {
-            "Alto" => ("#F87171", "#1FF87171"),
-            "Medio" => ("#FBBF24", "#1FFBBF24"),
-            _ => ("#34D399", "#1F34D399")
-        };
+        var (ink, soft) = RiskPalette.For(Level);
         Caption.Text = CaptionText;
         ValueLabel.Text = Value.ToString();
         TotalLabel.Text = $"de {Total}";

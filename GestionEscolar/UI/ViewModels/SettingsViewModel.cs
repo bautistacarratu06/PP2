@@ -9,10 +9,10 @@ namespace UI.ViewModels
     // Los umbrales se leen y se guardan en dbo.setting a través de RiskSettingsService.
     public partial class SettingsViewModel : ObservableObject
     {
-        private readonly RiskSettingsService _riskSettings;
+        private readonly IRiskSettingsService _riskSettings;
         private readonly RiskConfig _config;
 
-        public SettingsViewModel(RiskSettingsService riskSettings, RiskConfig config)
+        public SettingsViewModel(IRiskSettingsService riskSettings, RiskConfig config)
         {
             ArgumentNullException.ThrowIfNull(riskSettings);
             ArgumentNullException.ThrowIfNull(config);

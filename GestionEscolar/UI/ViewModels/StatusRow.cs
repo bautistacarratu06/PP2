@@ -40,14 +40,9 @@ namespace UI.ViewModels
         [ObservableProperty]
         public partial bool IsSelected { get; set; }
 
-        public string StatusDisplay => string.IsNullOrEmpty(SelectedStatus) ? "Sin registro" : SelectedStatus;
+        public string StatusDisplay => string.IsNullOrEmpty(SelectedStatus) ? StatusLabels.NoRecord : SelectedStatus;
 
-        public string StatusKind => SelectedStatus switch
-        {
-            "Presente" or "Entregó" => "success",
-            "Ausente" or "No entregó" => "danger",
-            _ => "neutral"
-        };
+        public string StatusKind => StatusLabels.Kind(SelectedStatus);
 
         partial void OnSelectedStatusChanged(string? oldValue, string? newValue)
         {

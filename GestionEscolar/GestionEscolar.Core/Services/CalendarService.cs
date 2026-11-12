@@ -6,7 +6,7 @@ namespace GestionEscolar.Core.Services;
 
 // Calendario de una comisión: lista combinada de clases y trabajos.
 // La fecha de clase y el nombre del trabajo se validan en CalendarEntryRules antes de guardar.
-public class CalendarService
+public class CalendarService : ICalendarService
 {
     private readonly ICalendarRepository _repository;
 
