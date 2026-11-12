@@ -42,6 +42,7 @@ public class PagingAndMultilineCsvTests
             page.Students.Select(s => s.Data.Student.StudentNumber));
         Assert.Equal(all.ActiveRiskSummary, page.ActiveRiskSummary);
         Assert.Equal(1000, page.ActiveRiskSummary.Total);
+        Assert.Equal(1000, page.TotalCount);
     }
 
     [Fact]
@@ -52,6 +53,7 @@ public class PagingAndMultilineCsvTests
         var result = await service.QueryAsync(1, new StudentsQueryFilter { Page = 3 });
 
         Assert.Equal(120, result.Students.Count);
+        Assert.Equal(120, result.TotalCount);
     }
 
     [Fact]

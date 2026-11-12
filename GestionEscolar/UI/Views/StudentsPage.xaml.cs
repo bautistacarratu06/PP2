@@ -37,6 +37,19 @@ public partial class StudentsPage : ContentPage
         WireFileDrop(Handler?.PlatformView);
     }
 
+    // Faltando menos de ~5 filas para el final, pide la página siguiente.
+    private const double LoadMoreThreshold = 320;
+
+    private void OnRowsScrolled(object? sender, ScrolledEventArgs e)
+    {
+        if (sender is not ScrollView scroll)
+            return;
+
+        var remaining = scroll.ContentSize.Height - scroll.Height - e.ScrollY;
+        if (remaining < LoadMoreThreshold && _viewModel.LoadMoreCommand.CanExecute(null))
+            _ = _viewModel.LoadMoreCommand.ExecuteAsync(null);
+    }
+
     private void OnNewCommission(object? sender, EventArgs e) => _viewModel.Import.CreateNew = true;
 
     private void OnExistingCommission(object? sender, EventArgs e) => _viewModel.Import.CreateNew = false;

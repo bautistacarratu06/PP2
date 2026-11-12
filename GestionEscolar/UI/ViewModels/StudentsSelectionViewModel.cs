@@ -35,6 +35,12 @@ public sealed partial class StudentsSelectionViewModel : ObservableObject
     public void ReplaceRows(IEnumerable<StudentRow> rows)
     {
         _rows.Clear();
+        AppendRows(rows);
+    }
+
+    // Agrega la página siguiente al final de la grilla.
+    public void AppendRows(IEnumerable<StudentRow> rows)
+    {
         _isUpdating = true;
         foreach (var row in rows)
         {

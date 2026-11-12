@@ -14,10 +14,15 @@ public partial class StudentsViewModel : BusyStateViewModel
 {
     private const string LoadFailedMessage = "No se pudieron cargar los estudiantes.";
 
+    // Filas por página: la grilla no virtualiza, así que se agregan de a tandas al hacer scroll.
+    public const int PageSize = 100;
+
     private readonly IStudentsQueryService _query;
     private readonly SectionSelection _selection;
     private readonly SectionChangeSubscription _subscription;
     private int? _boundSectionId;
+    private int _loadedPage;
+    private int _generation;
 
     public StudentsViewModel(
         IStudentsQueryService query,
@@ -58,11 +63,24 @@ public partial class StudentsViewModel : BusyStateViewModel
     [ObservableProperty]
     public partial string SearchText { get; set; } = string.Empty;
 
+    // Total de filas que cumplen los filtros (el pie muestra "Cargados: n de total").
+    [ObservableProperty]
+    public partial int TotalMatching { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsLoadingMore { get; set; }
+
+    [ObservableProperty]
+    public partial string LoadMoreError { get; set; } = string.Empty;
+
     public int HighRiskCount => Summary.High;
     public int MediumRiskCount => Summary.Medium;
     public int LowRiskCount => Summary.Low;
     public int TotalCount => Summary.Total;
     public int FilteredCount => FilteredStudents.Count;
+    public bool HasMore => FilteredStudents.Count < TotalMatching;
+    public bool HasLoadMoreError => !string.IsNullOrEmpty(LoadMoreError);
+    public string LoadedText => $"Cargados: {FilteredStudents.Count} de {TotalMatching}";
 
     public bool HasNoResults => !IsBusy && FilteredStudents.Count == 0 && string.IsNullOrEmpty(ErrorMessage);
     public bool ShowEmptyRoster => HasNoResults && !Filters.HasActiveFilters && string.IsNullOrWhiteSpace(SearchText);
@@ -74,6 +92,10 @@ public partial class StudentsViewModel : BusyStateViewModel
     public void Unsubscribe() => _subscription.Unsubscribe();
 
     partial void OnSearchTextChanged(string value) => _ = ReloadQuietAsync();
+
+    partial void OnTotalMatchingChanged(int value) => NotifyListState();
+
+    partial void OnLoadMoreErrorChanged(string value) => OnPropertyChanged(nameof(HasLoadMoreError));
 
     protected override void OnBusyChanged() => NotifyListState();
 
@@ -100,6 +122,8 @@ public partial class StudentsViewModel : BusyStateViewModel
 
     private async Task LoadRowsAsync()
     {
+        _generation++;
+        LoadMoreError = string.Empty;
         await _selection.EnsureLoadedAsync();
         var section = _selection.Current;
         if (section is null)
@@ -116,18 +140,56 @@ public partial class StudentsViewModel : BusyStateViewModel
             _boundSectionId = section.Id;
         }
 
-        var result = await _query.QueryAsync(section.Id, Filters.Build(SearchText));
+        var result = await _query.QueryAsync(section.Id, Filters.Build(SearchText, 1, PageSize));
         if (HasPendingWork)
             return;
 
         Summary = result.ActiveRiskSummary;
+        _loadedPage = 1;
         Selection.ReplaceRows(result.Students.Select(student => new StudentRow(student, 0)));
+        TotalMatching = result.TotalCount;
         NotifyListState();
+    }
+
+    // Trae la página siguiente y la agrega al final. Si mientras tanto hubo una recarga
+    // (cambio de filtro, búsqueda o comisión), el resultado se descarta.
+    [RelayCommand]
+    private async Task LoadMoreAsync()
+    {
+        if (IsBusy || IsLoadingMore || !HasMore || _selection.Current is not { } section)
+            return;
+
+        var generation = _generation;
+        IsLoadingMore = true;
+        LoadMoreError = string.Empty;
+        try
+        {
+            var filter = Filters.Build(SearchText, _loadedPage + 1, PageSize);
+            var result = await _query.QueryAsync(section.Id, filter);
+            if (generation != _generation || IsBusy)
+                return;
+
+            _loadedPage++;
+            Selection.AppendRows(result.Students.Select(student => new StudentRow(student, 0)));
+            TotalMatching = result.TotalCount;
+            NotifyListState();
+        }
+        catch (Exception ex)
+        {
+            LoadMoreError = "No se pudieron cargar más estudiantes.";
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            IsLoadingMore = false;
+        }
     }
 
     private void ClearRows()
     {
         Selection.ClearRows();
+        _loadedPage = 0;
+        TotalMatching = 0;
         Summary = RiskSummary.Empty;
         NotifyListState();
     }
@@ -156,6 +218,8 @@ public partial class StudentsViewModel : BusyStateViewModel
     private void NotifyListState()
     {
         OnPropertyChanged(nameof(FilteredCount));
+        OnPropertyChanged(nameof(HasMore));
+        OnPropertyChanged(nameof(LoadedText));
         OnPropertyChanged(nameof(HasNoResults));
         OnPropertyChanged(nameof(ShowEmptyRoster));
         OnPropertyChanged(nameof(ShowSearchEmpty));

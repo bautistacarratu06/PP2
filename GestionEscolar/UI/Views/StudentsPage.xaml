@@ -114,7 +114,7 @@
                             <Label
                                 Grid.Column="1"
                                 Style="{StaticResource CountLabel}"
-                                Text="{Binding FilteredCount, StringFormat='{0} estudiantes'}" />
+                                Text="{Binding TotalMatching, StringFormat='{0} estudiantes'}" />
                         </Grid>
                         <BoxView HeightRequest="1" Color="{StaticResource Line}" />
 
@@ -280,7 +280,7 @@
                                 </Border>
 
                                 <BoxView HeightRequest="1" Color="{StaticResource Line}" />
-                                <ScrollView MaximumHeightRequest="560">
+                                <ScrollView MaximumHeightRequest="560" Scrolled="OnRowsScrolled">
                                     <controls:GridLoadingView
                                         ErrorMessage="{Binding ErrorMessage}"
                                         HasError="{Binding HasError}"
@@ -406,11 +406,29 @@
                                                 </BindableLayout.ItemTemplate>
                                             </VerticalStackLayout>
                                             <Label IsVisible="{Binding ShowSearchEmpty}" Style="{StaticResource EmptyLabel}" Text="Sin resultados para esos filtros." />
+                                            <ActivityIndicator
+                                                Margin="0,12"
+                                                HeightRequest="24"
+                                                IsRunning="{Binding IsLoadingMore}"
+                                                IsVisible="{Binding IsLoadingMore}" />
                                         </VerticalStackLayout>
                                     </controls:GridLoadingView>
                                 </ScrollView>
                             </VerticalStackLayout>
                         </ScrollView>
+                        <BoxView HeightRequest="1" Color="{StaticResource Line}" />
+                        <Grid Padding="16,10" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <Label
+                                IsVisible="{Binding HasLoadMoreError}"
+                                Text="{Binding LoadMoreError}"
+                                TextColor="{StaticResource Danger}"
+                                VerticalOptions="Center" />
+                            <Label
+                                Grid.Column="1"
+                                Style="{StaticResource CountLabel}"
+                                Text="{Binding LoadedText}"
+                                VerticalOptions="Center" />
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
 

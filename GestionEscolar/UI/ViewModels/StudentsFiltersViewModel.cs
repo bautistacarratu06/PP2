@@ -161,9 +161,11 @@ public sealed partial class StudentsFiltersViewModel : ObservableObject
         SortDescending = false;
     }
 
-    public StudentsQueryFilter Build(string? searchText) => new()
+    public StudentsQueryFilter Build(string? searchText, int? page = null, int? pageSize = null) => new()
     {
         SearchText = searchText,
+        Page = page,
+        PageSize = pageSize,
         NameContains = NullIfBlank(NameFilter),
         StudentNumberContains = NullIfBlank(LegajoFilter),
         EmailContains = NullIfBlank(EmailFilter),

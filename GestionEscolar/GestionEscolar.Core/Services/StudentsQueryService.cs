@@ -25,9 +25,9 @@ public class StudentsQueryService : IStudentsQueryService
         var rows = await _repository.GetRowsBySectionAsync(sectionId, cancellationToken).ConfigureAwait(false);
         var evaluated = rows.Select(Evaluate).ToList();
         var activeSummary = RiskSummary.FromResults(evaluated.Where(student => student.Data.Student.IsActive));
-        var filtered = ApplyFilters(evaluated, filter);
-        var ordered = ApplyPaging(ApplySort(filtered, filter), filter).ToList();
-        return new StudentsQueryResult(ordered, activeSummary);
+        var sorted = ApplySort(ApplyFilters(evaluated, filter), filter).ToList();
+        var page = ApplyPaging(sorted, filter).ToList();
+        return new StudentsQueryResult(page, activeSummary) { TotalCount = sorted.Count };
     }
 
     private StudentRiskResult Evaluate(StudentTrackingData data)
