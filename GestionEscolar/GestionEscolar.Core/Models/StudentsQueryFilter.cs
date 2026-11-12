@@ -30,4 +30,9 @@ public sealed class StudentsQueryFilter
     public StudentsSortField SortBy { get; init; } = StudentsSortField.Name;
 
     public bool SortDescending { get; init; }
+
+    // Paginado opcional (Page desde 1). Sin PageSize se devuelven todas las filas.
+    public int? Page { get; init; }
+
+    public int? PageSize { get; init; }
 }

@@ -10,6 +10,7 @@ public static class StudentCsvImporter
         new(StringComparer.OrdinalIgnoreCase)
         {
             ["Id"] = (s, v) => s.Student.Id = ParseInt(v),
+            ["Dni"] = (s, v) => s.Student.Dni = v,
             ["Nombre"] = (s, v) => s.Student.Name = v,
             ["NumeroEstudiante"] = (s, v) => s.Student.StudentNumber = v,
             ["Telefono"] = (s, v) => s.Student.Phone = v,
@@ -22,7 +23,8 @@ public static class StudentCsvImporter
 
     public static List<StudentTrackingData> Import(TextReader reader)
     {
-        var headerLine = reader.ReadLine()
+        var records = new CsvRecordReader(reader);
+        var headerLine = records.ReadRecord()
             ?? throw new InvalidDataException("El CSV está vacío.");
 
         var headers = CsvParser.ParseLine(headerLine)
@@ -30,15 +32,15 @@ public static class StudentCsvImporter
             .ToList();
 
         var rows = new List<StudentTrackingData>();
-        var lineNumber = 1;
 
-        while (reader.ReadLine() is { } line)
+        while (records.ReadRecord() is { } record)
         {
-            lineNumber++;
-            if (string.IsNullOrWhiteSpace(line))
+            if (string.IsNullOrWhiteSpace(record))
                 continue;
 
-            rows.Add(ReadRow(headers, CsvParser.ParseLine(line), lineNumber));
+            var row = ReadRow(headers, CsvParser.ParseLine(record), records.StartLine);
+            ValidateRow(row, headers, records.StartLine);
+            rows.Add(row);
         }
 
         return rows;
@@ -62,6 +64,33 @@ public static class StudentCsvImporter
         }
 
         return row;
+    }
+
+    // Mismas reglas que el importador de nóminas: obligatorios y largos máximos, con el número de fila.
+    private static void ValidateRow(StudentTrackingData row, List<string> headers, int line)
+    {
+        var student = row.Student;
+
+        if (HasColumn(headers, "Dni") && student.Dni.Length == 0)
+            throw new InvalidDataException($"La fila {line} tiene el DNI vacío.");
+
+        if (HasColumn(headers, "NumeroEstudiante") && student.StudentNumber.Length == 0)
+            throw new InvalidDataException($"La fila {line} tiene el legajo vacío.");
+
+        Limit(student.Dni, StudentEntryRules.MaxDniLength, line, "DNI");
+        Limit(student.Name, StudentEntryRules.MaxNameLength, line, "nombre");
+        Limit(student.StudentNumber, StudentEntryRules.MaxStudentNumberLength, line, "legajo");
+        Limit(student.Phone, StudentEntryRules.MaxPhoneLength, line, "teléfono");
+        Limit(student.Email, StudentEntryRules.MaxEmailLength, line, "correo");
+    }
+
+    private static bool HasColumn(List<string> headers, string name) =>
+        headers.Any(header => header.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+    private static void Limit(string value, int max, int line, string label)
+    {
+        if (value.Length > max)
+            throw new InvalidDataException($"La fila {line} tiene un {label} de más de {max} caracteres.");
     }
 
     private static int ParseInt(string value) =>

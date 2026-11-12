@@ -26,7 +26,7 @@ public class StudentsQueryService : IStudentsQueryService
         var evaluated = rows.Select(Evaluate).ToList();
         var activeSummary = RiskSummary.FromResults(evaluated.Where(student => student.Data.Student.IsActive));
         var filtered = ApplyFilters(evaluated, filter);
-        var ordered = ApplySort(filtered, filter).ToList();
+        var ordered = ApplyPaging(ApplySort(filtered, filter), filter).ToList();
         return new StudentsQueryResult(ordered, activeSummary);
     }
 
@@ -152,6 +152,18 @@ public class StudentsQueryService : IStudentsQueryService
             || Contains(s.Data.Student.LastName, needle)
             || Contains(s.Data.Student.FirstName, needle)
             || Contains(s.Data.Student.StudentNumber, needle));
+    }
+
+    // El resumen se calcula antes, sobre todos los activos; acá solo se recorta la página pedida.
+    private static IEnumerable<StudentRiskResult> ApplyPaging(
+        IEnumerable<StudentRiskResult> ordered,
+        StudentsQueryFilter filter)
+    {
+        if (filter.PageSize is not int size || size <= 0)
+            return ordered;
+
+        var page = Math.Max(filter.Page ?? 1, 1);
+        return ordered.Skip((page - 1) * size).Take(size);
     }
 
     private static IOrderedEnumerable<StudentRiskResult> ApplySort(

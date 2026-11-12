@@ -12,10 +12,11 @@ public static class ImportConflictDetector
         var conflicts = new List<ImportConflict>();
         var seenDni = new HashSet<string>(StringComparer.Ordinal);
         var seenNumbers = new HashSet<string>(StringComparer.Ordinal);
+        var lookup = new StudentLookup(students, sectionId);
 
         foreach (var row in rows)
         {
-            var conflict = Detect(row, sectionId, students, seenDni, seenNumbers);
+            var conflict = Detect(row, lookup, seenDni, seenNumbers);
             if (conflict is null)
                 inserts.Add(row);
             else
@@ -27,15 +28,12 @@ public static class ImportConflictDetector
 
     private static ImportConflict? Detect(
         RosterCsvRow row,
-        int? sectionId,
-        IReadOnlyList<Student> students,
+        StudentLookup lookup,
         HashSet<string> seenDni,
         HashSet<string> seenNumbers)
     {
-        var byDni = students.FirstOrDefault(student => student.Dni == row.Dni);
-        var byNumber = sectionId is int section
-            ? students.FirstOrDefault(student => student.SectionId == section && student.StudentNumber == row.StudentNumber)
-            : null;
+        var byDni = lookup.ByDni(row.Dni);
+        var byNumber = lookup.ByNumber(row.StudentNumber);
         var dniInDb = byDni is not null;
         var numberInDb = byNumber is not null;
         var dniInFile = !seenDni.Add(row.Dni);
@@ -80,5 +78,27 @@ public static class ImportConflictDetector
             _ => "en la base y en el archivo"
         };
         return $"{what} · {where}";
+    }
+
+    // Índices armados una sola vez por vista previa: cada fila se resuelve en O(1).
+    // Con duplicados gana el primero, igual que el recorrido lineal anterior.
+    private sealed class StudentLookup
+    {
+        private readonly Dictionary<string, Student> _byDni = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, Student> _byNumber = new(StringComparer.Ordinal);
+
+        public StudentLookup(IReadOnlyList<Student> students, int? sectionId)
+        {
+            foreach (var student in students)
+            {
+                _byDni.TryAdd(student.Dni, student);
+                if (sectionId is int section && student.SectionId == section)
+                    _byNumber.TryAdd(student.StudentNumber, student);
+            }
+        }
+
+        public Student? ByDni(string dni) => _byDni.GetValueOrDefault(dni);
+
+        public Student? ByNumber(string number) => _byNumber.GetValueOrDefault(number);
     }
 }

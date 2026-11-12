@@ -251,7 +251,7 @@ public partial class CommissionImportViewModel : ObservableObject
             ? "Se va a insertar 1 alumno."
             : $"Se van a insertar {preview.InsertCount} alumnos.";
         BlockedText = CreateNew && preview.Conflicts.Count > 0
-            ? "El archivo tiene DNI o legajos repetidos, o un DNI que ya está guardado. Esta comisión nueva no se confirma."
+            ? $"{preview.Conflicts.Count} filas se omiten porque su DNI o legajo ya está guardado o está repetido en el archivo."
             : string.Empty;
         Step = 2;
     }
@@ -265,18 +265,15 @@ public partial class CommissionImportViewModel : ObservableObject
             return;
         }
 
-        if (CreateNew && _preview.Conflicts.Count > 0)
-        {
-            ErrorMessage = BlockedText;
-            return;
-        }
-
         IsBusy = true;
         try
         {
-            var section = CreateNew ? await CreateSectionAsync() : await ApplyToExistingAsync(_preview);
-            IsOpen = false;
+            var (section, report) = await RunImportAsync(_preview);
             await _selection.ReloadAsync(section);
+            if (report is { HasErrors: true })
+                ErrorMessage = DescribeErrors(report);
+            else
+                IsOpen = false;
         }
         catch (ImportValidationException ex)
         {
@@ -295,12 +292,29 @@ public partial class CommissionImportViewModel : ObservableObject
 
     private Task<Section> CreateSectionAsync() => _import.CreateAsync(NewName, _rows, _clock.Today);
 
-    private async Task<Section> ApplyToExistingAsync(ImportPreview preview)
+    private async Task<(Section Section, ImportResult? Report)> RunImportAsync(ImportPreview preview)
+    {
+        if (CreateNew)
+            return (await CreateSectionAsync(), null);
+
+        return await ApplyToExistingAsync(preview);
+    }
+
+    private async Task<(Section Section, ImportResult? Report)> ApplyToExistingAsync(ImportPreview preview)
     {
         var section = SelectedSection!;
         var decisions = Conflicts.Select(choice => choice.Decision).ToList();
-        await _import.ApplyAsync(section.Id, preview, decisions, _clock.Today);
-        return section;
+        var report = await _import.ApplyWithReportAsync(section.Id, preview, decisions, _clock.Today);
+        return (section, report);
+    }
+
+    // Resumen para el asistente: cuántas entraron y las primeras filas rechazadas con su línea.
+    private static string DescribeErrors(ImportResult report)
+    {
+        const int shown = 5;
+        var lines = report.Errors.Take(shown).Select(error => $"línea {error.Line}: {error.Message}");
+        var more = report.Errors.Count > shown ? $" (y {report.Errors.Count - shown} más)" : string.Empty;
+        return $"Se importaron {report.Inserted} alumnos. {report.Errors.Count} filas con error: {string.Join("; ", lines)}{more}.";
     }
 
     private void ResetWizard()

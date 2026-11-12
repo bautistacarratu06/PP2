@@ -78,12 +78,28 @@ public class CommissionImportServiceTests
             20,Sosa,Eva,202,3,c@edu.test
             """;
 
-        var error = await Assert.ThrowsAsync<ImportValidationException>(() =>
+        var section = await service.CreateAsync("Noche", service.Read(new StringReader(csv)), Today);
+
+        // La fila con DNI ya guardado (10) y la repetida en el archivo (segunda con 20) se omiten.
+        Assert.Equal(2, repo.Sections.Count);
+        var created = repo.Students.Where(student => student.SectionId == section.Id).ToList();
+        Assert.Equal(new[] { "20" }, created.Select(student => student.Dni));
+        Assert.Equal("Rios", created[0].LastName);
+        Assert.Equal(2, repo.Students.Count);
+    }
+
+    [Fact]
+    public async Task Given_ANewSectionWhereEveryRowConflicts_When_Confirming_Then_NothingIsCreated()
+    {
+        var repo = new FakeCommissionImportRepository();
+        repo.Seed(new Section(1, "Mañana"), Student(4, 1, "10", "100", "Alba", "Bea"));
+        var service = new CommissionImportService(repo);
+        var csv = "DNI,Apellido,Nombre,Legajo,Teléfono,Correo\n10,Paz,Ana,200,1,a@edu.test\n";
+
+        await Assert.ThrowsAsync<ImportValidationException>(() =>
             service.CreateAsync("Noche", service.Read(new StringReader(csv)), Today));
 
-        Assert.Contains("no se confirma", error.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Single(repo.Sections);
-        Assert.Single(repo.Students);
     }
 
     [Fact]

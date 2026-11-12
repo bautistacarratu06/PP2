@@ -15,24 +15,23 @@ public static class RosterCsvReader
     public static IReadOnlyList<RosterCsvRow> Read(TextReader reader)
     {
         ArgumentNullException.ThrowIfNull(reader);
-        var index = ReadHeaderIndex(reader);
+        var records = new CsvRecordReader(reader);
+        var index = ReadHeaderIndex(records);
         var rows = new List<RosterCsvRow>();
-        var lineNumber = 1;
-        while (reader.ReadLine() is { } line)
+        while (records.ReadRecord() is { } record)
         {
-            lineNumber++;
-            if (string.IsNullOrWhiteSpace(line))
+            if (string.IsNullOrWhiteSpace(record))
                 continue;
 
-            rows.Add(ParseRow(line, lineNumber, index));
+            rows.Add(ParseRow(record, records.StartLine, index));
         }
 
         return rows;
     }
 
-    private static Dictionary<string, int> ReadHeaderIndex(TextReader reader)
+    private static Dictionary<string, int> ReadHeaderIndex(CsvRecordReader reader)
     {
-        var headerLine = reader.ReadLine();
+        var headerLine = reader.ReadRecord();
         if (string.IsNullOrWhiteSpace(headerLine))
             throw new ImportValidationException("El CSV está vacío.");
 

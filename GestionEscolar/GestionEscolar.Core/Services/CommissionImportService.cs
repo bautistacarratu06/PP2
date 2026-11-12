@@ -7,6 +7,9 @@ namespace GestionEscolar.Core.Services;
 // Carga una comisión desde un CSV y, sobre una comisión que ya existe, resuelve cada conflicto.
 public sealed class CommissionImportService : ICommissionImportService
 {
+    // A partir de esta cantidad de filas nuevas se usa la carga masiva; debajo, el camino normal.
+    public const int BulkThreshold = 200;
+
     private readonly ICommissionImportRepository _repository;
 
     public CommissionImportService(ICommissionImportRepository repository)
@@ -37,8 +40,9 @@ public sealed class CommissionImportService : ICommissionImportService
             throw new ImportValidationException(nameError);
 
         var preview = await PreviewAsync(null, rows, cancellationToken).ConfigureAwait(false);
-        if (preview.Conflicts.Count > 0)
-            throw new ImportValidationException("El archivo tiene DNI o legajos repetidos, o un DNI que ya está guardado. Esta comisión nueva no se confirma.");
+        // Las filas en conflicto (DNI ya guardado o repetido en el archivo) se omiten; el resto se importa.
+        if (preview.InsertCount == 0)
+            throw new ImportValidationException("Ninguna fila se puede importar: todas tienen un DNI o legajo repetido o ya guardado.");
 
         var students = preview.ToInsert.Select(row => ToStudent(row, today)).ToList();
         return await _repository.CreateSectionAsync(name!.Trim(), students, cancellationToken).ConfigureAwait(false);
@@ -58,6 +62,24 @@ public sealed class CommissionImportService : ICommissionImportService
         var inserts = preview.ToInsert.Select(row => ToStudent(row, today)).ToList();
         var updates = BuildUpdates(preview, decisions);
         await _repository.ApplyAsync(sectionId, inserts, updates, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<ImportResult> ApplyWithReportAsync(
+        int sectionId,
+        ImportPreview preview,
+        IReadOnlyList<ImportDecision> decisions,
+        DateTime today,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(preview);
+        ArgumentNullException.ThrowIfNull(decisions);
+        ValidateDecisions(preview, decisions);
+
+        var inserts = preview.ToInsert.Select(row => new NumberedStudent(row.Line, ToStudent(row, today))).ToList();
+        var updates = BuildUpdates(preview, decisions);
+        return inserts.Count >= BulkThreshold
+            ? await _repository.BulkApplyAsync(sectionId, inserts, updates, cancellationToken).ConfigureAwait(false)
+            : await _repository.ApplyWithReportAsync(sectionId, inserts, updates, cancellationToken).ConfigureAwait(false);
     }
 
     private static void ValidateDecisions(ImportPreview preview, IReadOnlyList<ImportDecision> decisions)

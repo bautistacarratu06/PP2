@@ -78,6 +78,58 @@ public sealed class FakeCommissionImportRepository : ICommissionImportRepository
         return Task.CompletedTask;
     }
 
+    public int ApplyWithReportCalls { get; private set; }
+
+    public int BulkApplyCalls { get; private set; }
+
+    public Task<ImportResult> ApplyWithReportAsync(
+        int sectionId,
+        IReadOnlyList<NumberedStudent> inserts,
+        IReadOnlyList<StudentContactChange> updates,
+        CancellationToken cancellationToken = default)
+    {
+        ApplyWithReportCalls++;
+        return Task.FromResult(InsertReporting(sectionId, inserts, updates));
+    }
+
+    public Task<ImportResult> BulkApplyAsync(
+        int sectionId,
+        IReadOnlyList<NumberedStudent> inserts,
+        IReadOnlyList<StudentContactChange> updates,
+        CancellationToken cancellationToken = default)
+    {
+        BulkApplyCalls++;
+        return Task.FromResult(InsertReporting(sectionId, inserts, updates));
+    }
+
+    // Misma regla que la base: DNI único en todo el sistema y legajo único por comisión.
+    private ImportResult InsertReporting(
+        int sectionId,
+        IReadOnlyList<NumberedStudent> inserts,
+        IReadOnlyList<StudentContactChange> updates)
+    {
+        ApplyAsync(sectionId, [], updates).GetAwaiter().GetResult();
+        var errors = new List<RowError>();
+        var inserted = 0;
+        foreach (var item in inserts)
+        {
+            var student = item.Student;
+            if (_students.Any(s => s.Dni == student.Dni || (s.SectionId == sectionId && s.StudentNumber == student.StudentNumber)))
+            {
+                errors.Add(new RowError(item.Line, "El DNI o el legajo ya existe."));
+                continue;
+            }
+
+            var copy = Copy(student);
+            copy.Id = _nextStudentId++;
+            copy.SectionId = sectionId;
+            _students.Add(copy);
+            inserted++;
+        }
+
+        return new ImportResult(inserted, updates.Count, errors);
+    }
+
     private static Student Copy(Student student) => new()
     {
         Id = student.Id,

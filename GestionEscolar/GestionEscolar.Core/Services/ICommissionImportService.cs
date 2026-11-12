@@ -11,4 +11,6 @@ public interface ICommissionImportService
     Task<ImportPreview> PreviewAsync(int? sectionId, IReadOnlyList<RosterCsvRow> rows, CancellationToken cancellationToken = default);
     Task<Section> CreateAsync(string? name, IReadOnlyList<RosterCsvRow> rows, DateTime today, CancellationToken cancellationToken = default);
     Task ApplyAsync(int sectionId, ImportPreview preview, IReadOnlyList<ImportDecision> decisions, DateTime today, CancellationToken cancellationToken = default);
+
+    Task<ImportResult> ApplyWithReportAsync(int sectionId, ImportPreview preview, IReadOnlyList<ImportDecision> decisions, DateTime today, CancellationToken cancellationToken = default);
 }
