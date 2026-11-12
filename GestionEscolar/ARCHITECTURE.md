@@ -5,8 +5,9 @@ Este documento describe la arquitectura **actual** de la solución `GestionEscol
 Documentos relacionados (en la raíz del repo `PP2/`):
 
 - [`README.md`](../README.md): modelo de dominio y git hooks.
-- [`AGENTS.md`](../AGENTS.md): instrucciones para agentes de IA, en inglés.
-- [`AI_USAGE.md.md`](../AI_USAGE.md.md): uso de IA y skills recomendados.
+- [`AGENTS.md`](../AGENTS.md): mapa breve para agentes de IA, en inglés.
+- [`docs/index.md`](../docs/index.md): índice de la documentación detallada (build, convenciones, harness).
+- [`AI_USAGE.md`](../AI_USAGE.md): uso de IA y skills recomendados.
 
 ## 1. Visión general
 
@@ -22,6 +23,7 @@ La solución sigue una variante simple de **Clean Architecture** (también llama
 | `UI` | App .NET MAUI (MVVM con CommunityToolkit.Mvvm) | `net10.0-windows10.0.19041.0`, `-android`, `-ios`, `-maccatalyst` |
 | `GestionEscolar.Tests` | xUnit, sobre Core, con repositorios falsos | `net10.0` |
 | `GestionEscolar.Data.Tests` | xUnit, repositorios EF contra SQL Server Express | `net10.0` |
+| `GestionEscolar.Architecture.Tests` | xUnit + ArchUnitNET, invariantes de capas y convenciones | `net10.0` |
 
 ### Estructura
 
@@ -30,13 +32,14 @@ PP2/
 ├─ .husky/                     hooks de git (Husky.Net) + task-runner.json
 ├─ dotnet-tools.json           herramientas locales (husky, dotnet-ef)
 ├─ scripts/                    run-tests, run-database, run-desktop, hooks/pre-push.cmd
-├─ README.md · AGENTS.md · AI_USAGE.md.md
+├─ README.md · AGENTS.md · AI_USAGE.md · docs/
 └─ GestionEscolar/
    ├─ GestionEscolar.slnx · ARCHITECTURE.md
    ├─ GestionEscolar.Core/     Enums/ Interfaces/ Models/ Services/
    ├─ GestionEscolar.Data/     Persistence/ (CourseTrackingDbContext), Repositories/Ef*, Migrations/, Database/Migrations/ (0001–0010)
    ├─ UI/                      Views/ ViewModels/ Converters/ Seeding/ AppShell.xaml MauiProgram.cs
    ├─ GestionEscolar.Tests/    Fakes/ Services/
+   ├─ GestionEscolar.Architecture.Tests/  invariantes de capas (ArchUnitNET)
    └─ GestionEscolar.Data.Tests/  repositorios EF contra SQL Server Express
 ```
 
@@ -161,7 +164,7 @@ Acceso a SQL Server con Entity Framework Core. Implementa las interfaces de Core
 
 ### 2.4 `GestionEscolar.Tests`
 
-xUnit sobre Core, sin base de datos:
+xUnit sobre Core, sin base de datos. Las reglas de capas viven en `GestionEscolar.Architecture.Tests` (xUnit + ArchUnitNET) y las corre `scripts\run-tests.cmd` junto con el resto de la batería.
 
 - **`Fakes/`**: implementaciones en memoria.
   - `FakeTrackingRepository`, `FakeSectionRepository`, `FakeStudentRepository`, `FakeStudentDetailsRepository`, `FakeCalendarRepository`.

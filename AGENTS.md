@@ -1,58 +1,66 @@
 # AGENTS.md
 
-Instructions for coding agents working in this repository. Human docs: [`README.md`](./README.md) (domain model, hooks) and [`GestionEscolar/ARCHITECTURE.md`](./GestionEscolar/ARCHITECTURE.md) (layers, flows, conventions; read it before structural changes).
+Map for coding agents in this repository. Human docs start at [`README.md`](./README.md). Architecture source of truth: [`GestionEscolar/ARCHITECTURE.md`](./GestionEscolar/ARCHITECTURE.md) (Spanish — read it before structural changes). Further detail: [`docs/index.md`](./docs/index.md).
+
+Do not commit, stage, push, or rewrite git history unless the user explicitly asks. Do not reformat or refactor files outside your task.
 
 ## Overview
 
-GestionEscolar is a .NET 10 MAUI desktop app (Windows target) for tracking course sections (*comisiones*). It covers:
-
-- the student roster;
-- attendance;
-- assignment submissions;
-- a class/assignment calendar;
-- risk tracking and interventions.
-
-Data lives in SQL Server Express (`.\SQLEXPRESS`, database `course_tracking`).
-
-## Layout
+GestionEscolar is a .NET 10 MAUI desktop app (Windows target) for tracking course sections (*comisiones*): the student roster, attendance, assignment submissions, a class/assignment calendar, and risk tracking and interventions. Data lives in SQL Server Express (`.\SQLEXPRESS`, database `course_tracking`).
 
 The git root is this folder. The solution is `GestionEscolar/GestionEscolar.slnx`.
 
-| Path | Role |
+## Project tree
+
+```
+PP2/
+├─ docs/                         index plus build, conventions, and harness notes
+├─ scripts/                      run-tests, run-database, run-desktop, hooks/pre-push.cmd
+├─ .husky/                       Husky.Net hooks + task-runner.json
+└─ GestionEscolar/
+   ├─ GestionEscolar.slnx · ARCHITECTURE.md
+   ├─ GestionEscolar.Core/       domain: Models/, Enums/, Interfaces/, Services/ (net10.0)
+   ├─ GestionEscolar.Data/       EF Core SQL Server: Persistence/, Repositories/, Migrations/
+   ├─ UI/                        MAUI Shell: Views/, ViewModels/, Controls/, MauiProgram.cs
+   ├─ GestionEscolar.Tests/      xUnit over Core with in-memory Fakes/
+   ├─ GestionEscolar.Data.Tests/ xUnit over EF repositories (SQL Server Express)
+   └─ GestionEscolar.Architecture.Tests/  layer and convention checks (ArchUnitNET)
+```
+
+## Golden rules
+
+These are hard invariants. Tests in `GestionEscolar.Architecture.Tests` enforce the ones marked **[tested]**; the others are documented and reviewed.
+
+1. **[tested] Dependencies point to Core.** `UI → Data → Core`, `Tests → Core`, `Data.Tests → Data → Core`, `Architecture.Tests → Core and Data`. Core references no other solution project, no MAUI, no SQL, and no Entity Framework.
+2. **[tested] Data project-references Core only.** SQL, EF, and connection code stay in `GestionEscolar.Data`.
+3. **[tested] No SQL in ViewModels, Views, or Core.** ViewModels call Core services. Services depend on Core repository interfaces, which Data implements.
+4. **[tested] ViewModels do not inject repositories** — only Core services and UI helpers such as `SectionSelection`.
+5. **[tested] LINQ or parameterized SQL only.** Do not concatenate SQL, and do not use `ExecuteSqlRaw` or `FromSqlRaw`.
+6. **Enums, not magic strings.** Map database status values (`presente`/`ausente`, `entregó`/`no entregó`) only in `DbStatusValues` (`ToDbValue` / `Parse*`).
+7. **UI text is in Spanish** (for example "Comisión", "Registrar asistencia"). Code identifiers are in English; comments are mostly in Spanish. Follow the surrounding file.
+8. **`.cs` files are UTF-8 with BOM.** Keep each file's existing line endings. Do not mass-reformat unrelated files. **[tested]** for new files; a documented allow-list covers existing files that still lack a BOM.
+9. **Register types in `UI/MauiProgram.cs`:** repositories as singletons; services, ViewModels, and pages as transient. Exception: `SectionSelection` is a UI singleton for the commission shared by every screen. Shell resolves pages through DI.
+10. **Schema changes** are new EF migrations under `GestionEscolar.Data/Migrations`, applied with `dotnet tool run dotnet-ef database update`. Never edit an applied EF migration or the historical `0001`–`0010` SQL scripts in `GestionEscolar.Data/Database/Migrations`.
+11. **Tests.** New Core logic gets tests with fakes. Repository behavior is covered in `GestionEscolar.Data.Tests`. Do not bypass git hooks with `--no-verify` unless the user asks.
+
+## Where to look
+
+| Topic | Location |
 |---|---|
-| `GestionEscolar/GestionEscolar.Core` | Domain: models, enums, services, repository interfaces. `net10.0`, no MAUI, no SQL, no Entity Framework. |
-| `GestionEscolar/GestionEscolar.Data` | SQL Server via Entity Framework (`Persistence/CourseTrackingDbContext`, `Repositories/Ef*Repository.cs`). |
-| `GestionEscolar/GestionEscolar.Data/Migrations` | EF Core migrations. New schema changes go here. |
-| `GestionEscolar/GestionEscolar.Data/Database/Migrations` | Historical `0001`–`0010` `*.up.sql` scripts. Do not edit them and do not add new ones. |
-| `GestionEscolar/UI` | MAUI Shell app: `Views/` (XAML), `ViewModels/` (CommunityToolkit.Mvvm), `Controls/` (reusable controls), `Converters/`, `Resources/Styles/` (tokens and named styles), `MauiProgram.cs` (DI), `AppShell.xaml` (sidebar). |
-| `GestionEscolar/GestionEscolar.Tests` | xUnit tests for Core, using in-memory fakes in `Fakes/`. |
-| `GestionEscolar/GestionEscolar.Data.Tests` | xUnit tests for the EF repositories against SQL Server Express. |
-| `scripts/` | `run-tests.cmd`, `run-database.cmd`, `run-desktop.cmd`, `hooks/pre-push.cmd`. |
+| Domain model and hooks (human) | [`README.md`](./README.md) |
+| Layers, flows, conventions (Spanish) | [`GestionEscolar/ARCHITECTURE.md`](./GestionEscolar/ARCHITECTURE.md) |
+| Doc index | [`docs/index.md`](./docs/index.md) |
+| Build, test, database, hooks | [`docs/build-and-test.md`](./docs/build-and-test.md) |
+| Language, encoding, UI look | [`docs/conventions.md`](./docs/conventions.md) |
+| Architecture tests and skipped harness pieces | [`docs/harness.md`](./docs/harness.md) |
+| AI usage notes | [`AI_USAGE.md`](./AI_USAGE.md) |
+| Composition root / DI | `GestionEscolar/UI/MauiProgram.cs` |
+| Shell / sidebar routes | `GestionEscolar/UI/AppShell.xaml` |
+| Current screens | `StudentsPage` (Estudiantes), `CalendarPage` (Calendario), `SettingsViewPage` (Ajustes); `StudentDetailPage` is a registered route |
+| Status value mapping | `GestionEscolar.Core/Enums/DbStatusValues.cs` |
+| Connection string | `GestionEscolar/UI/appsettings.json` (`ConnectionStrings:CourseTracking`) |
 
-## Architecture rules
-
-- Dependencies point to Core: `UI → Data → Core`, `Tests → Core`, `Data.Tests → Data → Core`. Core references nothing else.
-- No SQL in ViewModels or Views. ViewModels call Core services. Services depend on Core interfaces, which are implemented in Data.
-- Register everything in `UI/MauiProgram.cs`:
-  - repositories as singletons;
-  - services, ViewModels and pages as transient. `SectionSelection` is the exception: a UI singleton for the commission shared by every screen.
-  - Shell resolves pages through DI.
-- Data access goes through Entity Framework in `GestionEscolar.Data`:
-  - async all the way (`async`/`await` with `CancellationToken`);
-  - one `CourseTrackingDbContext` per operation (`IDbContextFactory`), closed when the operation ends;
-  - LINQ only. Do not concatenate SQL.
-- Use enums, not magic strings. DB status values (`presente`/`ausente`, `entregó`/`no entregó`) are mapped only in `DbStatusValues` (`ToDbValue` / `Parse*`).
-- ViewModels:
-  - use `[ObservableProperty]` partial properties and `[RelayCommand]`;
-  - section-scoped screens derive from `SectionScopedViewModel`.
-- Keep formatting/display (dates, "Apellido, Nombre" labels) in UI or Data projections, not in Core models.
-- Schema changes:
-  - add an EF migration under `GestionEscolar.Data/Migrations` (`dotnet tool run dotnet-ef migrations add`);
-  - apply it with `dotnet tool run dotnet-ef database update --project GestionEscolar\GestionEscolar.Data\GestionEscolar.Data.csproj`;
-  - never edit an applied EF migration or the historical `0001`–`0010` SQL scripts.
-- New Core logic gets tests with fakes. Repository behavior is covered in `GestionEscolar.Data.Tests`.
-
-## Build and test
+## Commands
 
 Run from the repo root:
 
@@ -62,33 +70,4 @@ scripts\run-tests.cmd
 dotnet format GestionEscolar\GestionEscolar.slnx --verify-no-changes
 ```
 
-- Close `UI.exe` before building; it locks the output DLLs. Alternatively, build elsewhere with `-p:BaseOutputPath=%TEMP%\uibuild\`.
-- **New schema changes do not go through `scripts\run-database.cmd`.** That script only replays the historical `0001`–`0010` SQL scripts. It no longer drops anything: the `DROP DATABASE` / `DROP TABLE` statements in those scripts are commented out. On an empty server it creates and seeds `course_tracking`. On an existing database the table scripts are no-ops (`IF OBJECT_ID(...) IS NULL`), but the seed in `0010` fails on `uq_section_name` and the script stops with an error. Existing data is kept. Apply later schema changes with `dotnet ef database update`. To reset, drop the database manually first, and only if the user asks. Use `sqlcmd -S .\SQLEXPRESS -d course_tracking -E` for targeted checks.
-
-## Git hooks (Husky.Net)
-
-Hooks are installed automatically on restore/build (target in `GestionEscolar.Core.csproj`; skipped with `HUSKY=0`). They are configured in `.husky/task-runner.json`.
-
-- **pre-commit:** `dotnet format --verify-no-changes` on staged `.cs` files.
-- **pre-push:** `scripts\hooks\pre-push.cmd`, which runs the UI build plus the tests and refuses to run while `UI.exe` is open.
-
-Do not bypass the hooks with `--no-verify` unless the user asks.
-
-## Conventions
-
-- UI text is in Spanish (e.g. "Comisión", "Registrar asistencia"). Code identifiers are in English; comments are mostly in Spanish. Follow the surrounding file.
-- `.cs` files: UTF-8 with BOM. Keep each file's existing line endings.
-- UI look, for every new screen or control:
-  - One dark theme. Colors come from `UI/Resources/Styles/Colors.xaml` (`Bg`, `Side`, `Surface`, `Raised`, `Line`, `TextPrimary`, `TextSecondary`, `TextTertiary`, `Accent`, `Danger`, `Warning`, `Success`). Do not hardcode hex in new pages, and do not bring back navy or teal.
-  - Type: Inter (`Inter`, `InterMedium`, `InterSemibold`, `InterBold`) and JetBrains Mono (`JetBrainsMono`) for student numbers, phones, and dates.
-  - Reuse `UI/Controls` (`PageShell`, `SidebarView`, `SectionPicker`, `SearchBox`, `Avatar`, `Icon`, `Meter`, `RiskPill`, `StatusPill`, `SegmentedControl`, `KpiCard`, `FilterChips`, `HoverRow`) and the named styles in `UI/Resources/Styles/Styles.xaml` (`Card`, `FieldBorder`, `PrimaryButton`, `GhostButton`, `LinkButton`, `PageTitle`, `PageSubtitle`, `ColumnHeader`, `Mono`). New chrome goes through `PageShell`, not a private title.
-  - Cards are a `Border` with a 14px radius and a 1px stroke. No `Frame`, no drop shadow.
-  - List names are "Apellido, Nombre" via `UI/Formatting/PersonName`. The detail subtitle is "Nombre Apellido · legajo".
-  - The chosen commission is the `UI.Services.SectionSelection` singleton. Screens subscribe to it; they do not hardcode a section id.
-  - Visual reference: `.scratch/look-and-feel/` (`Gestión Escolar · Mockup.html`, `ui-revamp.md`, `component-guide.md`, and `issues/`).
-
-## Git rules
-
-- Do not commit, stage, push or rewrite history unless the user explicitly asks.
-- Respect teammates' code. Do not reformat or refactor files outside your task.
-- Run `git status` / `git pull` before starting, and leave unrelated untracked files alone.
+Close `UI.exe` before building; it locks the output DLLs. Alternatively, build elsewhere with `-p:BaseOutputPath=%TEMP%\uibuild\`. Schema and hook details: [`docs/build-and-test.md`](./docs/build-and-test.md).

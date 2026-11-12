@@ -1,0 +1,9 @@
+# EditorConfig: https://editorconfig.org
+root = true
+
+# New C# files in this repo are UTF-8 with BOM. Existing files without a BOM
+# are allow-listed in GestionEscolar.Architecture.Tests; do not mass-convert them.
+[*.cs]
+charset = utf-8-bom
+dotnet_diagnostic.CA1502.severity = warning
+dotnet_diagnostic.CA1506.severity = warning
