@@ -42,6 +42,7 @@ public partial class StudentsViewModel : BusyStateViewModel
         Actions = new StudentsActionsViewModel(attendance, submissions, students, selection, Selection, clock, OnActionAppliedAsync);
         Filters.Changed += (_, _) => OnFiltersChanged();
         _subscription = new SectionChangeSubscription(selection, () => _ = LoadCommand.ExecuteAsync(null));
+        Import.Imported += message => StatusMessage = message;
     }
 
     public CommissionImportViewModel Import { get; }

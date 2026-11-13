@@ -36,8 +36,10 @@ public partial class CommissionImportViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsOpen { get; set; }
 
+    public event Action<string>? Imported;
+
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsFileStep), nameof(IsDestinationStep), nameof(IsPreviewStep), nameof(NextLabel))]
+    [NotifyPropertyChangedFor(nameof(IsFileStep), nameof(IsDestinationStep), nameof(IsPreviewStep), nameof(IsNotPreviewStep), nameof(NextLabel))]
     public partial int Step { get; set; }
 
     [ObservableProperty]
@@ -61,10 +63,14 @@ public partial class CommissionImportViewModel : ObservableObject
     public partial string InsertText { get; set; } = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasBlockedText))]
     public partial string BlockedText { get; set; } = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotBusy))]
     public partial bool IsBusy { get; set; }
+
+    public bool IsNotBusy => !IsBusy;
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
@@ -74,9 +80,15 @@ public partial class CommissionImportViewModel : ObservableObject
 
     public bool IsPreviewStep => Step == 2;
 
+    public bool IsNotPreviewStep => Step != 2;
+
+    public bool HasBlockedText => !string.IsNullOrEmpty(BlockedText);
+
+    public bool HasConflicts => Conflicts.Count > 0;
+
     public bool ChooseExisting => !CreateNew;
 
-    public string NextLabel => Step == 2 ? "Confirmar" : "Siguiente";
+    public string NextLabel => Step == 2 ? "Aceptar" : "Siguiente";
 
     public bool HasChosenFile => ChosenFileName.Length > 0;
 
@@ -109,7 +121,26 @@ public partial class CommissionImportViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void Close() => IsOpen = false;
+    private void Close() => Cancel();
+
+    [RelayCommand]
+    private void Cancel()
+    {
+        if (IsBusy)
+            return;
+
+        ResetWizard();
+        IsOpen = false;
+    }
+
+    [RelayCommand]
+    private async Task AcceptAsync()
+    {
+        if (IsBusy)
+            return;
+
+        await ConfirmAsync();
+    }
 
     [RelayCommand]
     private async Task PickFileAsync()
@@ -153,10 +184,13 @@ public partial class CommissionImportViewModel : ObservableObject
     [RelayCommand]
     private void Back()
     {
+        if (IsBusy)
+            return;
+
         ErrorMessage = string.Empty;
         if (Step == 0)
         {
-            IsOpen = false;
+            Cancel();
             return;
         }
 
@@ -256,8 +290,12 @@ public partial class CommissionImportViewModel : ObservableObject
         Step = 2;
     }
 
+    [RelayCommand]
     private async Task ConfirmAsync()
     {
+        if (IsBusy)
+            return;
+
         if (_preview is null || _rows.Count == 0 || ChosenFileName.Length == 0)
         {
             ErrorMessage = "Elegí un archivo CSV.";
@@ -271,9 +309,18 @@ public partial class CommissionImportViewModel : ObservableObject
             var (section, report) = await RunImportAsync(_preview);
             await _selection.ReloadAsync(section);
             if (report is { HasErrors: true })
+            {
                 ErrorMessage = DescribeErrors(report);
+            }
             else
+            {
+                var count = report?.Inserted ?? _rows.Count;
+                var msg = CreateNew
+                    ? $"Comisión '{section.Name}' importada correctamente ({count} alumnos)."
+                    : $"Importación en '{section.Name}' completada ({count} alumnos).";
                 IsOpen = false;
+                Imported?.Invoke(msg);
+            }
         }
         catch (ImportValidationException ex)
         {
