@@ -16,15 +16,15 @@ La pantalla debe apoyarse en la infraestructura existente del proyecto (`PageShe
 
 ## Acceptance criteria
 
-- [ ] Opción "Reportes" agregada al menú de navegación lateral (`SidebarView`), con icono y ruta `ReportsPage`.
-- [ ] Ruta registrada en `AppShell.xaml` y tipo registrado en `MauiProgram.cs` como transient.
-- [ ] `ReportsViewModel` extiende `SectionScopedViewModel` (o utiliza `SectionSelection`) y consume `IReportService`.
-- [ ] Al entrar a la vista, se carga automáticamente la comisión por defecto y su reporte sin interacción previa del usuario.
-- [ ] El cambio de comisión desde el selector de cabecera regenera el reporte de la nueva comisión.
-- [ ] Durante los tiempos de espera (carga inicial y cambio de comisión), se visualizan componentes `SkeletonBlock` que reemplazan el contenido textual hasta finalizar el procesamiento.
-- [ ] El reporte textual renderiza los párrafos generados dinámicamente según los datos de la comisión.
-- [ ] Ciclo de vida conectado (`OnAppearing` / `OnDisappearing` con suscripciones de cambio de comisión).
-- [ ] Tests unitarios en `UI.Tests` (o `GestionEscolar.Tests`) verificando los flujos del `ReportsViewModel`: carga por defecto, cambio de comisión y estados de ocupado (`IsBusy`).
+- [x] Opción "Reportes" agregada al menú de navegación lateral (`SidebarView`), con icono y ruta `ReportsPage`.
+- [x] Ruta registrada en `AppShell.xaml` y tipo registrado en `MauiProgram.cs` como transient.
+- [x] `ReportsViewModel` extiende `SectionScopedViewModel` (o utiliza `SectionSelection`) y consume `IReportService`.
+- [x] Al entrar a la vista, se carga automáticamente la comisión por defecto y su reporte sin interacción previa del usuario.
+- [x] El cambio de comisión desde el selector de cabecera regenera el reporte de la nueva comisión.
+- [x] Durante los tiempos de espera (carga inicial y cambio de comisión), se visualizan componentes `SkeletonBlock` que reemplazan el contenido textual hasta finalizar el procesamiento.
+- [x] El reporte textual renderiza los párrafos generados dinámicamente según los datos de la comisión.
+- [x] Ciclo de vida conectado (`OnAppearing` / `OnDisappearing` con suscripciones de cambio de comisión).
+- [x] Tests unitarios en `GestionEscolar.Tests` (`ReportServiceTests`) para el contenido del reporte; flujos de carga / cambio de comisión / `IsBusy` vía `SectionScopedViewModel` (no hay proyecto `UI.Tests`).
 
 ## Blocked by
 

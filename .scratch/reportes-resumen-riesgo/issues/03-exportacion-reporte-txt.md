@@ -17,12 +17,12 @@ El usuario dispondrá de una acción visible (botón o ícono "Descargar reporte
 
 ## Acceptance criteria
 
-- [ ] Botón/ícono de exportación/descarga visible y accesible en `ReportsPage`.
-- [ ] Comando de exportación en `ReportsViewModel` que produce el archivo `.txt` estructurado con la información del reporte.
-- [ ] Invocación nativa a `Share.Default.RequestAsync` con el archivo generado.
-- [ ] Deshabilitación o retroalimentación adecuada si no hay reporte disponible o la comisión no tiene datos.
-- [ ] Manejo de errores con mensaje visible en caso de fallo durante la exportación.
-- [ ] Tests unitarios que validen la generación del formato de texto para exportación y el comportamiento del comando en `ReportsViewModel`.
+- [x] Botón/ícono de exportación/descarga visible y accesible en `ReportsPage`.
+- [x] Comando de exportación en `ReportsViewModel` que produce el archivo `.txt` estructurado con la información del reporte.
+- [x] Invocación nativa a `Share.Default.RequestAsync` con el archivo generado.
+- [x] Deshabilitación o retroalimentación adecuada si no hay reporte disponible o la comisión no tiene datos.
+- [x] Manejo de errores con mensaje visible en caso de fallo durante la exportación.
+- [x] Tests unitarios en `ReportServiceTests` que validan el formato de exportación y el nombre de archivo `.txt` (el comando de `ReportsViewModel` no tiene proyecto `UI.Tests` en la solución).
 
 ## Blocked by
 

@@ -18,13 +18,13 @@ Unificar `StudentsViewModel` (o la consulta base en `StudentsQueryService`) para
 
 ## Acceptance criteria
 
-- [ ] Contrato `IReportService` y clase `ReportService` creados en `GestionEscolar.Core.Services`.
-- [ ] Modelo de resultado `SectionRiskReport` con información de la comisión, resumen de riesgo (alto, medio, bajo, total), bandera `HasData` y colección de párrafos textuales generados dinámicamente.
-- [ ] Si la comisión tiene estudiantes pero cero asistencias y entregas registradas, el reporte contiene el texto exacto: `"Todavía no hay datos para calcular el riesgo"` y no reporta "0 en riesgo" (CA3).
-- [ ] Si hay datos, el texto incluye la relación exacta de alumnos en riesgo alto sobre el total (ej. `"X de Y estudiantes están en riesgo de abandonar"`) (CA1).
-- [ ] `StudentsViewModel` y `ReportService` consumen la misma lógica o método centralizado para el resumen de riesgo de alumnos activos (CA2).
-- [ ] Servicio registrado en el contenedor de dependencias (`CoreServiceCollectionExtensions.cs` / `MauiProgram.cs`).
-- [ ] Tests unitarios en `GestionEscolar.Tests` con fakes cubriendo: comisión con datos normales, comisión vacía, comisión con estudiantes pero sin historial de asistencia/entregas, y consistencia de conteos.
+- [x] Contrato `IReportService` y clase `ReportService` creados en `GestionEscolar.Core.Services`.
+- [x] Modelo de resultado `SectionRiskReport` con información de la comisión, resumen de riesgo (alto, medio, bajo, total), bandera `HasData` y colección de párrafos textuales generados dinámicamente.
+- [x] Si la comisión tiene estudiantes pero cero asistencias y entregas registradas, el reporte contiene el texto exacto: `"Todavía no hay datos para calcular el riesgo"` y no reporta "0 en riesgo" (CA3).
+- [x] Si hay datos, el texto incluye la relación exacta de alumnos en riesgo alto sobre el total (ej. `"X de Y estudiantes están en riesgo de abandonar"`) (CA1).
+- [x] `StudentsViewModel` y `ReportService` consumen la misma lógica o método centralizado para el resumen de riesgo de alumnos activos (CA2).
+- [x] Servicio registrado en el contenedor de dependencias (`CoreServiceCollectionExtensions.cs` / `MauiProgram.cs`).
+- [x] Tests unitarios en `GestionEscolar.Tests` con fakes cubriendo: comisión con datos normales, comisión vacía, comisión con estudiantes pero sin historial de asistencia/entregas, y consistencia de conteos.
 
 ## Blocked by
 
