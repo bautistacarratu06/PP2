@@ -6,14 +6,12 @@ public sealed class SectionChangeSubscription
 {
     private readonly SectionSelection _selection;
     private readonly Action _onChanged;
-    private readonly IMainThreadDispatcher _dispatcher;
     private bool _subscribed;
 
-    public SectionChangeSubscription(SectionSelection selection, Action onChanged, IMainThreadDispatcher? dispatcher = null)
+    public SectionChangeSubscription(SectionSelection selection, Action onChanged)
     {
         _selection = selection;
         _onChanged = onChanged;
-        _dispatcher = dispatcher ?? new MauiMainThreadDispatcher();
     }
 
     public void Subscribe()
@@ -35,5 +33,5 @@ public sealed class SectionChangeSubscription
     }
 
     private void OnSelectionChanged(object? sender, EventArgs e) =>
-        _dispatcher.Post(_onChanged);
+        MainThread.BeginInvokeOnMainThread(_onChanged);
 }

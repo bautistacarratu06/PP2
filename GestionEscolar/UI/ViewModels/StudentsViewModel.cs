@@ -19,7 +19,6 @@ public partial class StudentsViewModel : BusyStateViewModel
 
     private readonly IStudentsQueryService _query;
     private readonly SectionSelection _selection;
-    private readonly IAppNavigation _navigation;
     private readonly SectionChangeSubscription _subscription;
     private int? _boundSectionId;
     private int _loadedPage;
@@ -38,7 +37,6 @@ public partial class StudentsViewModel : BusyStateViewModel
         Jobs = jobs;
         _query = query;
         _selection = selection;
-        _navigation = navigation ?? new ShellAppNavigation();
         Import = import;
         Selection = new StudentsSelectionViewModel(FilteredStudents);
         Filters = new StudentsFiltersViewModel();
@@ -128,7 +126,12 @@ public partial class StudentsViewModel : BusyStateViewModel
 
     [RelayCommand]
     private Task OpenAsync(StudentRow row) =>
-        _navigation.GoToStudentDetailAsync(row, _selection.Current?.Name ?? string.Empty, _selection.Current?.Id ?? 0);
+        Shell.Current.GoToAsync(nameof(Views.StudentDetailPage), new Dictionary<string, object>
+        {
+            [StudentDetailViewModel.StudentQueryKey] = row,
+            [StudentDetailViewModel.SectionQueryKey] = _selection.Current?.Name ?? string.Empty,
+            [StudentDetailViewModel.SectionIdQueryKey] = _selection.Current?.Id ?? 0
+        });
 
     private async Task LoadRowsAsync()
     {
