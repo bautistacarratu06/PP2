@@ -210,13 +210,36 @@
                                                 </DataTrigger>
                                             </VerticalStackLayout.Triggers>
                                             <Label Style="{StaticResource FieldLabel}" Text="Riesgo" />
-                                            <HorizontalStackLayout Spacing="12">
-                                                <CheckBox IsChecked="{Binding Filters.FilterRiskAlto}" />
-                                                <Label Text="Alto" VerticalOptions="Center" />
-                                                <CheckBox IsChecked="{Binding Filters.FilterRiskMedio}" />
-                                                <Label Text="Medio" VerticalOptions="Center" />
-                                                <CheckBox IsChecked="{Binding Filters.FilterRiskBajo}" />
-                                                <Label Text="Bajo" VerticalOptions="Center" />
+                                            <HorizontalStackLayout Spacing="20" VerticalOptions="Center">
+                                                <!-- Grupo Alto -->
+                                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                                    <Label Text="Alto" VerticalOptions="Center">
+                                                        <Label.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding Filters.ToggleRiskFilterCommand}" CommandParameter="Alto" />
+                                                        </Label.GestureRecognizers>
+                                                    </Label>
+                                                    <CheckBox IsChecked="{Binding Filters.FilterRiskAlto}" VerticalOptions="Center" />
+                                                </HorizontalStackLayout>
+
+                                                <!-- Grupo Medio -->
+                                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                                    <Label Text="Medio" VerticalOptions="Center">
+                                                        <Label.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding Filters.ToggleRiskFilterCommand}" CommandParameter="Medio" />
+                                                        </Label.GestureRecognizers>
+                                                    </Label>
+                                                    <CheckBox IsChecked="{Binding Filters.FilterRiskMedio}" VerticalOptions="Center" />
+                                                </HorizontalStackLayout>
+
+                                                <!-- Grupo Bajo -->
+                                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                                    <Label Text="Bajo" VerticalOptions="Center">
+                                                        <Label.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding Filters.ToggleRiskFilterCommand}" CommandParameter="Bajo" />
+                                                        </Label.GestureRecognizers>
+                                                    </Label>
+                                                    <CheckBox IsChecked="{Binding Filters.FilterRiskBajo}" VerticalOptions="Center" />
+                                                </HorizontalStackLayout>
                                             </HorizontalStackLayout>
                                         </VerticalStackLayout>
 
