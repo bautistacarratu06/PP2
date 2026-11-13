@@ -1,16 +1,21 @@
 using GestionEscolar.Core.Models;
 using UI.Services;
 
+
+
 namespace UI.Controls;
 
 public partial class SectionPicker : ContentView
 {
+
+    private readonly IMainThreadDispatcher _dispatcher;
     private SectionSelection? _selection;
     private bool _syncing;
 
-    public SectionPicker()
+    public SectionPicker(IMainThreadDispatcher? dispatcher = null)
     {
         InitializeComponent();
+        _dispatcher = dispatcher ?? new MauiMainThreadDispatcher();
     }
 
     protected override void OnHandlerChanged()
@@ -39,11 +44,11 @@ public partial class SectionPicker : ContentView
             return;
         }
 
-        MainThread.BeginInvokeOnMainThread(Sync);
+        _dispatcher.Post(Sync);
     }
 
     private void OnSelectionChanged(object? sender, EventArgs e) =>
-        MainThread.BeginInvokeOnMainThread(Sync);
+        _dispatcher.Post(Sync);
 
     private void Sync()
     {

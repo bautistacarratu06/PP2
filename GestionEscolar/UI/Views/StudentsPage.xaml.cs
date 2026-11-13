@@ -7,13 +7,18 @@ public partial class StudentsPage : ContentPage
     private readonly StudentsViewModel _viewModel;
     private readonly HashSet<object> _wiredDrops = [];
 
-    public StudentsPage(StudentsViewModel viewModel)
+    using UI.Services;
+
+    private readonly IMainThreadDispatcher _dispatcher;
+
+    public StudentsPage(StudentsViewModel viewModel, IMainThreadDispatcher? dispatcher = null)
     {
         InitializeComponent();
         BindingContext = viewModel;
         Wizard.BindingContext = viewModel.Import;
         Wizard.HandlerChanged += (_, _) => WireFileDrop(Wizard.Handler?.PlatformView);
         _viewModel = viewModel;
+        _dispatcher = dispatcher ?? new MauiMainThreadDispatcher();
     }
 
     protected override async void OnAppearing()
@@ -81,7 +86,7 @@ public partial class StudentsPage : ContentPage
             if (items.FirstOrDefault() is not Windows.Storage.StorageFile file)
                 return;
 
-            await MainThread.InvokeOnMainThreadAsync(() => _viewModel.Import.AcceptFileAsync(file.Path));
+            _dispatcher.Post(async () => await _viewModel.Import.AcceptFileAsync(file.Path));
         };
 #endif
     }

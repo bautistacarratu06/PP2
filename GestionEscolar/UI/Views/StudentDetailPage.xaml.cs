@@ -6,13 +6,15 @@ namespace UI.Views
     public partial class StudentDetailPage : ContentPage
     {
         private readonly SectionSelection _selection;
+        private readonly IMainThreadDispatcher _dispatcher;
 
-        public StudentDetailPage(StudentDetailViewModel viewModel, SectionSelection selection)
+        public StudentDetailPage(StudentDetailViewModel viewModel, SectionSelection selection, IMainThreadDispatcher? dispatcher = null)
         {
             InitializeComponent();
             BindingContext = viewModel;
             _selection = selection;
             SizeChanged += (_, _) => Arrange();
+            _dispatcher = dispatcher ?? new MauiMainThreadDispatcher();
         }
 
         private void Arrange()
@@ -44,11 +46,10 @@ namespace UI.Views
             base.OnDisappearing();
         }
 
-        private void OnSectionChanged(object? sender, EventArgs e) =>
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                if (Shell.Current is not null)
-                    await Shell.Current.GoToAsync("//StudentsPage");
-            });
+        private void OnSectionChanged(object? sender, EventArgs e) => _dispatcher.Post(async () =>
+        {
+            if (Shell.Current is not null)
+                await Shell.Current.GoToAsync("//StudentsPage");
+        });
     }
 }

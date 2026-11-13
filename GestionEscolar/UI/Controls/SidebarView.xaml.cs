@@ -1,4 +1,5 @@
 using Microsoft.Maui.Controls.Shapes;
+using UI.Services;
 
 namespace UI.Controls;
 
@@ -15,11 +16,17 @@ public partial class SidebarView : ContentView
     private bool _collapsed;
     private bool _hooked;
 
-    public SidebarView()
+    
+
+    private readonly IMainThreadDispatcher _dispatcher;
+
+    public SidebarView(IMainThreadDispatcher? dispatcher = null)
     {
         InitializeComponent();
+        _dispatcher = dispatcher ?? new MauiMainThreadDispatcher();
         Build();
     }
+
 
     protected override void OnHandlerChanged()
     {
@@ -28,7 +35,7 @@ public partial class SidebarView : ContentView
             return;
 
         _hooked = true;
-        shell.Navigated += (_, _) => MainThread.BeginInvokeOnMainThread(Paint);
+        shell.Navigated += (_, _) => _dispatcher.Post(Paint);
         var width = Window?.Width ?? shell.Width;
         if (width is > 0 and < 860)
             SetCollapsed(true, animate: false);

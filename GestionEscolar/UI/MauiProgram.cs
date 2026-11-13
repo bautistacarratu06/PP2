@@ -31,6 +31,7 @@ namespace UI
             builder.Services.AddSingleton<SectionSelection>();
 
             // Costuras de UI: fecha, selector de CSV y navegación
+            builder.Services.AddSingleton<IMainThreadDispatcher, MauiMainThreadDispatcher>();
             builder.Services.AddSingleton<IClock, SystemClock>();
             builder.Services.AddSingleton<ICsvFileSource, DeviceCsvFileSource>();
             builder.Services.AddSingleton<IAppNavigation, ShellAppNavigation>();
