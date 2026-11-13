@@ -42,10 +42,13 @@ namespace UI
             builder.Services.AddTransient<CommissionImportViewModel>();
             builder.Services.AddTransient<SettingsViewModel>();
             builder.Services.AddTransient<CalendarViewModel>();
+            builder.Services.AddTransient<ReportsViewModel>();
+            builder.Services.AddTransient<IReportShareService, MauiReportShareService>();
 
             // Páginas (Shell las resuelve por DI, tanto en ShellContent como en rutas registradas)
             builder.Services.AddTransient<StudentsPage>();
             builder.Services.AddTransient<CalendarPage>();
+            builder.Services.AddTransient<ReportsPage>();
             builder.Services.AddTransient<StudentDetailPage>();
             builder.Services.AddTransient<SettingsViewPage>();
 

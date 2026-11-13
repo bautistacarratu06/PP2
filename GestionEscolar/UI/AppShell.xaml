@@ -29,6 +29,11 @@
         Route="Calendar" />
 
     <ShellContent
+        Title="Reportes"
+        ContentTemplate="{DataTemplate views:ReportsPage}"
+        Route="ReportsPage" />
+
+    <ShellContent
         Title="Ajustes"
         ContentTemplate="{DataTemplate views:SettingsViewPage}"
         Route="SettingsPage" />

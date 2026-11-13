@@ -13,6 +13,8 @@ public static class IconPaths
         "search" => "M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16 M21 21l-4.3-4.3",
         "chevron-left" => "M15 18l-6-6 6-6",
         "chevron-down" => "M6 9l6 6 6-6",
+        "file-text" => "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8",
+        "download" => "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M7 10l5 5 5-5 M12 15V3",
         _ => null
     };
 }
