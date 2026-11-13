@@ -18,10 +18,10 @@ namespace UI.ViewModels
         private readonly SectionChangeSubscription _subscription;
         private bool _suppressSectionReload;
 
-        protected SectionScopedViewModel(SectionSelection selection)
+        protected SectionScopedViewModel(SectionSelection selection, IMainThreadDispatcher? dispatcher = null)
         {
             _selection = selection;
-            _subscription = new SectionChangeSubscription(selection, SyncSelectedSection);
+            _subscription = new SectionChangeSubscription(selection, SyncSelectedSection, dispatcher);
         }
 
         public ObservableCollection<Section> Sections { get; } = new();

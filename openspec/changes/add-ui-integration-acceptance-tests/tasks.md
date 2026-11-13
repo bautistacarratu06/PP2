@@ -2,8 +2,8 @@
 
 ## 1. Test project setup
 
-- [ ] 1.1 Create `GestionEscolar.UI.Tests` (xUnit, coverlet) multi-targeting `net10.0` and `net10.0-windows10.0.19041.0`, referencing `UI.csproj`, `GestionEscolar.Core`, and the fakes from `GestionEscolar.Tests`. Verify `dotnet build GestionEscolar.UI.Tests/GestionEscolar.UI.Tests.csproj` succeeds.
-- [ ] 1.2 Add one smoke acceptance test: construct `SettingsViewModel` with real `RiskSettingsService` over `FakeRiskSettingsRepository`, run `LoadCommand`, and assert thresholds populate. Verify `dotnet test GestionEscolar.UI.Tests/GestionEscolar.UI.Tests.csproj` passes.
+- [x] 1.1 Create `GestionEscolar.UI.Tests` (xUnit, coverlet) multi-targeting `net10.0` and `net10.0-windows10.0.19041.0`, referencing `UI.csproj`, `GestionEscolar.Core`, and the fakes from `GestionEscolar.Tests`. Verify `dotnet build GestionEscolar.UI.Tests/GestionEscolar.UI.Tests.csproj` succeeds.
+- [x] 1.2 Add one smoke acceptance test: construct `SettingsViewModel` with real `RiskSettingsService` over `FakeRiskSettingsRepository`, run `LoadCommand`, and assert thresholds populate. Verify `dotnet test GestionEscolar.UI.Tests/GestionEscolar.UI.Tests.csproj` passes.
 
 ## 2. Testability seams
 

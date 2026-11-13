@@ -19,6 +19,7 @@ public partial class StudentsViewModel : BusyStateViewModel
 
     private readonly IStudentsQueryService _query;
     private readonly SectionSelection _selection;
+    private readonly IAppNavigation _navigation;
     private readonly SectionChangeSubscription _subscription;
     private int? _boundSectionId;
     private int _loadedPage;
@@ -31,17 +32,20 @@ public partial class StudentsViewModel : BusyStateViewModel
         ISubmissionService submissions,
         SectionSelection selection,
         CommissionImportViewModel import,
-        IClock clock)
+        IClock clock,
+        IMainThreadDispatcher? dispatcher = null,
+        IAppNavigation? navigation = null)
     {
         _query = query;
         _selection = selection;
+        _navigation = navigation ?? new ShellAppNavigation();
         Import = import;
         Selection = new StudentsSelectionViewModel(FilteredStudents);
         Filters = new StudentsFiltersViewModel();
         AddStudent = new AddStudentViewModel(students, selection, clock, ReloadAsync);
         Actions = new StudentsActionsViewModel(attendance, submissions, students, selection, Selection, clock, OnActionAppliedAsync);
         Filters.Changed += (_, _) => OnFiltersChanged();
-        _subscription = new SectionChangeSubscription(selection, () => _ = LoadCommand.ExecuteAsync(null));
+        _subscription = new SectionChangeSubscription(selection, () => _ = LoadCommand.ExecuteAsync(null), dispatcher);
     }
 
     public CommissionImportViewModel Import { get; }
@@ -113,12 +117,7 @@ public partial class StudentsViewModel : BusyStateViewModel
 
     [RelayCommand]
     private Task OpenAsync(StudentRow row) =>
-        Shell.Current.GoToAsync(nameof(Views.StudentDetailPage), new Dictionary<string, object>
-        {
-            [StudentDetailViewModel.StudentQueryKey] = row,
-            [StudentDetailViewModel.SectionQueryKey] = _selection.Current?.Name ?? string.Empty,
-            [StudentDetailViewModel.SectionIdQueryKey] = _selection.Current?.Id ?? 0
-        });
+        _navigation.GoToStudentDetailAsync(row, _selection.Current?.Name ?? string.Empty, _selection.Current?.Id ?? 0);
 
     private async Task LoadRowsAsync()
     {

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GestionEscolar.Core.Enums;
@@ -17,7 +17,11 @@ namespace UI.ViewModels
         private readonly ICalendarService _service;
         private readonly IClock _clock;
 
-        public CalendarViewModel(SectionSelection selection, ICalendarService service, IClock clock) : base(selection)
+        public CalendarViewModel(
+            SectionSelection selection,
+            ICalendarService service,
+            IClock clock,
+            IMainThreadDispatcher? dispatcher = null) : base(selection, dispatcher)
         {
             _service = service;
             _clock = clock;
