@@ -21,13 +21,17 @@ public sealed class CommissionImportFileStep
     public Task<string?> PickPathAsync() => _files.PickPathAsync();
 
     // Lanza ImportValidationException si el archivo no es un CSV válido.
-    public async Task<ImportFile> LoadAsync(string? path)
+    // La lectura corre fuera del hilo de la UI; el avance llega por progress.
+    public async Task<ImportFile> LoadAsync(string? path, IProgress<ImportProgress>? progress = null)
     {
         if (!RosterCsvReader.IsCsvFile(path))
             throw new ImportValidationException("El archivo tiene que ser un CSV.");
 
-        var text = await _files.ReadAllTextAsync(path!);
-        var rows = _import.Read(new StringReader(text));
+        var rows = await Task.Run(() =>
+        {
+            using var reader = _files.OpenText(path!);
+            return _import.Read(reader, progress);
+        });
         return new ImportFile(rows, Path.GetFileName(path!));
     }
 }

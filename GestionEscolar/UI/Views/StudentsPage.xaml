@@ -13,7 +13,7 @@
             <VerticalStackLayout Spacing="20">
                 <HorizontalStackLayout Spacing="8">
                     <Button Command="{Binding AddStudent.ShowCommand}" Style="{StaticResource PrimaryButton}" Text="Cargar estudiante" />
-                    <Button Command="{Binding Import.OpenCommand}" Style="{StaticResource GhostButton}" Text="Cargar comisión" />
+                    <Button Command="{Binding Import.OpenCommand}" IsEnabled="{Binding Jobs.IsIdle}" Style="{StaticResource GhostButton}" Text="Cargar comisión" />
                     <Button
                         Command="{Binding Filters.ClearCommand}"
                         IsVisible="{Binding Filters.HasActiveFilters}"
@@ -78,6 +78,7 @@
 
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="16">
                     <controls:KpiCard
+                        IsLoading="{Binding IsCountUnknown}"
                         CaptionText="Riesgo alto"
                         Command="{Binding Filters.ToggleRiskCommand}"
                         CommandParameter="Alto"
@@ -86,6 +87,7 @@
                         Total="{Binding TotalCount}"
                         Value="{Binding HighRiskCount}" />
                     <controls:KpiCard
+                        IsLoading="{Binding IsCountUnknown}"
                         Grid.Column="1"
                         CaptionText="Riesgo medio"
                         Command="{Binding Filters.ToggleRiskCommand}"
@@ -95,6 +97,7 @@
                         Total="{Binding TotalCount}"
                         Value="{Binding MediumRiskCount}" />
                     <controls:KpiCard
+                        IsLoading="{Binding IsCountUnknown}"
                         Grid.Column="2"
                         CaptionText="Riesgo bajo"
                         Command="{Binding Filters.ToggleRiskCommand}"
@@ -114,7 +117,7 @@
                             <Label
                                 Grid.Column="1"
                                 Style="{StaticResource CountLabel}"
-                                Text="{Binding TotalMatching, StringFormat='{0} estudiantes'}" />
+                                Text="{Binding CountText}" />
                         </Grid>
                         <BoxView HeightRequest="1" Color="{StaticResource Line}" />
 
@@ -210,13 +213,36 @@
                                                 </DataTrigger>
                                             </VerticalStackLayout.Triggers>
                                             <Label Style="{StaticResource FieldLabel}" Text="Riesgo" />
-                                            <HorizontalStackLayout Spacing="12">
-                                                <CheckBox IsChecked="{Binding Filters.FilterRiskAlto}" />
-                                                <Label Text="Alto" VerticalOptions="Center" />
-                                                <CheckBox IsChecked="{Binding Filters.FilterRiskMedio}" />
-                                                <Label Text="Medio" VerticalOptions="Center" />
-                                                <CheckBox IsChecked="{Binding Filters.FilterRiskBajo}" />
-                                                <Label Text="Bajo" VerticalOptions="Center" />
+                                            <HorizontalStackLayout Spacing="20" VerticalOptions="Center">
+                                                <!-- Grupo Alto -->
+                                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                                    <Label Text="Alto" VerticalOptions="Center">
+                                                        <Label.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding Filters.ToggleRiskFilterCommand}" CommandParameter="Alto" />
+                                                        </Label.GestureRecognizers>
+                                                    </Label>
+                                                    <CheckBox IsChecked="{Binding Filters.FilterRiskAlto}" VerticalOptions="Center" />
+                                                </HorizontalStackLayout>
+
+                                                <!-- Grupo Medio -->
+                                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                                    <Label Text="Medio" VerticalOptions="Center">
+                                                        <Label.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding Filters.ToggleRiskFilterCommand}" CommandParameter="Medio" />
+                                                        </Label.GestureRecognizers>
+                                                    </Label>
+                                                    <CheckBox IsChecked="{Binding Filters.FilterRiskMedio}" VerticalOptions="Center" />
+                                                </HorizontalStackLayout>
+
+                                                <!-- Grupo Bajo -->
+                                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                                    <Label Text="Bajo" VerticalOptions="Center">
+                                                        <Label.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding Filters.ToggleRiskFilterCommand}" CommandParameter="Bajo" />
+                                                        </Label.GestureRecognizers>
+                                                    </Label>
+                                                    <CheckBox IsChecked="{Binding Filters.FilterRiskBajo}" VerticalOptions="Center" />
+                                                </HorizontalStackLayout>
                                             </HorizontalStackLayout>
                                         </VerticalStackLayout>
 
@@ -529,76 +555,203 @@
             </Border>
         </Grid>
 
+        <!-- Aviso de importación en segundo plano: avance y resultado -->
+        <Border
+            BackgroundColor="{StaticResource Surface}"
+            HorizontalOptions="End"
+            IsVisible="{Binding Jobs.IsVisible}"
+            Margin="24"
+            Padding="16,14"
+            Stroke="{StaticResource Line}"
+            StrokeShape="RoundRectangle 12"
+            StrokeThickness="1"
+            VerticalOptions="Start"
+            WidthRequest="380">
+            <VerticalStackLayout Spacing="8">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Label FontFamily="InterSemibold" LineBreakMode="TailTruncation" Text="{Binding Jobs.Title}" VerticalOptions="Center" />
+                    <Button
+                        Grid.Column="1"
+                        Command="{Binding Jobs.DismissCommand}"
+                        HeightRequest="28"
+                        IsVisible="{Binding Jobs.IsFinished}"
+                        Padding="0"
+                        Style="{StaticResource GhostButton}"
+                        Text="✕"
+                        WidthRequest="28" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Label FontSize="13" Text="{Binding Jobs.StageText}" TextColor="{StaticResource TextSecondary}" />
+                    <Label Grid.Column="1" FontFamily="JetBrainsMono" FontSize="12" Text="{Binding Jobs.CountText}" TextColor="{StaticResource TextSecondary}" />
+                </Grid>
+                <ProgressBar IsVisible="{Binding Jobs.IsDeterminate}" Progress="{Binding Jobs.Progress}" ProgressColor="{StaticResource Accent}" />
+                <ActivityIndicator HeightRequest="20" HorizontalOptions="Start" IsRunning="{Binding Jobs.IsIndeterminate}" IsVisible="{Binding Jobs.IsIndeterminate}" />
+                <Label FontSize="13" IsVisible="{Binding Jobs.HasResult}" Text="{Binding Jobs.ResultText}" TextColor="{StaticResource TextPrimary}">
+                    <Label.Triggers>
+                        <DataTrigger Binding="{Binding Jobs.IsError}" TargetType="Label" Value="True">
+                            <Setter Property="TextColor" Value="{StaticResource Danger}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+            </VerticalStackLayout>
+        </Border>
+
         <!-- Wizard import comisión (mismo flujo que Nómina) -->
         <Grid
             x:Name="Wizard"
             x:DataType="vm:CommissionImportViewModel"
-            BackgroundColor="{StaticResource Bg}"
+            BackgroundColor="#B30A0A0A"
             IsVisible="{Binding IsOpen}">
             <Border
                 Padding="24"
                 Style="{StaticResource Card}"
                 HorizontalOptions="Center"
                 VerticalOptions="Center"
-                WidthRequest="640">
-                <VerticalStackLayout Spacing="16">
-                    <Label Style="{StaticResource PageTitle}" FontSize="22" Text="Cargar comisión" />
-                    <VerticalStackLayout IsVisible="{Binding IsFileStep}" Spacing="12">
-                        <Label Style="{StaticResource PageSubtitle}" Text="Elegí el CSV con el botón o soltalo sobre este paso." />
-                        <Border Padding="28,24" Style="{StaticResource FieldBorder}">
-                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
-                                <Label HorizontalTextAlignment="Center" Text="Soltá el CSV acá" TextColor="{StaticResource TextSecondary}" />
-                                <Label IsVisible="{Binding HasChosenFile}" FontFamily="JetBrainsMono" HorizontalTextAlignment="Center" Text="{Binding ChosenFileName}" />
-                                <Button Command="{Binding PickFileCommand}" HorizontalOptions="Center" Style="{StaticResource GhostButton}" Text="Seleccionar archivo" />
+                WidthRequest="640"
+                MaximumHeightRequest="680"
+                Margin="24">
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16">
+                    <!-- Fila 0: Encabezado -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Style="{StaticResource PageTitle}" FontSize="22" Text="Cargar comisión" VerticalOptions="Center" />
+                        <Button
+                            Grid.Column="1"
+                            Command="{Binding CancelCommand}"
+                            IsEnabled="{Binding IsNotBusy}"
+                            Style="{StaticResource GhostButton}"
+                            Text="✕"
+                            WidthRequest="36"
+                            HeightRequest="36"
+                            Padding="0" />
+                    </Grid>
+
+                    <!-- Fila 1: Contenido con Scroll -->
+                    <ScrollView Grid.Row="1" VerticalScrollBarVisibility="Default">
+                        <VerticalStackLayout Spacing="16">
+                            <!-- Paso 0: Archivo -->
+                            <VerticalStackLayout IsVisible="{Binding IsFileStep}" Spacing="12">
+                                <Label Style="{StaticResource PageSubtitle}" Text="Elegí el CSV con el botón o soltalo sobre este paso." />
+                                <Border Padding="28,24" Style="{StaticResource FieldBorder}">
+                                    <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                                        <Label HorizontalTextAlignment="Center" Text="Soltá el CSV acá" TextColor="{StaticResource TextSecondary}" />
+                                        <Label IsVisible="{Binding HasChosenFile}" FontFamily="JetBrainsMono" HorizontalTextAlignment="Center" Text="{Binding ChosenFileName}" />
+                                        <Button Command="{Binding PickFileCommand}" IsEnabled="{Binding IsNotBusy}" HorizontalOptions="Center" Style="{StaticResource GhostButton}" Text="Seleccionar archivo" />
+                                    </VerticalStackLayout>
+                                </Border>
                             </VerticalStackLayout>
-                        </Border>
-                    </VerticalStackLayout>
-                    <VerticalStackLayout IsVisible="{Binding IsDestinationStep}" Spacing="12">
-                        <Label Style="{StaticResource FieldLabel}" Text="Comisión" />
-                        <HorizontalStackLayout Spacing="8">
-                            <Button Clicked="OnNewCommission" Style="{StaticResource GhostButton}" Text="Nueva" />
-                            <Button Clicked="OnExistingCommission" Style="{StaticResource GhostButton}" Text="Existente" />
-                        </HorizontalStackLayout>
-                        <VerticalStackLayout IsVisible="{Binding CreateNew}" Spacing="6">
-                            <Label Style="{StaticResource FieldLabel}" Text="Nombre" />
-                            <Border Style="{StaticResource FieldBorder}">
-                                <Entry Placeholder="Hasta 20 caracteres" Text="{Binding NewName}" />
-                            </Border>
-                        </VerticalStackLayout>
-                        <VerticalStackLayout IsVisible="{Binding ChooseExisting}" Spacing="6">
-                            <Label Style="{StaticResource FieldLabel}" Text="Comisión existente" />
-                            <Border Style="{StaticResource FieldBorder}">
-                                <Picker ItemsSource="{Binding Sections}" SelectedItem="{Binding SelectedSection}" />
-                            </Border>
-                        </VerticalStackLayout>
-                    </VerticalStackLayout>
-                    <VerticalStackLayout IsVisible="{Binding IsPreviewStep}" Spacing="12">
-                        <Label FontFamily="InterSemibold" Text="{Binding InsertText}" />
-                        <Label Text="{Binding BlockedText}" TextColor="{StaticResource Warning}" />
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Conflicts}" Spacing="10">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="vm:ConflictChoice">
-                                    <Border Padding="14" Stroke="{StaticResource Line}" StrokeShape="RoundRectangle 14" StrokeThickness="1">
-                                        <VerticalStackLayout Spacing="8">
-                                            <Label FontFamily="InterSemibold" Text="{Binding Title}" />
-                                            <Label FontFamily="JetBrainsMono" FontSize="12" Text="{Binding Detail}" TextColor="{StaticResource TextSecondary}" />
-                                            <Label Text="{Binding Explanation}" TextColor="{StaticResource TextSecondary}" />
-                                            <HorizontalStackLayout Spacing="8">
-                                                <Button Command="{Binding ChooseOmitCommand}" Style="{StaticResource GhostButton}" Text="Omitir" />
-                                                <Button Command="{Binding ChooseMergeCommand}" IsEnabled="{Binding CanMerge}" Style="{StaticResource GhostButton}" Text="Fusionar" />
-                                            </HorizontalStackLayout>
-                                        </VerticalStackLayout>
+
+                            <!-- Paso 1: Destino -->
+                            <VerticalStackLayout IsVisible="{Binding IsDestinationStep}" Spacing="12">
+                                <Label Style="{StaticResource FieldLabel}" Text="Comisión" />
+                                <HorizontalStackLayout Spacing="8">
+                                    <Button Clicked="OnNewCommission" IsEnabled="{Binding IsNotBusy}" Style="{StaticResource GhostButton}" Text="Nueva" />
+                                    <Button Clicked="OnExistingCommission" IsEnabled="{Binding IsNotBusy}" Style="{StaticResource GhostButton}" Text="Existente" />
+                                </HorizontalStackLayout>
+                                <VerticalStackLayout IsVisible="{Binding CreateNew}" Spacing="6">
+                                    <Label Style="{StaticResource FieldLabel}" Text="Nombre" />
+                                    <Border Style="{StaticResource FieldBorder}">
+                                        <Entry Placeholder="Hasta 20 caracteres" Text="{Binding NewName}" IsReadOnly="{Binding IsBusy}" />
                                     </Border>
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                                <VerticalStackLayout IsVisible="{Binding ChooseExisting}" Spacing="6">
+                                    <Label Style="{StaticResource FieldLabel}" Text="Comisión existente" />
+                                    <Border Style="{StaticResource FieldBorder}">
+                                        <Picker ItemsSource="{Binding Sections}" SelectedItem="{Binding SelectedSection}" IsEnabled="{Binding IsNotBusy}" />
+                                    </Border>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+
+                            <!-- Paso 2: Revisión de fusión u omisión -->
+                            <VerticalStackLayout IsVisible="{Binding IsPreviewStep}" Spacing="12">
+                                <Label FontFamily="InterSemibold" Text="{Binding InsertText}" />
+                                <Label IsVisible="{Binding HasBlockedText}" Text="{Binding BlockedText}" TextColor="{StaticResource Warning}" />
+                                <Label
+                                    IsVisible="{Binding HasConflicts}"
+                                    FontFamily="InterMedium"
+                                    FontSize="13"
+                                    Text="Revisión de registros existentes: seleccioná si deseás fusionar u omitir cada registro antes de confirmar."
+                                    TextColor="{StaticResource TextSecondary}" />
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Conflicts}" Spacing="10">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:ConflictChoice">
+                                            <Border Padding="14" Stroke="{StaticResource Line}" StrokeShape="RoundRectangle 14" StrokeThickness="1">
+                                                <VerticalStackLayout Spacing="8">
+                                                    <Label FontFamily="InterSemibold" Text="{Binding Title}" />
+                                                    <Label FontFamily="JetBrainsMono" FontSize="12" Text="{Binding Detail}" TextColor="{StaticResource TextSecondary}" />
+                                                    <Label Text="{Binding Explanation}" TextColor="{StaticResource TextSecondary}" />
+                                                    <HorizontalStackLayout Spacing="8">
+                                                        <Button Command="{Binding ChooseOmitCommand}" Style="{StaticResource GhostButton}" Text="Omitir">
+                                                            <Button.Triggers>
+                                                                <DataTrigger Binding="{Binding Merge}" TargetType="Button" Value="False">
+                                                                    <Setter Property="BackgroundColor" Value="{StaticResource AccentStrong}" />
+                                                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                                                </DataTrigger>
+                                                            </Button.Triggers>
+                                                        </Button>
+                                                        <Button Command="{Binding ChooseMergeCommand}" IsEnabled="{Binding CanMerge}" Style="{StaticResource GhostButton}" Text="Fusionar">
+                                                            <Button.Triggers>
+                                                                <DataTrigger Binding="{Binding Merge}" TargetType="Button" Value="True">
+                                                                    <Setter Property="BackgroundColor" Value="{StaticResource AccentStrong}" />
+                                                                    <Setter Property="TextColor" Value="{StaticResource White}" />
+                                                                </DataTrigger>
+                                                            </Button.Triggers>
+                                                        </Button>
+                                                    </HorizontalStackLayout>
+                                                    <Label IsVisible="{Binding CannotMerge}" Text="Solo se puede omitir." TextColor="{StaticResource TextTertiary}" />
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                                <Label IsVisible="{Binding HasMoreConflicts}" Text="{Binding MoreConflictsText}" TextColor="{StaticResource TextSecondary}" />
+                            </VerticalStackLayout>
                         </VerticalStackLayout>
+                    </ScrollView>
+
+                    <!-- Fila 2: Pie de acciones fijo -->
+                    <VerticalStackLayout Grid.Row="2" Spacing="10">
+                        <BoxView HeightRequest="1" Color="{StaticResource Line}" />
+                        <Label IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" TextColor="{StaticResource Danger}" />
+                        <HorizontalStackLayout IsVisible="{Binding IsBusy}" Spacing="8">
+                            <ActivityIndicator HeightRequest="18" IsRunning="{Binding IsBusy}" WidthRequest="18" />
+                            <Label Text="{Binding BusyText}" TextColor="{StaticResource TextSecondary}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+
+                        <!-- Acciones Paso 0 y 1 -->
+                        <HorizontalStackLayout IsVisible="{Binding IsNotPreviewStep}" Spacing="8">
+                            <Button
+                                Command="{Binding CancelCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Style="{StaticResource GhostButton}"
+                                Text="Cancelar" />
+                            <Button
+                                Command="{Binding BackCommand}"
+                                IsVisible="{Binding IsDestinationStep}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Style="{StaticResource GhostButton}"
+                                Text="Atrás" />
+                            <Button
+                                Command="{Binding NextCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Style="{StaticResource PrimaryButton}"
+                                Text="Siguiente" />
+                        </HorizontalStackLayout>
+
+                        <!-- Acciones Paso 2 (Revisión de fusión u omisión): ACEPTAR y CANCELAR -->
+                        <HorizontalStackLayout IsVisible="{Binding IsPreviewStep}" Spacing="8">
+                            <Button
+                                Command="{Binding CancelCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Style="{StaticResource GhostButton}"
+                                Text="Cancelar" />
+                            <Button
+                                Command="{Binding AcceptCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Style="{StaticResource PrimaryButton}"
+                                Text="Aceptar" />
+                        </HorizontalStackLayout>
                     </VerticalStackLayout>
-                    <Label IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" TextColor="{StaticResource Danger}" />
-                    <HorizontalStackLayout Spacing="8">
-                        <Button Command="{Binding BackCommand}" Style="{StaticResource GhostButton}" Text="Atrás" />
-                        <Button Command="{Binding NextCommand}" Style="{StaticResource PrimaryButton}" Text="{Binding NextLabel}" />
-                    </HorizontalStackLayout>
-                </VerticalStackLayout>
+                </Grid>
             </Border>
         </Grid>
     </Grid>

@@ -43,8 +43,8 @@ namespace UI.ViewModels
 
         public bool IsAssignment => SelectedType == AssignmentType;
 
-        // La clase no tiene nombre: la identifica la fecha.
-        public string NamePlaceholder => IsAssignment ? "Nombre del trabajo" : "La fecha identifica la clase";
+        // Permite asignar nombre tanto a trabajos como a clases personalizadas.
+        public string NamePlaceholder => IsAssignment ? "Nombre del trabajo" : "Nombre de la clase (opcional)";
 
         public ObservableCollection<CalendarRow> Items { get; } = new();
 
@@ -53,8 +53,7 @@ namespace UI.ViewModels
 
         partial void OnSelectedTypeChanged(string value)
         {
-            if (value != AssignmentType)
-                NewName = string.Empty;
+            // Mantenemos el texto ingresado para no borrarlo al alternar el tipo.
         }
 
         protected override async Task OnSectionChangedAsync()
@@ -66,11 +65,56 @@ namespace UI.ViewModels
 
             var items = await _service.GetItemsAsync(SelectedSection.Id);
             foreach (var i in items)
+            {
+                var displayName = !string.IsNullOrWhiteSpace(i.Name)
+                    ? i.Name
+                    : (i.Kind == CalendarItemKind.Clase ? ClassType : AssignmentType);
+
                 Items.Add(new CalendarRow(
-                    i.Kind == CalendarItemKind.Clase ? ClassType : i.Name ?? string.Empty,
+                    i.Id,
+                    i.Kind,
+                    displayName,
                     i.Kind == CalendarItemKind.Clase ? ClassType : AssignmentType,
                     FormatDate(i.Date)));
+            }
+
             HasNoItems = Items.Count == 0;
+        }
+
+        public IAsyncRelayCommand<CalendarRow?> EditCommand => EditClassCommand;
+
+        [RelayCommand]
+        private async Task EditClassAsync(CalendarRow? item)
+        {
+            if (item is null)
+                return;
+
+            var page = Application.Current?.Windows.FirstOrDefault()?.Page ?? Application.Current?.MainPage;
+            if (page is null)
+                return;
+
+            var newName = await page.DisplayPromptAsync(
+                "Renombrar",
+                "Ingresá el nuevo nombre:",
+                initialValue: item.Title);
+
+            if (newName is null)
+                return;
+
+            var trimmed = newName.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed))
+                return;
+
+            item.Name = trimmed;
+
+            try
+            {
+                await _service.UpdateItemNameAsync(item.Id, item.ItemKind, trimmed);
+            }
+            catch (Exception ex)
+            {
+                ReportError("No se pudo actualizar el nombre.", ex);
+            }
         }
 
         [RelayCommand]
@@ -100,19 +144,56 @@ namespace UI.ViewModels
         // Guarda la clase o el trabajo y devuelve el mensaje de éxito.
         private async Task<string> AddEntryAsync(int sectionId)
         {
+            var trimmed = NewName?.Trim();
+            var hasCustomName = !string.IsNullOrWhiteSpace(trimmed);
+
             if (!IsAssignment)
             {
-                await _service.AddClassAsync(sectionId, NewDate);
-                return $"Clase agregada: {FormatDate(NewDate)}";
+                var customName = hasCustomName ? trimmed : null;
+                await _service.AddClassAsync(sectionId, NewDate, customName);
+
+                return hasCustomName
+                    ? $"Clase agregada: {trimmed} · {FormatDate(NewDate)}"
+                    : $"Clase agregada: {FormatDate(NewDate)}";
             }
 
-            await _service.AddAssignmentAsync(sectionId, NewName, NewDate);
-            return $"Trabajo agregado: {NewName.Trim()} · {FormatDate(NewDate)}";
+            await _service.AddAssignmentAsync(sectionId, trimmed, NewDate);
+            return $"Trabajo agregado: {trimmed} · {FormatDate(NewDate)}";
         }
     }
 
-    public sealed record CalendarRow(string Name, string Kind, string DateText)
+    public partial class CalendarRow : ObservableObject
     {
+        public int Id { get; init; }
+
+        public CalendarItemKind ItemKind { get; init; }
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Title))]
+        public partial string Name { get; set; } = string.Empty;
+
+        public string Title => Name;
+
+        [ObservableProperty]
+        public partial string Kind { get; set; } = string.Empty;
+
+        [ObservableProperty]
+        public partial string DateText { get; set; } = string.Empty;
+
         public string KindKey => Kind == "Trabajo" ? "accent" : "neutral";
+
+        public CalendarRow(int id, CalendarItemKind itemKind, string name, string kind, string dateText)
+        {
+            Id = id;
+            ItemKind = itemKind;
+            Name = name;
+            Kind = kind;
+            DateText = dateText;
+        }
+
+        public CalendarRow(string name, string kind, string dateText)
+            : this(0, kind == "Trabajo" ? CalendarItemKind.Trabajo : CalendarItemKind.Clase, name, kind, dateText)
+        {
+        }
     }
 }

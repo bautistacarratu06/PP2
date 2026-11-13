@@ -1,4 +1,4 @@
-﻿using GestionEscolar.Core.Interfaces;
+using GestionEscolar.Core.Interfaces;
 using GestionEscolar.Core.Models;
 using GestionEscolar.Data.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +16,11 @@ public sealed class EfCalendarRepository(IDbContextFactory<CourseTrackingDbConte
             .AsNoTracking()
             .Where(s => s.SectionId == sectionId)
             .OrderBy(s => s.SessionDate)
-            .Select(s => new { s.Id, s.SectionId, s.SessionDate })
+            .Select(s => new { s.Id, s.SectionId, s.SessionDate, s.Name })
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return rows.Select(s => new ClassSession(s.Id, s.SectionId, s.SessionDate)).ToList();
+        return rows.Select(s => new ClassSession(s.Id, s.SectionId, s.SessionDate, s.Name)).ToList();
     }
 
     public async Task<IReadOnlyList<Assignment>> GetAssignmentsAsync(int sectionId, CancellationToken cancellationToken = default)
@@ -38,11 +38,16 @@ public sealed class EfCalendarRepository(IDbContextFactory<CourseTrackingDbConte
         return rows.Select(a => new Assignment(a.Id, a.SectionId, a.Name, a.DueDate)).ToList();
     }
 
-    public async Task<int> AddClassSessionAsync(int sectionId, DateTime date, CancellationToken cancellationToken = default)
+    public async Task<int> AddClassSessionAsync(int sectionId, DateTime date, string? name = null, CancellationToken cancellationToken = default)
     {
         var day = date.Date;
         await using var db = await _contexts.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-        var session = new ClassSessionEntity { SectionId = sectionId, SessionDate = day };
+        var session = new ClassSessionEntity
+        {
+            SectionId = sectionId,
+            SessionDate = day,
+            Name = string.IsNullOrWhiteSpace(name) ? null : name.Trim()
+        };
         db.ClassSessions.Add(session);
         try
         {
@@ -52,6 +57,17 @@ public sealed class EfCalendarRepository(IDbContextFactory<CourseTrackingDbConte
         catch (DbUpdateException ex) when (UniqueConstraint.IsViolation(ex))
         {
             throw new CalendarValidationException($"Ya hay una clase el {day:dd/MM/yyyy} en esta comisión.");
+        }
+    }
+
+    public async Task UpdateClassSessionNameAsync(int classSessionId, string name, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _contexts.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        var session = await db.ClassSessions.FindAsync([classSessionId], cancellationToken).ConfigureAwait(false);
+        if (session is not null)
+        {
+            session.Name = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
+            await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -67,5 +83,16 @@ public sealed class EfCalendarRepository(IDbContextFactory<CourseTrackingDbConte
         db.Assignments.Add(assignment);
         await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return assignment.Id;
+    }
+
+    public async Task UpdateAssignmentNameAsync(int assignmentId, string name, CancellationToken cancellationToken = default)
+    {
+        await using var db = await _contexts.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        var assignment = await db.Assignments.FindAsync([assignmentId], cancellationToken).ConfigureAwait(false);
+        if (assignment is not null)
+        {
+            assignment.Name = string.IsNullOrWhiteSpace(name) ? string.Empty : name.Trim();
+            await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 }

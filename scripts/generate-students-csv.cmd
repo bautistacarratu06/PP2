@@ -56,3 +56,5 @@ exit /b 0
 :invalid
 echo Ingresa un numero entero entre 1 y 1000000.
 exit /b 1
+
+pause

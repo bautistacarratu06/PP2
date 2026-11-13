@@ -1,4 +1,4 @@
-﻿using GestionEscolar.Core.Models;
+using GestionEscolar.Core.Models;
 using GestionEscolar.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,6 +23,7 @@ public static class CoreServiceCollectionExtensions
         AddWithContract<ICalendarService, CalendarService>(services);
         AddWithContract<IAttendanceService, AttendanceService>(services);
         AddWithContract<ISubmissionService, SubmissionService>(services);
+        AddWithContract<IReportService, ReportService>(services);
         return services;
     }
 

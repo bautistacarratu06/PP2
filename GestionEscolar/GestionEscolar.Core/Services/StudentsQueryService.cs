@@ -1,4 +1,4 @@
-﻿using GestionEscolar.Core.Enums;
+using GestionEscolar.Core.Enums;
 using GestionEscolar.Core.Interfaces;
 using GestionEscolar.Core.Models;
 
@@ -9,11 +9,18 @@ public class StudentsQueryService : IStudentsQueryService
 {
     private readonly ITrackingRepository _repository;
     private readonly RiskConfig _config;
+    private readonly IReportService _reportService;
 
     public StudentsQueryService(ITrackingRepository repository, RiskConfig config)
+        : this(repository, config, new ReportService(repository, config))
+    {
+    }
+
+    public StudentsQueryService(ITrackingRepository repository, RiskConfig config, IReportService reportService)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _config = config ?? throw new ArgumentNullException(nameof(config));
+        _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
     }
 
     public async Task<StudentsQueryResult> QueryAsync(
@@ -24,7 +31,7 @@ public class StudentsQueryService : IStudentsQueryService
         filter ??= new StudentsQueryFilter();
         var rows = await _repository.GetRowsBySectionAsync(sectionId, cancellationToken).ConfigureAwait(false);
         var evaluated = rows.Select(Evaluate).ToList();
-        var activeSummary = RiskSummary.FromResults(evaluated.Where(student => student.Data.Student.IsActive));
+        var activeSummary = await _reportService.GetActiveRiskSummaryAsync(sectionId, cancellationToken).ConfigureAwait(false);
         var sorted = ApplySort(ApplyFilters(evaluated, filter), filter).ToList();
         var page = ApplyPaging(sorted, filter).ToList();
         return new StudentsQueryResult(page, activeSummary) { TotalCount = sorted.Count };

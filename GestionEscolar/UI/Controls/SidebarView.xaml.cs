@@ -9,6 +9,7 @@ public partial class SidebarView : ContentView
     [
         ("Estudiantes", "StudentsPage", "users"),
         ("Calendario", "Calendar", "calendar"),
+        ("Reportes", "ReportsPage", "file-text"),
         ("Ajustes", "SettingsPage", "sliders")
     ];
 

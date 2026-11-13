@@ -1,4 +1,4 @@
-﻿using GestionEscolar.Core;
+using GestionEscolar.Core;
 using GestionEscolar.Core.Models;
 using GestionEscolar.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +27,8 @@ public class CoreRegistrationTests
                 typeof(CommissionImportService),
                 typeof(CalendarService),
                 typeof(AttendanceService),
-                typeof(SubmissionService)
+                typeof(SubmissionService),
+                typeof(ReportService)
             },
             type => Assert.Equal(ServiceLifetime.Transient, Single(services, type).Lifetime));
     }

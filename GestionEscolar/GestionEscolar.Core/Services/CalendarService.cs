@@ -1,4 +1,4 @@
-﻿using GestionEscolar.Core.Enums;
+using GestionEscolar.Core.Enums;
 using GestionEscolar.Core.Interfaces;
 using GestionEscolar.Core.Models;
 
@@ -23,7 +23,7 @@ public class CalendarService : ICalendarService
         await Task.WhenAll(sessionsTask, assignmentsTask).ConfigureAwait(false);
 
         return sessionsTask.Result
-            .Select(s => new CalendarItem(s.Id, CalendarItemKind.Clase, null, s.Date.Date))
+            .Select(s => new CalendarItem(s.Id, CalendarItemKind.Clase, s.Name, s.Date.Date))
             .Concat(assignmentsTask.Result.Select(a => new CalendarItem(a.Id, CalendarItemKind.Trabajo, a.Name, a.DueDate.Date)))
             .OrderBy(i => i.Date)
             .ThenBy(i => i.Kind)
@@ -31,12 +31,24 @@ public class CalendarService : ICalendarService
             .ToList();
     }
 
-    public async Task<int> AddClassAsync(int sectionId, DateTime date, CancellationToken cancellationToken = default)
+    public async Task<int> AddClassAsync(int sectionId, DateTime date, string? name = null, CancellationToken cancellationToken = default)
     {
         var sessions = await _repository.GetClassSessionsAsync(sectionId, cancellationToken).ConfigureAwait(false);
         var day = CalendarEntryRules.ClassDay(date, sessions.Select(s => s.Date));
 
-        return await _repository.AddClassSessionAsync(sectionId, day, cancellationToken).ConfigureAwait(false);
+        var trimmed = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
+        return await _repository.AddClassSessionAsync(sectionId, day, trimmed, cancellationToken).ConfigureAwait(false);
+    }
+
+    public Task UpdateItemNameAsync(int id, CalendarItemKind kind, string name, CancellationToken cancellationToken = default)
+    {
+        var trimmed = name?.Trim() ?? string.Empty;
+        if (kind == CalendarItemKind.Clase)
+        {
+            return _repository.UpdateClassSessionNameAsync(id, trimmed, cancellationToken);
+        }
+
+        return _repository.UpdateAssignmentNameAsync(id, trimmed, cancellationToken);
     }
 
     public Task<int> AddAssignmentAsync(int sectionId, string? name, DateTime dueDate, CancellationToken cancellationToken = default)

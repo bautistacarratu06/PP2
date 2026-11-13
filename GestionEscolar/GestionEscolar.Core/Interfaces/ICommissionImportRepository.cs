@@ -9,7 +9,11 @@ public interface ICommissionImportRepository
 
     Task<IReadOnlyList<Student>> GetStudentsAsync(CancellationToken cancellationToken = default);
 
-    Task<Section> CreateSectionAsync(string name, IReadOnlyList<Student> students, CancellationToken cancellationToken = default);
+    Task<Section> CreateSectionAsync(
+        string name,
+        IReadOnlyList<Student> students,
+        IProgress<ImportProgress>? progress = null,
+        CancellationToken cancellationToken = default);
 
     // Todo o nada: si algo falla no queda ninguna fila de la importación.
     Task ApplyAsync(
@@ -23,6 +27,7 @@ public interface ICommissionImportRepository
         int sectionId,
         IReadOnlyList<NumberedStudent> inserts,
         IReadOnlyList<StudentContactChange> updates,
+        IProgress<ImportProgress>? progress = null,
         CancellationToken cancellationToken = default);
 
     // Camino para importaciones grandes: carga masiva y conflictos resueltos en la base.
@@ -30,5 +35,6 @@ public interface ICommissionImportRepository
         int sectionId,
         IReadOnlyList<NumberedStudent> inserts,
         IReadOnlyList<StudentContactChange> updates,
+        IProgress<ImportProgress>? progress = null,
         CancellationToken cancellationToken = default);
 }

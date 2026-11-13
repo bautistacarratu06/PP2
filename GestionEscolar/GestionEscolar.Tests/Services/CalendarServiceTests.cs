@@ -1,4 +1,4 @@
-﻿using GestionEscolar.Core.Enums;
+using GestionEscolar.Core.Enums;
 using GestionEscolar.Core.Models;
 using GestionEscolar.Core.Services;
 using GestionEscolar.Tests.Fakes;
@@ -77,5 +77,56 @@ public class CalendarServiceTests
         var added = repo.Assignments.Last();
         Assert.Equal("TP 2", added.Name);
         Assert.Equal(D1, added.DueDate);
+    }
+
+    [Fact]
+    public async Task Given_ClassWithCustomName_When_Adding_Then_StoresName()
+    {
+        var repo = new FakeCalendarRepository();
+        var service = new CalendarService(repo);
+
+        await service.AddClassAsync(1, D1, "  Clase 5: Introducción  ");
+
+        var session = Assert.Single(repo.Sessions);
+        Assert.Equal("Clase 5: Introducción", session.Name);
+    }
+
+    [Fact]
+    public async Task Given_ClassWithCustomName_When_Listing_Then_ReturnsStoredName()
+    {
+        var repo = new FakeCalendarRepository();
+        repo.Sessions.Add(new ClassSession(1, 1, D1, "Clase Magistral"));
+        var service = new CalendarService(repo);
+
+        var items = await service.GetItemsAsync(1);
+
+        var item = Assert.Single(items);
+        Assert.Equal("Clase Magistral", item.Name);
+    }
+
+    [Fact]
+    public async Task Given_Class_When_UpdatingName_Then_NameIsUpdated()
+    {
+        var repo = new FakeCalendarRepository();
+        repo.Sessions.Add(new ClassSession(10, 1, D1, "Nombre Viejo"));
+        var service = new CalendarService(repo);
+
+        await service.UpdateItemNameAsync(10, CalendarItemKind.Clase, "Nombre Nuevo");
+
+        var session = Assert.Single(repo.Sessions);
+        Assert.Equal("Nombre Nuevo", session.Name);
+    }
+
+    [Fact]
+    public async Task Given_Assignment_When_UpdatingName_Then_NameIsUpdated()
+    {
+        var repo = new FakeCalendarRepository();
+        repo.Assignments.Add(new Assignment(20, 1, "TP 1", D1));
+        var service = new CalendarService(repo);
+
+        await service.UpdateItemNameAsync(20, CalendarItemKind.Trabajo, "TP 1 - Modificado");
+
+        var assignment = Assert.Single(repo.Assignments);
+        Assert.Equal("TP 1 - Modificado", assignment.Name);
     }
 }

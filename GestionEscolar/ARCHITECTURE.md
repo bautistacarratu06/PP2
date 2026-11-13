@@ -9,21 +9,25 @@ Documentos relacionados (en la raíz del repo `PP2/`):
 - [`docs/index.md`](../docs/index.md): índice de la documentación detallada (build, convenciones, harness).
 - [`AI_USAGE.md`](../AI_USAGE.md): uso de IA y skills recomendados.
 
+Diagrama de capas: [`gestionescolar-arquitectura.svg`](../gestionescolar-arquitectura.svg).
+
 ## 1. Visión general
 
-La solución sigue una variante simple de **Clean Architecture** (también llamada "Onion" o "Ports & Adapters"):
+La solución sigue una variante simple de **Clean Architecture** (también llamada "Onion" o "Ports & Adapters") con tres capas:
 
-- La lógica de negocio vive en un proyecto central (`GestionEscolar.Core`) que no depende de MAUI ni de SQL. Solo referencia las abstracciones de DI para exponer el alta de sus casos de uso.
-- La infraestructura (`GestionEscolar.Data`) y la presentación (`UI`) dependen de Core, y no al revés.
+- **Core**: dominio y casos de uso. No depende de MAUI, SQL ni Entity Framework. Solo referencia las abstracciones de DI para exponer el alta de sus servicios.
+- **Data**: infraestructura. Implementa en SQL Server las interfaces de repositorio que define Core.
+- **UI**: presentación (.NET MAUI, MVVM). Consume los casos de uso de Core y cablea todo en `MauiProgram`.
+
+Las dependencias apuntan siempre hacia Core.
 
 | Proyecto | Tipo | Target |
 |---|---|---|
 | `GestionEscolar.Core` | Class library | `net10.0` |
-| `GestionEscolar.Data` | Class library (Entity Framework Core SQL Server 10.0.14) | `net10.0` |
-| `UI` | App .NET MAUI (MVVM con CommunityToolkit.Mvvm) | `net10.0-windows10.0.19041.0`, `-android`, `-ios`, `-maccatalyst` |
-| `GestionEscolar.Tests` | xUnit, sobre Core, con repositorios falsos | `net10.0` |
-| `GestionEscolar.Data.Tests` | xUnit, repositorios EF contra SQL Server Express | `net10.0` |
-| `GestionEscolar.Architecture.Tests` | xUnit + ArchUnitNET, invariantes de capas y convenciones | `net10.0` |
+| `GestionEscolar.Data` | Class library (Entity Framework Core SQL Server) | `net10.0` |
+| `UI` | App .NET MAUI (MVVM con CommunityToolkit.Mvvm) | `net10.0-windows10.0.19041.0` (el `.csproj` también declara android, ios y maccatalyst) |
+| `GestionEscolar.Tests` | xUnit sobre Core, con repositorios falsos | `net10.0` |
+| `GestionEscolar.Data.Tests` | xUnit sobre los repositorios EF, contra SQL Server Express | `net10.0` |
 
 ### Estructura
 
@@ -36,11 +40,10 @@ PP2/
 └─ GestionEscolar/
    ├─ GestionEscolar.slnx · ARCHITECTURE.md
    ├─ GestionEscolar.Core/     Enums/ Interfaces/ Models/ Services/
-   ├─ GestionEscolar.Data/     Persistence/ (CourseTrackingDbContext), Repositories/Ef*, Migrations/, Database/Migrations/ (0001–0010)
-   ├─ UI/                      Views/ ViewModels/ Converters/ Seeding/ AppShell.xaml MauiProgram.cs
+   ├─ GestionEscolar.Data/     Persistence/ Repositories/ Migrations/ Database/Migrations/ (0001–0010)
+   ├─ UI/                      Views/ ViewModels/ Controls/ Services/ Formatting/ Converters/ MauiProgram.cs
    ├─ GestionEscolar.Tests/    Fakes/ Services/
-   ├─ GestionEscolar.Architecture.Tests/  invariantes de capas (ArchUnitNET)
-   └─ GestionEscolar.Data.Tests/  repositorios EF contra SQL Server Express
+   └─ GestionEscolar.Data.Tests/
 ```
 
 ### Dependencias entre proyectos
@@ -50,274 +53,143 @@ graph LR
     UI[UI<br/>.NET MAUI] --> Core[GestionEscolar.Core]
     UI --> Data[GestionEscolar.Data]
     Data --> Core
-    Tests[GestionEscolar.Tests<br/>xUnit] --> Core
+    Tests[GestionEscolar.Tests] --> Core
     DataTests[GestionEscolar.Data.Tests] --> Data
     Data -. EF Core .-> DB[(SQL Server<br/>course_tracking)]
 ```
 
-Todas las flechas de proyecto apuntan hacia Core. `UI` referencia a `Data` para llamar el alta de infraestructura. Core y Data exponen ese alta; la UI registra ViewModels y páginas.
+`UI` referencia a `Data` solo para llamar `AddGestionEscolarData()` al arrancar. Del resto de la solución, la UI solo usa Core.
 
 ## 2. Rol de cada proyecto
 
-### 2.1 `GestionEscolar.Core`: dominio
+### 2.1 `GestionEscolar.Core`: dominio y casos de uso
 
-Lógica pura: **no conoce MAUI, ni SQL, ni Entity Framework**. Por eso se puede testear directamente desde un proyecto `net10.0`.
+Lógica pura: no conoce MAUI, SQL ni Entity Framework. Por eso se testea directamente desde un proyecto `net10.0`.
 
-- **`Models/`**: datos sin formato de UI.
-  - `Student`: datos del alumno para la Nómina (Id, nombre, legajo, teléfono, email).
-  - `StudentTrackingData`: asistencia, entregas y último contacto de un alumno en una comisión, con `AttendancePercent` y `DeliveryPercent`.
-  - `StudentRiskResult`: `StudentTrackingData` + `RiskScore` + `RiskLevel` (+ `Score` = 100 − riesgo).
-  - `StudentDetail`, `AttendanceRecord`, `Submission`, `Intervention`: ficha del alumno y sus historiales (estado `null` = sin registro).
-  - `Section`: comisión (`Id`, `Name`) de `dbo.section`.
-  - `ClassSession` (clase: comisión + fecha) y `Assignment` (trabajo: comisión + nombre + vencimiento).
-  - `CalendarItem`: ítem de la lista combinada del Calendario. Su `Kind` es un `CalendarItemKind` y su `Name` es `null` en las clases.
-  - `AttendanceMark` / `SubmissionMark`: alumno ("Apellido, Nombre") + estado para una clase o un trabajo (`null` = sin registro).
-  - `CalendarValidationException`: error de validación con un mensaje listo para mostrar.
-  - `RiskSummary`: cantidad de alumnos Alto/Medio/Bajo (+ `Total`) de una comisión. `RiskSummary.FromResults` cuenta a partir de la lista ya evaluada. `SectionTracking` junta esa lista y el resumen.
-  - `RiskConfig`: umbrales de riesgo (`HighThreshold` = 50, `MediumThreshold` = 25).
-- **`Enums/`**:
-  - `RiskLevel` (Bajo/Medio/Alto), `AttendanceStatus`, `SubmissionStatus` y `CalendarItemKind` (Clase/Trabajo).
-  - `DbStatusValues`, que traduce los enums a los valores exactos de la base (`presente`, `entregó`, etc.).
-- **`Interfaces/`**: los "puertos" que implementa Data.
-  - `ITrackingRepository` (`GetRowsBySectionAsync`).
-  - `IRiskSummaryRepository` (`GetSummaryBySectionAsync`).
-  - `ISectionRepository` (`GetAllAsync`).
-  - `IStudentDetailsRepository`: contacto, asistencia, entregas e intervenciones de un alumno.
-  - `IStudentRepository` (`GetRosterAsync`).
-  - `ICalendarRepository`: clases y trabajos de una comisión, y sus altas.
-  - `IAttendanceRepository` / `ISubmissionRepository`: estado por alumno y upsert.
-- **`Services/`**:
-  - `RiskRule`: cálculo puro. Asistencias, entregas, totales y umbrales entran juntos y devuelven puntaje y nivel (60 % inasistencia, 40 % entregas faltantes, redondeo alejándose de cero).
-  - `TrackingService`: pide las filas al repositorio, evalúa cada alumno con `RiskRule` y devuelve un `SectionTracking` (lista + resumen contado sobre esa lista).
-  - `StudentDetailsService`: arma el `StudentDetail` (contacto + historiales de la comisión) desde `IStudentDetailsRepository`.
-  - `StudentService`: nómina de una comisión (`GetRosterAsync`).
-  - `SectionService`: lista las comisiones y elige la de por defecto (`PickDefault`: la 1 si existe, si no la primera).
-  - `CalendarService`:
-    - devuelve la lista combinada ordenada por fecha;
-    - `AddClassAsync` consulta `CalendarEntryRules` y no acepta una fecha de clase repetida en la comisión;
-    - `AddAssignmentAsync` consulta `CalendarEntryRules`: exige nombre (se recorta, máx. 120) y guarda la fecha sin hora.
-  - `AttendanceService` / `SubmissionService`: clases o trabajos de la comisión, estado por alumno y guardado. `PickDefault` elige la última fecha hasta hoy.
-  - `CsvParser` y `StudentCsvImporter`: lectura de CSV.
+- **`Models/`**: entidades, resultados y reglas de validación del dominio, sin formato de UI.
+- **`Enums/`**: estados y niveles del dominio. `DbStatusValues` es el único lugar que traduce enums a los valores exactos de la base.
+- **`Interfaces/`**: los repositorios (puertos) que implementa Data. Los usan los servicios de Core.
+- **`Services/`**: los casos de uso. Cada uno tiene su interfaz (`I*Service`), que es lo que consume la UI.
+  - Seguimiento de riesgo: `TrackingService` y `RiskRule`, el cálculo puro del puntaje y el nivel.
+  - Alumnos: `StudentsQueryService` (consulta con filtros y paginado), `StudentService`, `StudentDetailsService`.
+  - Comisiones: `SectionService`.
+  - Calendario, asistencia y entregas: `CalendarService`, `AttendanceService`, `SubmissionService`.
+  - Importación de CSV: `CommissionImportService` y lectores de CSV.
+  - Reportes: `ReportService`.
+  - Ajustes: `RiskSettingsService`, que lee y guarda los umbrales de riesgo.
+- **`CoreServiceCollectionExtensions`**: `AddGestionEscolarCore()` registra los servicios como transient y `RiskConfig` (umbrales en memoria) como singleton.
 
 ### 2.2 `GestionEscolar.Data`: infraestructura
 
-Acceso a SQL Server con Entity Framework Core. Implementa las interfaces de Core. Cada operación abre un `CourseTrackingDbContext` y lo cierra al terminar. Core no referencia el ORM: las entidades de `Persistence/` se traducen a los modelos de dominio en el repositorio.
+Acceso a SQL Server con Entity Framework Core. Implementa las interfaces de repositorio de Core. Cada operación abre un `CourseTrackingDbContext` desde una fábrica de contextos y lo cierra al terminar. Las entidades de `Persistence/` se traducen a los modelos de dominio dentro del repositorio, así que Core no conoce el ORM.
 
-- `DatabaseOptions`: transporta la connection string leída de la configuración (`ConnectionStrings:CourseTracking` en `UI/appsettings.json`).
-- `CourseTrackingDbContext`: modelo de las ocho tablas (`section`, `student`, `class_session`, `assignment`, `attendance_record`, `submission`, `intervention`, `setting`). La clave de `student` es `dni`; `id` es identity y es el destino de las claves foráneas. `vw_student_risk` no está en el modelo.
-- `CourseTrackingDbContextFactory`: solo la usa `dotnet ef`. La aplicación no la usa.
-- `DatabaseInstance`: fábrica de conexiones (`GetConnection`, `OpenConnectionAsync`), más `TestConnection(Async)` y `ListTables(Async)`. Es singleton por DI, no por un `GetInstance` estático. Los repositorios de las pantallas no la usan.
-- **`Repositories/`** (`Ef*Repository`):
-  - `EfTrackingRepository`: filas crudas de una comisión (clases, asistencias `presente`, trabajos, entregas `entregó`, último contacto). No calcula riesgo.
-  - `EfStudentDetailsRepository`: contacto y comisión, clases con o sin asistencia, trabajos con o sin entrega, intervenciones. Los estados se traducen con `DbStatusValues.Parse*`.
-  - `EfStudentRepository`: nómina de una comisión, ordenada por apellido.
-  - `EfSectionRepository`: comisiones ordenadas por id.
-  - `EfRiskSummaryRepository`: cuenta los niveles con `RiskRule` sobre las filas de `EfTrackingRepository`.
-    - **La pantalla de Seguimiento no lo llama**: las tarjetas salen de `SectionTracking.Summary`.
-    - No usa `vw_student_risk`.
-  - `EfRiskSettingsRepository`: lee y guarda `high_threshold` y `medium_threshold` en `dbo.setting`.
-  - `EfCalendarRepository`: lista y da de alta clases y trabajos. Una clase repetida en la comisión (violación 2627/2601) se traduce a `CalendarValidationException`.
-  - `EfAttendanceRepository` / `EfSubmissionRepository`:
-    - listan todos los alumnos de la comisión, con o sin registro;
-    - guardan con upsert sobre `(class_session_id, student_id)` y `(assignment_id, student_id)`;
-    - solo insertan si el alumno es de la comisión;
-    - al corregir una asistencia existente (el estado cambia) se setea `corrected_at`.
-- `Migrations/`: migraciones de EF. El DDL nuevo sale de acá (`dotnet ef migrations add` y `dotnet ef database update`). La migración inicial, si `dbo.section` ya existe, no vuelve a crear las tablas. La que sigue agrega el índice `ix_student_section_id`.
-- `Database/Migrations/*.up.sql`: scripts históricos 0001–0010.
-  - Crean la base `course_tracking`, las tablas, `dbo.setting` con sus valores iniciales, la vista `vw_student_risk` y datos de prueba.
-  - No se editan y no se agregan scripts nuevos. Los ejecuta `run-database.cmd`, que ya no es el camino del DDL nuevo.
+- **`Persistence/`**: `CourseTrackingDbContext` y sus entidades (tablas `section`, `student`, `class_session`, `assignment`, `attendance_record`, `submission`, `intervention`, `setting`).
+- **`Repositories/`**: una implementación `Ef*Repository` por cada interfaz de Core.
+- **`DatabaseOptions` y `DatabaseInstance`**: la connection string leída de la configuración y la fábrica de conexiones.
+- **`DataServiceCollectionExtensions`**: `AddGestionEscolarData(configuration)` registra la conexión y los repositorios como singleton.
+- **`Migrations/`**: migraciones de EF Core. Todo cambio de esquema nuevo sale de acá.
+- **`Database/Migrations/`**: scripts SQL históricos `0001`–`0010` (base, tablas y datos de prueba). No se editan.
 
 ### 2.3 `UI`: presentación (.NET MAUI + MVVM)
 
-- **Shell** (`AppShell.xaml`). Flyout, en este orden:
-
-  | Título | Página | Ruta |
-  |---|---|---|
-  | Nómina | `StudentListPage` | — |
-  | Seguimiento | `TrackingPage` | — |
-  | Entregas | `SubmissionsPage` | `Submissions` |
-  | Asistencia | `AttendancePage` | `Attendance` |
-  | Calendario | `CalendarPage` | `Calendar` |
-  | Ajustes | `SettingsViewPage` | — |
-
-  `StudentDetailPage` se registra como ruta con `Routing.RegisterRoute` (`AppShell.xaml.cs`).
-- **Views** (`Views/*.xaml`): el code-behind se limita a lógica visual, navegación y ejecutar `LoadCommand` en `OnAppearing`.
-- **ViewModels** (`ViewModels/`):
-  - `TrackingViewModel`, `StudentDetailViewModel`, `StudentListViewModel`, `SettingsViewModel`.
-  - `AttendanceViewModel`, `SubmissionsViewModel`, `CalendarViewModel`, que heredan de `SectionScopedViewModel`.
-  - Usan `[ObservableProperty]` y `[RelayCommand]`.
-- **`SectionScopedViewModel`**: base con el selector de comisión.
-  - Carga las comisiones una sola vez y elige la de por defecto sin recargar dos veces.
-  - Serializa las cargas con `IsBusy`.
-  - Expone `ErrorMessage` / `StatusMessage`.
-- **`StatusRow`**: fila "alumno + Picker de estado" de Asistencia y Entregas. Cambiar el estado dispara el guardado.
-- **`PickerOption<T>`**: ítem de Picker con texto ya formateado (`dd/MM/yyyy`, `Nombre · dd/MM/yyyy`).
-- **`StudentRow`**: fila de grilla para Nómina y Seguimiento. Concentra todo el formato (`LegajoLabel`, `AttendanceText`, `DeliveryText`, `ContactLabel`, `Justification`, colores del badge).
-- **`RiskBadge`**: colores por `RiskLevel`, compartidos entre Seguimiento y Detalle.
-- **`Converters/InvertBoolConverter`**: deshabilita los Pickers mientras `IsBusy`.
+- **`AppShell`**: Shell con barra lateral fija. Las pantallas son Estudiantes, Calendario, Reportes y Ajustes. `StudentDetailPage` se registra como ruta. Shell resuelve las páginas por DI.
+- **`Views/`**: páginas XAML. El code-behind se limita a lógica visual y navegación.
+- **`ViewModels/`**: hablan solo con los servicios de Core, nunca con un repositorio. Usan `[ObservableProperty]` y `[RelayCommand]`.
+- **`Controls/`**: controles reutilizables (barra lateral, tarjetas, filtros, selector de comisión, skeletons de carga).
+- **`Services/`**: costuras propias de la UI: `SectionSelection` (comisión compartida por todas las pantallas, singleton), `IClock`, `ICsvFileSource`, `IAppNavigation` y `IReportShareService`.
+- **`Formatting/` y `Converters/`**: formato y colores de presentación.
 - **`MauiProgram.cs`**: *composition root*.
-  - Carga `appsettings.json` embebido en la configuración de la app.
-  - Llama `AddGestionEscolarCore()` (casos de uso transient y `RiskConfig` singleton, 50/25) y `AddGestionEscolarData(configuration)` (conexión y repositorios singleton).
-  - La UI sigue registrando ViewModels y páginas como transient.
-  - Shell resuelve las páginas por DI, y cada página recibe su ViewModel por constructor.
-- `Seeding/StudentSeeder` + `sample.csv` (recurso embebido): lector del CSV de alumnos. Hoy ningún ViewModel lo usa, porque Nómina lee de SQL.
+  - Carga `appsettings.json` embebido.
+  - Llama `AddGestionEscolarCore()` y `AddGestionEscolarData(configuration)`.
+  - Registra las costuras de UI, los ViewModels y las páginas.
 
-### 2.4 `GestionEscolar.Tests`
+### 2.4 Tests
 
-xUnit sobre Core, sin base de datos. Las reglas de capas viven en `GestionEscolar.Architecture.Tests` (xUnit + ArchUnitNET) y las corre `scripts\run-tests.cmd` junto con el resto de la batería.
+- **`GestionEscolar.Tests`**: xUnit sobre Core, sin base de datos. `Fakes/` tiene repositorios en memoria y `Services/` los tests de los casos de uso.
+- **`GestionEscolar.Data.Tests`**: xUnit sobre los repositorios EF y el esquema, contra SQL Server Express. Usa bases propias de test y no toca `course_tracking`.
 
-- **`Fakes/`**: implementaciones en memoria.
-  - `FakeTrackingRepository`, `FakeSectionRepository`, `FakeStudentRepository`, `FakeStudentDetailsRepository`, `FakeCalendarRepository`.
-  - `FakeAttendanceRepository` / `FakeSubmissionRepository`, en `FakeMarksRepositories.cs`.
-- **`Services/`**: `TrackingServiceTests`, `RiskRuleTests`, `RiskSummaryTests`, `SectionServiceTests`, `StudentDetailsServiceTests`, `StudentServiceTests`, `CalendarServiceTests`, `AttendanceAndSubmissionServiceTests`, `CsvParserTests`, `StudentCsvImporterTests` y `CoreRegistrationTests`.
+Ningún proyecto de test referencia la UI.
 
-## 3. Flujo de ejemplo: Panel de Seguimiento
+## 3. Flujo de ejemplo: una pantalla que lee datos
 
 ```mermaid
 sequenceDiagram
-    participant P as TrackingPage
-    participant VM as TrackingViewModel
-    participant S as TrackingService (Core)
-    participant R as EfTrackingRepository (Data)
+    participant P as Página (UI)
+    participant VM as ViewModel (UI)
+    participant S as Servicio (Core)
+    participant R as Ef*Repository (Data)
     participant DB as SQL Server
-    P->>VM: OnAppearing → LoadCommand.ExecuteAsync()
-    VM->>S: GetSectionRiskAsync(SelectedSection.Id)
-    S->>R: GetRowsBySectionAsync(sectionId) (vía ITrackingRepository)
+    P->>VM: OnAppearing → LoadCommand
+    VM->>S: caso de uso (por ejemplo, seguimiento de una comisión)
+    S->>R: consulta vía interfaz de repositorio de Core
     R->>DB: consulta EF (async)
     DB-->>R: filas
-    R-->>S: List<StudentTrackingData>
-    S-->>VM: SectionTracking (lista evaluada con RiskRule + resumen contado sobre esa lista)
-    VM-->>P: FilteredStudents = StudentRow[] (formato + badge) y tarjetas = Summary
+    R-->>S: modelos de dominio
+    S-->>VM: resultado ya evaluado (por ejemplo, con RiskRule)
+    VM-->>P: filas formateadas para la vista
 ```
 
-1. `TrackingPage.OnAppearing` ejecuta `LoadCommand`.
-   - La primera vez carga las comisiones (`SectionService`) para el `Picker` del encabezado y selecciona la de por defecto sin disparar una recarga extra.
-   - Cambiar la comisión en el selector recarga la grilla y las tarjetas para ese `sectionId`. Si llega un cambio mientras `IsBusy`, se recarga al terminar.
-   - No se toca la base en el constructor.
-2. `TrackingViewModel.LoadAsync` activa `IsBusy` y pide un solo `SectionTracking` a `TrackingService`. La grilla y las tarjetas salen de ese resultado. El ViewModel no recibe un repositorio.
-3. `TrackingService` obtiene los datos a través de `ITrackingRepository`; en runtime, la implementación es `EfTrackingRepository`.
-4. Para cada alumno calcula `RiskScore` y `RiskLevel` con `RiskRule`. El resumen cuenta esos niveles.
-5. El ViewModel aplica filtros (nivel de riesgo, "sin contactar") y crea un `StudentRow` por fila.
-6. Al tocar una fila, se navega a `StudentDetailPage`.
-   - Se pasa el `StudentRow` con la clave `"Student"`, además de `SectionId` y `SectionName`.
-   - `StudentDetailViewModel` muestra el riesgo de la fila (igual que la grilla).
-   - Carga el contacto y los historiales con `StudentDetailsService`, con `IsBusy`, estados vacíos y error.
+1. La página dispara el comando de carga en `OnAppearing`. Nada toca la base en el constructor.
+2. El ViewModel activa `IsBusy` y llama a un servicio de Core. No recibe repositorios.
+3. El servicio pide los datos a través de la interfaz de repositorio. En runtime la implementa Data.
+4. El servicio aplica las reglas del dominio (por ejemplo, `RiskRule`) y devuelve modelos sin formato.
+5. El ViewModel da formato y filtra para la vista.
 
-Si la base no responde, se loguea el error, `ErrorMessage` toma un valor y la grilla queda vacía, sin romper el Shell.
-
-## 3.1 Asistencia, Entregas y Calendario
-
-Las tres pantallas comparten `SectionScopedViewModel`.
-
-| Pantalla | ViewModel | Servicio (Core) | Repositorio (Data) | Tablas |
-|---|---|---|---|---|
-| Asistencia | `AttendanceViewModel` | `AttendanceService` | `EfAttendanceRepository` + `EfCalendarRepository` | `class_session`, `attendance_record` |
-| Entregas | `SubmissionsViewModel` | `SubmissionService` | `EfSubmissionRepository` + `EfCalendarRepository` | `assignment`, `submission` |
-| Calendario | `CalendarViewModel` | `CalendarService` | `EfCalendarRepository` | `class_session`, `assignment` |
-
-```mermaid
-sequenceDiagram
-    participant VM as AttendanceViewModel
-    participant S as AttendanceService (Core)
-    participant R as EfAttendanceRepository (Data)
-    participant DB as SQL Server
-    VM->>S: GetClassSessionsAsync(sectionId) → PickDefault
-    VM->>S: GetMarksAsync(classSessionId)
-    S->>R: GetMarksAsync (alumnos de la comisión, con o sin registro)
-    R-->>VM: AttendanceMark[] → StatusRow[]
-    Note over VM: el usuario cambia el Picker de un alumno
-    VM->>S: SaveAsync(classSessionId, studentId, AttendanceStatus)
-    S->>R: upsert
-    R->>DB: alta o corrección (EF)
-```
-
-- **Asistencia y Entregas:**
-  - Picker de clase (`dd/MM/yyyy`) o de trabajo (`Nombre · dd/MM/yyyy`). Por defecto, la última fecha hasta hoy.
-  - Cada alumno (`Apellido, Nombre`) tiene un Picker. Al cambiarlo se guarda en el momento.
-  - Sin registro = Picker vacío ("Sin registro").
-- **Calendario:**
-  - Alta de Clase: solo fecha; no se repite por comisión.
-  - Alta de Trabajo: nombre obligatorio, máx. 120.
-  - Lista combinada ordenada por fecha.
-- **Nómina** (`StudentListViewModel`): lista los alumnos con `StudentService` → `EfStudentRepository`.
+Si la base no responde, se registra el error y la pantalla muestra el estado de error sin romper el Shell.
 
 ## 4. Convenciones
 
 - **Las dependencias apuntan hacia Core.** Core no referencia a Data ni a UI. Las interfaces se definen en Core y se implementan afuera.
-- **Sin SQL en ViewModels ni en Views.** Todo acceso a datos pasa por un repositorio en `GestionEscolar.Data`.
-- **Async para I/O.**
-  - Los repositorios usan Entity Framework, un contexto por operación, sin SQL concatenado.
-  - Los ViewModels exponen comandos async con `IsBusy`.
-- **Enums en lugar de strings mágicos.** Se usa `RiskLevel` en lugar de "Alto"/"Medio"/"Bajo", y los valores de la base salen de `DbStatusValues.ToDbValue()`.
-- **Connection string en un único lugar.** Se lee de `appsettings.json` (`ConnectionStrings:CourseTracking`) y `DatabaseOptions` la lleva a la infraestructura. Una cadena vacía impide construir la conexión.
-- **Modelos de Core sin formato de UI.** El formato vive en `StudentRow`, `RiskBadge`, `PickerOption` y los ViewModels.
-- **Inyección por constructor.** Nada de `new ViewModel()` en las páginas ni singletons estáticos.
+- **Sin SQL en ViewModels, Views ni Core.** Todo acceso a datos pasa por un repositorio de `GestionEscolar.Data`.
+- **Los ViewModels no reciben repositorios**, solo servicios de Core y ayudantes de UI.
+- **Async para I/O.** Los repositorios usan Entity Framework con un contexto por operación y sin SQL concatenado. Los ViewModels exponen comandos async con `IsBusy`.
+- **Enums en lugar de strings mágicos.** Los valores de la base se traducen solo en `DbStatusValues`.
+- **Connection string en un único lugar.** Se lee de `UI/appsettings.json` (`ConnectionStrings:CourseTracking`) y `DatabaseOptions` la lleva a la infraestructura.
+- **Modelos de Core sin formato de UI.** El formato vive en `UI/Formatting` y en los ViewModels.
+- **Inyección por constructor.** Repositorios singleton; servicios, ViewModels y páginas transient. Excepción: `SectionSelection`, singleton de UI.
 - **Archivos `.cs` en UTF-8 con BOM.**
 - **Textos de la UI en español.**
-- **Cambios de esquema:** una migración nueva de EF en `GestionEscolar.Data/Migrations`, aplicada con `dotnet ef database update`. No se editan las migraciones de EF ya aplicadas ni los scripts SQL `0001`–`0010`.
+- **Cambios de esquema:** una migración nueva de EF en `GestionEscolar.Data/Migrations`, aplicada con `dotnet tool run dotnet-ef database update`. No se editan las migraciones ya aplicadas ni los scripts `0001`–`0010`.
 
 ## 5. Scripts (`PP2/scripts/`) y hooks
 
 | Script | Qué hace |
 |---|---|
-| `run-tests.cmd` | Recorre todos los `*.Tests.csproj` de la solución y ejecuta `dotnet test` (acepta argumentos extra). Termina con `[SUCCESS]` o `[ERROR]`. |
-| `run-database.cmd` | Vuelve a ejecutar con `sqlcmd` los scripts históricos `0001`–`0010`. **No aplica el DDL nuevo**: eso lo hace `dotnet ef database update` sobre `GestionEscolar.Data`. Ya **no borra nada**: los `DROP DATABASE` / `DROP TABLE` de esos scripts están comentados. Con el servidor vacío crea `course_tracking`, carga los datos de prueba y lista las tablas. Sobre una base existente, las tablas se saltean (`IF OBJECT_ID(...) IS NULL`), pero el seed de `0010` choca con `uq_section_name` y el script se corta con error: no se pierden datos. Para empezar de cero hay que borrar la base a mano. |
-| `run-desktop.cmd` | Cierra `UI.exe` si está abierto y ejecuta la app (`dotnet run`, target Windows). |
-| `hooks/pre-push.cmd` | Lo usa el hook pre-push. Si `UI.exe` está abierto, avisa y corta; si no, compila la UI y corre los tests. |
+| `run-tests.cmd` | Ejecuta `dotnet test` sobre todos los `*.Tests.csproj` de la solución (acepta argumentos extra). |
+| `run-database.cmd` | Ejecuta con `sqlcmd` los scripts históricos `0001`–`0010`. No aplica el DDL nuevo: eso lo hace EF. |
+| `run-desktop.cmd` | Cierra `UI.exe` si está abierto y ejecuta la app (target Windows). |
+| `hooks/pre-push.cmd` | Lo usa el hook pre-push: compila la UI y corre los tests. Si `UI.exe` está abierto, avisa y corta. |
 
 Para compilar la UI en Windows: `dotnet build UI\UI.csproj -f net10.0-windows10.0.19041.0`. Si `UI.exe` está abierto, la copia del ejecutable falla.
 
-**Git hooks (Husky.Net)**, configurados en `.husky/task-runner.json`:
-
-- **pre-commit:** `dotnet format --verify-no-changes` sobre los `.cs` en stage.
-- **pre-push:** `scripts\hooks\pre-push.cmd`.
-
-Se instalan solos al restaurar o compilar: el target `Husky` de `GestionEscolar.Core.csproj` corre `dotnet tool restore` + `dotnet husky install`. No se instalan con `HUSKY=0` ni sin `.git`. Detalles y `--no-verify`: ver [`README.md`](../README.md).
+Los git hooks (Husky.Net) se configuran en `.husky/task-runner.json`. Hoy ese archivo define la tarea `pre-push`. Se instalan solos al restaurar o compilar. Detalles y `--no-verify`: ver [`README.md`](../README.md) y [`docs/build-and-test.md`](../docs/build-and-test.md).
 
 ## 6. Pendientes y deuda conocida
 
-- **Umbrales**: Ajustes lee y guarda `high_threshold` y `medium_threshold` en `dbo.setting` (`EfRiskSettingsRepository`). `RiskConfig` arranca en 50/25, que es el valor inicial de la tabla.
-- **Detalle del alumno**: "Registrar contacto" muestra un alerta "Todavía no está implementado" (falta el formulario de intervención).
-- **Nómina**:
-  - siempre carga la comisión 1 (no tiene selector de comisión);
-  - la carga se lanza desde el constructor del ViewModel, sin `IsBusy` ni manejo de error.
-  - `StudentSeeder` / `sample.csv` quedaron sin uso.
-- **Calendario**: solo permite agregar. No se pueden editar ni borrar clases o trabajos.
-- **Formato**: el pre-commit corre `dotnet format --verify-no-changes` sobre los `.cs` en stage.
-- **`ErrorMessage`** de `TrackingViewModel` todavía no está enlazado en el XAML.
-- **`vw_student_risk` no se usa.** El puntaje lo calcula `RiskRule`. `EfRiskSummaryRepository` evalúa las mismas filas crudas con esa regla. La vista queda fuera del modelo de EF.
-- **Los scripts históricos `0001`–`0010` mezclan DDL y DML** (el seed vive en `0010`): los `DROP` quedaron comentados y `run-database.cmd` no se puede re-ejecutar sobre una base con datos. El DDL nuevo ya no pasa por esos scripts: lo aplica EF. La nómina de prueba sigue en `0010`.
-- **Tests de Core** siguen con repositorios falsos (`FakeStudentRepository` y el resto). **`GestionEscolar.Data.Tests`** ejercita los repositorios EF contra SQL Server Express (`course_tracking_ef_test` y `course_tracking_ef_legacy`), y borra esas bases al terminar. No toca `course_tracking`.
+- **Tests de arquitectura**: `AGENTS.md` y `docs/harness.md` hablan de `GestionEscolar.Architecture.Tests` (ArchUnitNET), pero esa carpeta hoy no tiene código ni figura en `GestionEscolar.slnx`. Las reglas de capas están documentadas y se revisan a mano.
+- **`vw_student_risk` no se usa.** El puntaje lo calcula `RiskRule` en Core; la vista queda fuera del modelo de EF.
+- **Scripts históricos `0001`–`0010`**: mezclan DDL y datos de prueba, y `run-database.cmd` no se puede re-ejecutar sobre una base con datos. El DDL nuevo lo aplica EF.
+- **Código sin uso**: `UI/Seeding/StudentSeeder` y `sample.csv` no los usa ningún ViewModel.
+- **Detalle del alumno y Calendario**: revisar las acciones que todavía no están completas (alta de contacto, edición y borrado de clases y trabajos) contra el backlog de tickets.
 
 ## 7. Fuentes
 
 - **Microsoft Learn: Common web application architectures (Clean Architecture)**
   https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures
-  Base de la separación Core / Infrastructure / UI:
-  - dependencias hacia el núcleo;
-  - interfaces en Core implementadas en infraestructura;
-  - la UI como *composition root*, que referencia a infraestructura solo para cablear la DI.
+  Base de la separación Core / Infrastructure / UI: dependencias hacia el núcleo, interfaces en Core implementadas en infraestructura y la UI como *composition root*.
 
 - **Microsoft Learn: Model-View-ViewModel (Enterprise Application Patterns Using .NET MAUI)**
   https://learn.microsoft.com/en-us/dotnet/architecture/maui/mvvm
-  Justifica:
-  - el reparto View / ViewModel / Model y el code-behind mínimo;
-  - el uso de operaciones async en el ViewModel para no bloquear la UI;
-  - el uso del .NET Community MVVM Toolkit (`AsyncRelayCommand`).
+  Reparto View / ViewModel / Model, code-behind mínimo y operaciones async en el ViewModel.
 
 - **Microsoft Learn: Dependency injection in .NET MAUI**
   https://learn.microsoft.com/en-us/dotnet/maui/fundamentals/dependency-injection
-  Cubre:
-  - el registro en `MauiProgram.CreateMauiApp`;
-  - la resolución automática de páginas en Shell, incluidas las rutas de `Routing.RegisterRoute`;
-  - la recomendación de usar `AddTransient` para páginas y ViewModels, y `AddSingleton` para servicios compartidos como la conexión.
+  Registro en `MauiProgram.CreateMauiApp`, resolución de páginas en Shell y `AddTransient` / `AddSingleton`.
 
 - **Martin Fowler: Repository (Patterns of Enterprise Application Architecture)**
   https://martinfowler.com/eaaCatalog/repository.html
-  Definición original del patrón Repository: un mediador entre el dominio y el mapeo de datos, con dependencia en un solo sentido. Es la base de `ITrackingRepository` / `EfTrackingRepository`.
+  Definición del patrón Repository, con dependencia en un solo sentido.
 
 - **Microsoft Learn: Designing the infrastructure persistence layer (DDD / microservicios)**
   https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/infrastructure-persistence-layer-design
-  Explica:
-  - por qué las interfaces de repositorio van en el dominio y su implementación en infraestructura;
-  - cómo eso permite tests unitarios con repositorios falsos sin base de datos (lo que hace `FakeTrackingRepository`).
+  Por qué las interfaces de repositorio van en el dominio y la implementación en infraestructura, y cómo eso permite tests con repositorios falsos.

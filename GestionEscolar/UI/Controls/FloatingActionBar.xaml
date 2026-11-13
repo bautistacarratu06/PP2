@@ -19,30 +19,12 @@
         VerticalOptions="Center">
         <HorizontalStackLayout Spacing="16" VerticalOptions="Center">
             <!-- Count of selected items -->
-            <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                <Border
-                    BackgroundColor="{StaticResource Surface}"
-                    HeightRequest="26"
-                    Padding="8,0"
-                    Stroke="{StaticResource Line}"
-                    StrokeShape="RoundRectangle 8"
-                    StrokeThickness="1"
-                    VerticalOptions="Center">
-                    <Label
-                        FontFamily="InterSemibold"
-                        FontSize="12"
-                        HorizontalOptions="Center"
-                        Text="{Binding SelectedCount, Source={x:Reference Root}}"
-                        TextColor="{StaticResource Accent}"
-                        VerticalOptions="Center" />
-                </Border>
-                <Label
-                    FontFamily="InterMedium"
-                    FontSize="13"
-                    Text="{Binding SelectedCountText, Source={x:Reference Root}}"
-                    TextColor="{StaticResource TextPrimary}"
-                    VerticalOptions="Center" />
-            </HorizontalStackLayout>
+            <Label
+                FontFamily="InterMedium"
+                FontSize="13"
+                Text="{Binding SelectedCountText, Source={x:Reference Root}}"
+                TextColor="{StaticResource TextPrimary}"
+                VerticalOptions="Center" />
 
             <!-- Deseleccionar button -->
             <Button

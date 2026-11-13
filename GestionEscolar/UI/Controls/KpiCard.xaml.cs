@@ -14,6 +14,10 @@ public partial class KpiCard : ContentView
     public static readonly BindableProperty TotalProperty =
         BindableProperty.Create(nameof(Total), typeof(int), typeof(KpiCard), 0, propertyChanged: Refresh);
 
+    // Mientras no se sabe el conteo real se muestra un guion en lugar de un número viejo.
+    public static readonly BindableProperty IsLoadingProperty =
+        BindableProperty.Create(nameof(IsLoading), typeof(bool), typeof(KpiCard), false, propertyChanged: Refresh);
+
     public static readonly BindableProperty LevelProperty =
         BindableProperty.Create(nameof(Level), typeof(string), typeof(KpiCard), "Bajo", propertyChanged: Refresh);
 
@@ -50,6 +54,12 @@ public partial class KpiCard : ContentView
         set => SetValue(TotalProperty, value);
     }
 
+    public bool IsLoading
+    {
+        get => (bool)GetValue(IsLoadingProperty);
+        set => SetValue(IsLoadingProperty, value);
+    }
+
     public string Level
     {
         get => (string)GetValue(LevelProperty);
@@ -81,8 +91,8 @@ public partial class KpiCard : ContentView
     {
         var (ink, soft) = RiskPalette.For(Level);
         Caption.Text = CaptionText;
-        ValueLabel.Text = Value.ToString();
-        TotalLabel.Text = $"de {Total}";
+        ValueLabel.Text = IsLoading ? "—" : Value.ToString();
+        TotalLabel.Text = IsLoading ? string.Empty : $"de {Total}";
         Dot.Fill = Color.FromArgb(ink);
         Chrome.Stroke = IsActive ? Color.FromArgb(ink) : Color.FromArgb("#232323");
         Chrome.Background = IsActive

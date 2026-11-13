@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="UI.Views.CalendarPage"
     x:DataType="vm:CalendarViewModel"
@@ -60,7 +60,47 @@
                             <DataTemplate x:DataType="vm:CalendarRow">
                                 <VerticalStackLayout>
                                     <controls:HoverRow Padding="20,0" ColumnDefinitions="*,Auto,110" ColumnSpacing="12" HeightRequest="54">
-                                        <Label FontFamily="InterSemibold" Text="{Binding Name}" VerticalOptions="Center" />
+                                        <VisualStateManager.VisualStateGroups>
+                                            <VisualStateGroup Name="CommonStates">
+                                                <VisualState Name="Normal">
+                                                    <VisualState.Setters>
+                                                        <Setter TargetName="EditButton" Property="Opacity" Value="0" />
+                                                        <Setter TargetName="EditButton" Property="InputTransparent" Value="True" />
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                                <VisualState Name="PointerOver">
+                                                    <VisualState.Setters>
+                                                        <Setter TargetName="EditButton" Property="Opacity" Value="1" />
+                                                        <Setter TargetName="EditButton" Property="InputTransparent" Value="False" />
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                            </VisualStateGroup>
+                                        </VisualStateManager.VisualStateGroups>
+
+                                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                            <Label FontFamily="InterSemibold" Text="{Binding Name}" VerticalOptions="Center" />
+                                            <Border
+                                                x:Name="EditButton"
+                                                BackgroundColor="Transparent"
+                                                HeightRequest="24"
+                                                InputTransparent="True"
+                                                Opacity="0"
+                                                Padding="4"
+                                                Stroke="Transparent"
+                                                VerticalOptions="Center"
+                                                WidthRequest="24">
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditClassCommand}"
+                                                        CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+                                                <controls:Icon
+                                                    GlyphColor="{StaticResource TextSecondary}"
+                                                    Name="pencil"
+                                                    Size="14"
+                                                    VerticalOptions="Center" />
+                                            </Border>
+                                        </HorizontalStackLayout>
                                         <controls:StatusPill
                                             Grid.Column="1"
                                             Kind="{Binding KindKey}"

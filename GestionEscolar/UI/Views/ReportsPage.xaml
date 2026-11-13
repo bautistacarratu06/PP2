@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="UI.Views.ReportsPage"
+    x:DataType="vm:ReportsViewModel"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:UI.Controls"
+    xmlns:vm="clr-namespace:UI.ViewModels"
+    Shell.NavBarIsVisible="False">
+
+    <controls:PageShell Title="Reportes" Subtitle="Resumen de riesgo de la comisión.">
+        <VerticalStackLayout Spacing="16">
+            <HorizontalStackLayout Spacing="12">
+                <Button
+                    Command="{Binding ExportCommand}"
+                    Style="{StaticResource GhostButton}"
+                    Text="Descargar reporte" />
+            </HorizontalStackLayout>
+
+            <Label IsVisible="{Binding HasError}" Text="{Binding ErrorMessage}" TextColor="{StaticResource Danger}" />
+            <Label IsVisible="{Binding HasStatus}" Text="{Binding StatusMessage}" TextColor="{StaticResource TextTertiary}" />
+
+            <Border Style="{StaticResource Card}">
+                <controls:GridLoadingView
+                    IsLoading="{Binding IsBusy}"
+                    HasError="{Binding HasError}"
+                    ErrorMessage="{Binding ErrorMessage}">
+                    <controls:GridLoadingView.SkeletonView>
+                        <VerticalStackLayout Padding="24" Spacing="16">
+                            <controls:SkeletonBlock WidthRequest="420" HeightRequest="16" HorizontalOptions="Start" />
+                            <controls:SkeletonBlock WidthRequest="560" HeightRequest="14" HorizontalOptions="Start" />
+                            <controls:SkeletonBlock WidthRequest="500" HeightRequest="14" HorizontalOptions="Start" />
+                            <controls:SkeletonBlock WidthRequest="380" HeightRequest="14" HorizontalOptions="Start" />
+                            <controls:SkeletonBlock Margin="0,8,0,0" WidthRequest="480" HeightRequest="14" HorizontalOptions="Start" />
+                            <controls:SkeletonBlock WidthRequest="520" HeightRequest="14" HorizontalOptions="Start" />
+                        </VerticalStackLayout>
+                    </controls:GridLoadingView.SkeletonView>
+
+                    <VerticalStackLayout
+                        Padding="24"
+                        Spacing="16"
+                        BindableLayout.ItemsSource="{Binding Paragraphs}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Label
+                                    FontFamily="Inter"
+                                    FontSize="15"
+                                    LineHeight="1.45"
+                                    Text="{Binding .}"
+                                    TextColor="{StaticResource TextPrimary}" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </controls:GridLoadingView>
+            </Border>
+        </VerticalStackLayout>
+    </controls:PageShell>
+</ContentPage>

@@ -12,7 +12,10 @@ public static class RosterCsvReader
     public static bool IsCsvFile(string? path) =>
         Path.GetExtension(path ?? string.Empty).Equals(".csv", StringComparison.OrdinalIgnoreCase);
 
-    public static IReadOnlyList<RosterCsvRow> Read(TextReader reader)
+    // Cada cuántas filas se informa el avance de lectura.
+    private const int ProgressEvery = 10_000;
+
+    public static IReadOnlyList<RosterCsvRow> Read(TextReader reader, IProgress<ImportProgress>? progress = null)
     {
         ArgumentNullException.ThrowIfNull(reader);
         var records = new CsvRecordReader(reader);
@@ -24,8 +27,11 @@ public static class RosterCsvReader
                 continue;
 
             rows.Add(ParseRow(record, records.StartLine, index));
+            if (rows.Count % ProgressEvery == 0)
+                progress?.Report(new ImportProgress(ImportStage.Reading, rows.Count, 0));
         }
 
+        progress?.Report(new ImportProgress(ImportStage.Reading, rows.Count, rows.Count));
         return rows;
     }
 

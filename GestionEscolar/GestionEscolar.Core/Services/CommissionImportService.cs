@@ -22,7 +22,8 @@ public sealed class CommissionImportService : ICommissionImportService
     public Task<IReadOnlyList<Section>> GetSectionsAsync(CancellationToken cancellationToken = default) =>
         _repository.GetSectionsAsync(cancellationToken);
 
-    public IReadOnlyList<RosterCsvRow> Read(TextReader reader) => RosterCsvReader.Read(reader);
+    public IReadOnlyList<RosterCsvRow> Read(TextReader reader, IProgress<ImportProgress>? progress = null) =>
+        RosterCsvReader.Read(reader, progress);
 
     public async Task<ImportPreview> PreviewAsync(int? sectionId, IReadOnlyList<RosterCsvRow> rows, CancellationToken cancellationToken = default)
     {
@@ -40,12 +41,29 @@ public sealed class CommissionImportService : ICommissionImportService
             throw new ImportValidationException(nameError);
 
         var preview = await PreviewAsync(null, rows, cancellationToken).ConfigureAwait(false);
-        // Las filas en conflicto (DNI ya guardado o repetido en el archivo) se omiten; el resto se importa.
+        return await CreateFromPreviewAsync(name, preview, today, null, cancellationToken).ConfigureAwait(false);
+    }
+
+    // Crea la comisión con la vista previa ya calculada (no vuelve a leer todos los alumnos).
+    // Las filas en conflicto (DNI ya guardado o repetido en el archivo) se omiten; el resto se importa.
+    public async Task<Section> CreateFromPreviewAsync(
+        string? name,
+        ImportPreview preview,
+        DateTime today,
+        IProgress<ImportProgress>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(preview);
+        var sections = await _repository.GetSectionsAsync(cancellationToken).ConfigureAwait(false);
+        var nameError = SectionNameRule.Error(name, sections);
+        if (nameError is not null)
+            throw new ImportValidationException(nameError);
+
         if (preview.InsertCount == 0)
             throw new ImportValidationException("Ninguna fila se puede importar: todas tienen un DNI o legajo repetido o ya guardado.");
 
         var students = preview.ToInsert.Select(row => ToStudent(row, today)).ToList();
-        return await _repository.CreateSectionAsync(name!.Trim(), students, cancellationToken).ConfigureAwait(false);
+        return await _repository.CreateSectionAsync(name!.Trim(), students, progress, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task ApplyAsync(
@@ -69,6 +87,7 @@ public sealed class CommissionImportService : ICommissionImportService
         ImportPreview preview,
         IReadOnlyList<ImportDecision> decisions,
         DateTime today,
+        IProgress<ImportProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(preview);
@@ -78,8 +97,8 @@ public sealed class CommissionImportService : ICommissionImportService
         var inserts = preview.ToInsert.Select(row => new NumberedStudent(row.Line, ToStudent(row, today))).ToList();
         var updates = BuildUpdates(preview, decisions);
         return inserts.Count >= BulkThreshold
-            ? await _repository.BulkApplyAsync(sectionId, inserts, updates, cancellationToken).ConfigureAwait(false)
-            : await _repository.ApplyWithReportAsync(sectionId, inserts, updates, cancellationToken).ConfigureAwait(false);
+            ? await _repository.BulkApplyAsync(sectionId, inserts, updates, progress, cancellationToken).ConfigureAwait(false)
+            : await _repository.ApplyWithReportAsync(sectionId, inserts, updates, progress, cancellationToken).ConfigureAwait(false);
     }
 
     private static void ValidateDecisions(ImportPreview preview, IReadOnlyList<ImportDecision> decisions)

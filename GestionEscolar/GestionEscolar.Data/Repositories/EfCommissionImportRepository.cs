@@ -14,6 +14,9 @@ public sealed class EfCommissionImportRepository(IDbContextFactory<CourseTrackin
     // Filas por SaveChanges: acota el tamaño del comando y la cantidad de entidades rastreadas.
     internal const int BatchSize = 200;
 
+    // Filas por envío a la tabla de paso: acota la memoria y marca el ritmo del avance.
+    private const int StagingChunk = 20_000;
+
     private readonly IDbContextFactory<CourseTrackingDbContext> _contexts = contexts ?? throw new ArgumentNullException(nameof(contexts));
 
     public async Task<IReadOnlyList<Section>> GetSectionsAsync(CancellationToken cancellationToken = default)
@@ -64,7 +67,11 @@ public sealed class EfCommissionImportRepository(IDbContextFactory<CourseTrackin
         }).ToList();
     }
 
-    public async Task<Section> CreateSectionAsync(string name, IReadOnlyList<Student> students, CancellationToken cancellationToken = default)
+    public async Task<Section> CreateSectionAsync(
+        string name,
+        IReadOnlyList<Student> students,
+        IProgress<ImportProgress>? progress = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(students);
         await using var db = await _contexts.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
@@ -74,9 +81,12 @@ public sealed class EfCommissionImportRepository(IDbContextFactory<CourseTrackin
         {
             db.Sections.Add(section);
             await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var batch in students.Chunk(BatchSize))
-                await SaveBatchAsync(db, section.Id, batch, cancellationToken).ConfigureAwait(false);
+            if (students.Count >= BatchSize)
+                await BulkInsertNewSectionAsync(db, transaction, section.Id, students, progress, cancellationToken).ConfigureAwait(false);
+            else
+                await SaveInBatchesAsync(db, section.Id, students, progress, cancellationToken).ConfigureAwait(false);
 
+            progress?.Report(new ImportProgress(ImportStage.Finishing, students.Count, students.Count));
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (DbUpdateException ex) when (UniqueConstraint.IsViolation(ex))
@@ -108,6 +118,7 @@ public sealed class EfCommissionImportRepository(IDbContextFactory<CourseTrackin
         int sectionId,
         IReadOnlyList<NumberedStudent> inserts,
         IReadOnlyList<StudentContactChange> updates,
+        IProgress<ImportProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(inserts);
@@ -118,9 +129,15 @@ public sealed class EfCommissionImportRepository(IDbContextFactory<CourseTrackin
 
         var errors = new List<RowError>();
         var inserted = 0;
+        var done = 0;
         foreach (var batch in inserts.Chunk(BatchSize))
+        {
             inserted += await InsertBatchReportingAsync(db, transaction, sectionId, batch, errors, cancellationToken).ConfigureAwait(false);
+            done += batch.Length;
+            progress?.Report(new ImportProgress(ImportStage.Saving, done, inserts.Count));
+        }
 
+        progress?.Report(new ImportProgress(ImportStage.Finishing, inserts.Count, inserts.Count));
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new ImportResult(inserted, updates.Count, errors);
     }
@@ -129,6 +146,7 @@ public sealed class EfCommissionImportRepository(IDbContextFactory<CourseTrackin
         int sectionId,
         IReadOnlyList<NumberedStudent> inserts,
         IReadOnlyList<StudentContactChange> updates,
+        IProgress<ImportProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(inserts);
@@ -140,11 +158,47 @@ public sealed class EfCommissionImportRepository(IDbContextFactory<CourseTrackin
         var connection = (SqlConnection)db.Database.GetDbConnection();
         var sqlTransaction = (SqlTransaction)transaction.GetDbTransaction();
         var importId = Guid.NewGuid();
-        await StageRowsAsync(connection, sqlTransaction, importId, inserts, cancellationToken).ConfigureAwait(false);
+        await StageRowsAsync(connection, sqlTransaction, importId, inserts, progress, cancellationToken).ConfigureAwait(false);
+        progress?.Report(new ImportProgress(ImportStage.Finishing, inserts.Count, inserts.Count));
         var errors = await MergeStagedRowsAsync(connection, sqlTransaction, importId, sectionId, cancellationToken).ConfigureAwait(false);
 
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new ImportResult(inserts.Count - errors.Count, updates.Count, errors);
+    }
+
+    // Comisión nueva grande: misma carga masiva, dentro de la transacción que creó la comisión.
+    // La vista previa ya dejó afuera los conflictos; si apareció uno entre tanto, esa fila se omite.
+    private static async Task BulkInsertNewSectionAsync(
+        CourseTrackingDbContext db,
+        IDbContextTransaction transaction,
+        int sectionId,
+        IReadOnlyList<Student> students,
+        IProgress<ImportProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        var connection = (SqlConnection)db.Database.GetDbConnection();
+        var sqlTransaction = (SqlTransaction)transaction.GetDbTransaction();
+        var importId = Guid.NewGuid();
+        var numbered = students.Select((student, index) => new NumberedStudent(index + 1, student)).ToList();
+        await StageRowsAsync(connection, sqlTransaction, importId, numbered, progress, cancellationToken).ConfigureAwait(false);
+        progress?.Report(new ImportProgress(ImportStage.Finishing, students.Count, students.Count));
+        await MergeStagedRowsAsync(connection, sqlTransaction, importId, sectionId, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task SaveInBatchesAsync(
+        CourseTrackingDbContext db,
+        int sectionId,
+        IReadOnlyList<Student> students,
+        IProgress<ImportProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        var done = 0;
+        foreach (var batch in students.Chunk(BatchSize))
+        {
+            await SaveBatchAsync(db, sectionId, batch, cancellationToken).ConfigureAwait(false);
+            done += batch.Length;
+            progress?.Report(new ImportProgress(ImportStage.Saving, done, students.Count));
+        }
     }
 
     private static async Task ApplyUpdatesAsync(
@@ -252,36 +306,48 @@ public sealed class EfCommissionImportRepository(IDbContextFactory<CourseTrackin
         SqlTransaction transaction,
         Guid importId,
         IReadOnlyList<NumberedStudent> inserts,
+        IProgress<ImportProgress>? progress,
         CancellationToken cancellationToken)
     {
-        var table = new DataTable();
+        using var table = new DataTable();
         foreach (var (name, type) in StagingColumns)
             table.Columns.Add(name, type);
-
-        foreach (var item in inserts)
-        {
-            var student = item.Student;
-            table.Rows.Add(
-                importId,
-                item.Line,
-                student.Dni,
-                student.StudentNumber,
-                student.LastName,
-                student.FirstName,
-                (object?)EmptyToNull(student.Phone) ?? DBNull.Value,
-                (object?)EmptyToNull(student.Email) ?? DBNull.Value,
-                student.EnrolledOn.Date);
-        }
 
         using var copy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction)
         {
             DestinationTableName = "dbo.student_import_staging",
-            BatchSize = 1000
+            BatchSize = 5000,
+            BulkCopyTimeout = 0
         };
         foreach (var (name, _) in StagingColumns)
             copy.ColumnMappings.Add(name, name);
 
-        await copy.WriteToServerAsync(table, cancellationToken).ConfigureAwait(false);
+        var done = 0;
+        foreach (var chunk in inserts.Chunk(StagingChunk))
+        {
+            table.Clear();
+            foreach (var item in chunk)
+                AddStagingRow(table, importId, item);
+
+            await copy.WriteToServerAsync(table, cancellationToken).ConfigureAwait(false);
+            done += chunk.Length;
+            progress?.Report(new ImportProgress(ImportStage.Saving, done, inserts.Count));
+        }
+    }
+
+    private static void AddStagingRow(DataTable table, Guid importId, NumberedStudent item)
+    {
+        var student = item.Student;
+        table.Rows.Add(
+            importId,
+            item.Line,
+            student.Dni,
+            student.StudentNumber,
+            student.LastName,
+            student.FirstName,
+            (object?)EmptyToNull(student.Phone) ?? DBNull.Value,
+            (object?)EmptyToNull(student.Email) ?? DBNull.Value,
+            student.EnrolledOn.Date);
     }
 
     private static readonly (string Name, Type Type)[] StagingColumns =
@@ -302,22 +368,24 @@ public sealed class EfCommissionImportRepository(IDbContextFactory<CourseTrackin
     private const string MergeSql =
         """
         SET NOCOUNT ON;
-        SELECT st.line,
-               CAST(CASE WHEN d.dni IS NOT NULL OR EXISTS (
-                        SELECT 1 FROM dbo.student_import_staging o
-                        WHERE o.import_id = st.import_id AND o.line < st.line AND o.dni = st.dni)
-                    THEN 1 ELSE 0 END AS bit) AS dni_clash,
-               CAST(CASE WHEN n.id IS NOT NULL OR EXISTS (
-                        SELECT 1 FROM dbo.student_import_staging o
-                        WHERE o.import_id = st.import_id AND o.line < st.line AND o.student_number = st.student_number)
-                    THEN 1 ELSE 0 END AS bit) AS number_clash
+        WITH staged AS
+        (
+            SELECT st.line, st.dni, st.student_number,
+                   ROW_NUMBER() OVER (PARTITION BY st.dni ORDER BY st.line) AS dni_rank,
+                   ROW_NUMBER() OVER (PARTITION BY st.student_number ORDER BY st.line) AS number_rank
+            FROM dbo.student_import_staging st
+            WHERE st.import_id = @import_id
+        )
+        SELECT s.line,
+               CAST(CASE WHEN d.dni IS NOT NULL OR s.dni_rank > 1 THEN 1 ELSE 0 END AS bit) AS dni_clash,
+               CAST(CASE WHEN n.id IS NOT NULL OR s.number_rank > 1 THEN 1 ELSE 0 END AS bit) AS number_clash
         INTO #conflicts
-        FROM dbo.student_import_staging st
-        LEFT JOIN dbo.student d ON d.dni = st.dni
-        LEFT JOIN dbo.student n ON n.section_id = @section_id AND n.student_number = st.student_number
-        WHERE st.import_id = @import_id;
+        FROM staged s
+        LEFT JOIN dbo.student d ON d.dni = s.dni
+        LEFT JOIN dbo.student n ON n.section_id = @section_id AND n.student_number = s.student_number
+        WHERE d.dni IS NOT NULL OR n.id IS NOT NULL OR s.dni_rank > 1 OR s.number_rank > 1;
 
-        DELETE FROM #conflicts WHERE dni_clash = 0 AND number_clash = 0;
+        CREATE CLUSTERED INDEX ix_conflicts_line ON #conflicts (line);
 
         INSERT INTO dbo.student (dni, section_id, student_number, last_name, first_name, phone, email, enrolled_on)
         SELECT st.dni, @section_id, st.student_number, st.last_name, st.first_name, st.phone, st.email, st.enrolled_on
@@ -338,7 +406,7 @@ public sealed class EfCommissionImportRepository(IDbContextFactory<CourseTrackin
         int sectionId,
         CancellationToken cancellationToken)
     {
-        await using var command = new SqlCommand(MergeSql, connection, transaction) { CommandTimeout = 120 };
+        await using var command = new SqlCommand(MergeSql, connection, transaction) { CommandTimeout = 0 };
         command.Parameters.Add(new SqlParameter("@import_id", SqlDbType.UniqueIdentifier) { Value = importId });
         command.Parameters.Add(new SqlParameter("@section_id", SqlDbType.Int) { Value = sectionId });
 

@@ -123,6 +123,15 @@ public sealed partial class StudentsFiltersViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void ToggleRiskFilter(string level)
+    {
+        if (!Enum.TryParse<RiskLevel>(level, out var target) || !Enum.IsDefined(target))
+            return;
+
+        SetRisk(target, !_risks.Contains(target));
+    }
+
+    [RelayCommand]
     private void ToggleFilterColumn(string column) =>
         OpenFilterColumn = OpenFilterColumn == column ? string.Empty : column;
 
