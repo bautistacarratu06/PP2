@@ -11,6 +11,9 @@ public class StudentTrackingData
     public int SubmittedAssignments { get; set; }
     public DateTime? LastContact { get; set; }
 
+    // Cantidad de contactos (intervenciones) registrados con el alumno.
+    public int ContactCount { get; set; }
+
     public int AttendancePercent => Percent(AttendedClasses, TotalClasses);
 
     public int DeliveryPercent => Percent(SubmittedAssignments, TotalAssignments);

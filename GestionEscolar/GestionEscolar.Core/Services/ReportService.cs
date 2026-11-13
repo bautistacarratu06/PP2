@@ -36,6 +36,11 @@ public class ReportService : IReportService
         var rows = await _repository.GetRowsBySectionAsync(sectionId, cancellationToken).ConfigureAwait(false);
         var resolvedName = string.IsNullOrWhiteSpace(sectionName) ? $"Comisión #{sectionId}" : sectionName.Trim();
         var activeRows = rows.Where(r => r.Student.IsActive).ToList();
+        var interventions = rows.Sum(r => r.ContactCount);
+        // Cada alumno cuenta las clases desde su inscripción; el máximo son las de la comisión.
+        var classes = rows.Count == 0 ? 0 : rows.Max(r => r.TotalClasses);
+        var submitted = activeRows.Sum(r => r.SubmittedAssignments);
+        var expected = activeRows.Sum(r => r.TotalAssignments);
 
         if (activeRows.Count == 0)
         {
@@ -50,7 +55,11 @@ public class ReportService : IReportService
                 {
                     "No se encontraron estudiantes activos cargados en la comisión para emitir el reporte."
                 },
-                GeneratedAt = DateTime.Now
+                GeneratedAt = DateTime.Now,
+                InterventionCount = interventions,
+                ClassCount = classes,
+                SubmittedCount = submitted,
+                ExpectedSubmissions = expected
             };
         }
 
@@ -71,7 +80,11 @@ public class ReportService : IReportService
                     SectionRiskReport.NoDataMessage,
                     "La comisión cuenta con estudiantes matriculados, pero aún no se han registrado clases dictadas ni entregas de trabajos prácticos que permitan realizar el cálculo de riesgo."
                 },
-                GeneratedAt = DateTime.Now
+                GeneratedAt = DateTime.Now,
+                InterventionCount = interventions,
+                ClassCount = classes,
+                SubmittedCount = submitted,
+                ExpectedSubmissions = expected
             };
         }
 
@@ -117,7 +130,11 @@ public class ReportService : IReportService
             HasData = true,
             StatusMessage = string.Empty,
             Paragraphs = new[] { paragraph1, paragraph2, paragraph3 },
-            GeneratedAt = DateTime.Now
+            GeneratedAt = DateTime.Now,
+            InterventionCount = interventions,
+            ClassCount = classes,
+            SubmittedCount = submitted,
+            ExpectedSubmissions = expected
         };
     }
 

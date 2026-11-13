@@ -13,7 +13,6 @@
                         Padding="{TemplateBinding ShellPadding}"
                         Spacing="28"
                         HorizontalOptions="Center"
-                        MaximumWidthRequest="1160"
                         WidthRequest="{TemplateBinding ContentWidth}">
                         <VerticalStackLayout Spacing="4" IsVisible="{TemplateBinding ShowBack}">
                             <HorizontalStackLayout Spacing="6">

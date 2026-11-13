@@ -49,7 +49,8 @@ public sealed class EfTrackingRepository(IDbContextFactory<CourseTrackingDbConte
                     && submission.Assignment.SectionId == student.SectionId
                     && submission.Assignment.DueDate >= student.EnrolledOn
                     && submission.Assignment.DueDate <= today),
-                LastContact = student.Interventions.Max(intervention => (DateTime?)intervention.InterventionDate)
+                LastContact = student.Interventions.Max(intervention => (DateTime?)intervention.InterventionDate),
+                ContactCount = student.Interventions.Count()
             })
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -74,7 +75,8 @@ public sealed class EfTrackingRepository(IDbContextFactory<CourseTrackingDbConte
             AttendedClasses = row.AttendedClasses,
             TotalAssignments = row.TotalAssignments,
             SubmittedAssignments = row.SubmittedAssignments,
-            LastContact = row.LastContact
+            LastContact = row.LastContact,
+            ContactCount = row.ContactCount
         }).ToList();
     }
 }

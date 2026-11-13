@@ -24,6 +24,10 @@ public partial class KpiCard : ContentView
     public static readonly BindableProperty IsActiveProperty =
         BindableProperty.Create(nameof(IsActive), typeof(bool), typeof(KpiCard), false, propertyChanged: Refresh);
 
+    // Si se indica, reemplaza el "de N" (por ejemplo "contactos"): la tarjeta es un contador.
+    public static readonly BindableProperty UnitTextProperty =
+        BindableProperty.Create(nameof(UnitText), typeof(string), typeof(KpiCard), string.Empty, propertyChanged: Refresh);
+
     public static readonly BindableProperty CommandProperty =
         BindableProperty.Create(nameof(Command), typeof(ICommand), typeof(KpiCard));
 
@@ -72,6 +76,12 @@ public partial class KpiCard : ContentView
         set => SetValue(IsActiveProperty, value);
     }
 
+    public string UnitText
+    {
+        get => (string)GetValue(UnitTextProperty);
+        set => SetValue(UnitTextProperty, value);
+    }
+
     public ICommand? Command
     {
         get => (ICommand?)GetValue(CommandProperty);
@@ -92,7 +102,7 @@ public partial class KpiCard : ContentView
         var (ink, soft) = RiskPalette.For(Level);
         Caption.Text = CaptionText;
         ValueLabel.Text = IsLoading ? "—" : Value.ToString();
-        TotalLabel.Text = IsLoading ? string.Empty : $"de {Total}";
+        TotalLabel.Text = IsLoading ? string.Empty : string.IsNullOrEmpty(UnitText) ? $"de {Total}" : UnitText;
         Dot.Fill = Color.FromArgb(ink);
         Chrome.Stroke = IsActive ? Color.FromArgb(ink) : Color.FromArgb("#232323");
         Chrome.Background = IsActive

@@ -313,6 +313,7 @@ public sealed class CourseTrackingDatabaseTests(SqlServerFixture fixture)
         Assert.Equal(1, row.SubmittedAssignments);
         Assert.Equal(100, row.DeliveryPercent);
         Assert.Equal(new DateTime(2026, 8, 9), row.LastContact);
+        Assert.Equal(1, row.ContactCount);
 
         var evaluation = RiskRule.Evaluate(1, 2, 1, 1, new RiskConfig());
         var summary = await _fixture.Get<IRiskSummaryRepository>().GetSummaryBySectionAsync(sectionId);

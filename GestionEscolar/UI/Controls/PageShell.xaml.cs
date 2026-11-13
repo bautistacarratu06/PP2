@@ -4,6 +4,9 @@ namespace UI.Controls;
 
 public partial class PageShell : ContentView
 {
+    // Ancho máximo del contenido: deja entrar la grilla de Estudiantes sin scroll horizontal en 1920 px.
+    public const double MaxContentWidth = 1680;
+
     public static readonly BindableProperty TitleProperty =
         BindableProperty.Create(nameof(Title), typeof(string), typeof(PageShell), string.Empty);
 
@@ -23,7 +26,7 @@ public partial class PageShell : ContentView
         BindableProperty.Create(nameof(ShellPadding), typeof(Thickness), typeof(PageShell), new Thickness(40, 36, 40, 56));
 
     public static readonly BindableProperty ContentWidthProperty =
-        BindableProperty.Create(nameof(ContentWidth), typeof(double), typeof(PageShell), 1560d);
+        BindableProperty.Create(nameof(ContentWidth), typeof(double), typeof(PageShell), MaxContentWidth);
 
     private Grid? _header;
     private SectionPicker? _picker;
@@ -91,7 +94,7 @@ public partial class PageShell : ContentView
 
         var narrow = Width < 760;
         ShellPadding = narrow ? new Thickness(18, 24, 18, 40) : new Thickness(40, 36, 40, 56);
-        ContentWidth = Math.Min(1560, Width - (narrow ? 36 : 80));
+        ContentWidth = Math.Min(MaxContentWidth, Width - (narrow ? 36 : 80));
         if (_header is null || _picker is null)
             return;
 

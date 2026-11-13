@@ -104,6 +104,38 @@ public class ReportServiceTests
         Assert.Equal(1, report.AtRiskCount);
     }
 
+    [Theory]
+    [InlineData(10, 5)]
+    [InlineData(0, 0)]
+    public async Task Given_StudentsWithContacts_When_GeneratingReport_Then_CountsEveryContactOfTheSection(int totalClasses, int totalAssignments)
+    {
+        // Con historial (reporte con datos) y sin historial (sin datos) el contador es el mismo.
+        var active = Row("Activo", "A", "101", attended: 0, totalClasses, submitted: 0, totalAssignments);
+        active.ContactCount = 3;
+        var inactive = Row("Inactivo", "I", "102", attended: 0, totalClasses, submitted: 0, totalAssignments, active: false);
+        inactive.ContactCount = 2;
+        var repo = new FakeTrackingRepository().WithSection(1, active, inactive);
+
+        var report = await new ReportService(repo, new RiskConfig()).GenerateReportAsync(1, "Comisión Mañana");
+
+        Assert.Equal(5, report.InterventionCount);
+    }
+
+    [Fact]
+    public async Task Given_StudentsEnrolledAtDifferentTimes_When_GeneratingReport_Then_CountsClassesAndActiveDeliveries()
+    {
+        var repo = new FakeTrackingRepository().WithSection(1,
+            Row("Desde", "Inicio", "101", attended: 8, totalClasses: 10, submitted: 3, totalAssignments: 4),
+            Row("Tarde", "Llegó", "102", attended: 2, totalClasses: 6, submitted: 1, totalAssignments: 2),
+            Row("Baja", "Dio", "103", attended: 0, totalClasses: 10, submitted: 0, totalAssignments: 4, active: false));
+
+        var report = await new ReportService(repo, new RiskConfig()).GenerateReportAsync(1, "Comisión Mañana");
+
+        Assert.Equal(10, report.ClassCount);
+        Assert.Equal(4, report.SubmittedCount);
+        Assert.Equal(6, report.ExpectedSubmissions);
+    }
+
     [Fact]
     public async Task Given_Section_When_ComparingReportAndStudentsQueryService_Then_SummariesMatchExactly()
     {
