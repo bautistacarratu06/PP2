@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace GestionEscolar.Data.Persistence;
@@ -78,6 +78,7 @@ public sealed class CourseTrackingDbContext(DbContextOptions<CourseTrackingDbCon
             entity.HasKey(e => e.Id).HasName("pk_class_session");
             entity.Property(e => e.Id).HasColumnName("id").UseIdentityColumn(1, 1);
             entity.Property(e => e.SectionId).HasColumnName("section_id");
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(120);
             entity.Property(e => e.SessionDate).HasColumnName("session_date").HasColumnType("date");
             entity.HasIndex(e => new { e.SectionId, e.SessionDate })
                 .IsUnique()

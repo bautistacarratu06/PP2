@@ -104,6 +104,11 @@ namespace GestionEscolar.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Name")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)")
+                        .HasColumnName("name");
+
                     b.Property<int>("SectionId")
                         .HasColumnType("int")
                         .HasColumnName("section_id");

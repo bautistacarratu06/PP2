@@ -1,4 +1,4 @@
-﻿using GestionEscolar.Data.Persistence;
+using GestionEscolar.Data.Persistence;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,7 +33,7 @@ public class ExistingSchemaMigrationTests
                 await db.SaveChangesAsync();
             }
 
-            await ExecuteAsync(connectionString, "DROP INDEX ix_student_section_id ON dbo.student; DELETE FROM dbo.__EFMigrationsHistory;");
+            await ExecuteAsync(connectionString, "DROP INDEX ix_student_section_id ON dbo.student; ALTER TABLE dbo.class_session DROP COLUMN name; DELETE FROM dbo.__EFMigrationsHistory;");
 
             var sectionsBefore = await ScalarAsync<int>(connectionString, "SELECT COUNT(*) FROM dbo.section");
             var studentsBefore = await ScalarAsync<int>(connectionString, "SELECT COUNT(*) FROM dbo.student");
@@ -48,6 +48,9 @@ public class ExistingSchemaMigrationTests
             Assert.NotNull(await ScalarAsync<object>(
                 connectionString,
                 "SELECT 1 FROM sys.indexes WHERE name = N'ix_student_section_id' AND object_id = OBJECT_ID(N'dbo.student')"));
+            Assert.NotNull(await ScalarAsync<object>(
+                connectionString,
+                "SELECT 1 FROM sys.columns WHERE name = N'name' AND object_id = OBJECT_ID(N'dbo.class_session')"));
         }
         finally
         {

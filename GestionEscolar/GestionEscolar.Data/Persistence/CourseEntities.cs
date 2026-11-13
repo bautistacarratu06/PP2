@@ -1,4 +1,4 @@
-﻿namespace GestionEscolar.Data.Persistence;
+namespace GestionEscolar.Data.Persistence;
 
 // Filas de course_tracking. No son los modelos de Core: el repositorio los traduce.
 // La clave de student es dni; id es identity y es lo que apuntan las claves foráneas.
@@ -54,6 +54,8 @@ public sealed class ClassSessionEntity
     public int Id { get; set; }
 
     public int SectionId { get; set; }
+
+    public string? Name { get; set; }
 
     public DateTime SessionDate { get; set; }
 
