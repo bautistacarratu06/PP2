@@ -6,7 +6,8 @@ public interface ICsvFileSource
     // null si la persona cancela.
     Task<string?> PickPathAsync();
 
-    Task<string> ReadAllTextAsync(string path);
+    // Lector del archivo; quien lo pide lo cierra.
+    TextReader OpenText(string path);
 }
 
 public sealed class DeviceCsvFileSource : ICsvFileSource
@@ -17,5 +18,5 @@ public sealed class DeviceCsvFileSource : ICsvFileSource
         return file?.FullPath;
     }
 
-    public Task<string> ReadAllTextAsync(string path) => File.ReadAllTextAsync(path);
+    public TextReader OpenText(string path) => File.OpenText(path);
 }

@@ -198,6 +198,36 @@ public sealed class BulkImportRepositoryTests(SqlServerFixture fixture)
         Assert.Equal(402, await CountAsync(sectionId));
     }
 
+    [Fact]
+    public async Task Given_ALargeNewSection_When_CreatingFromThePreview_Then_ItUsesTheBulkPathAndReportsProgress()
+    {
+        await _fixture.ClearRowsAsync();
+        await SeedStoredAsync(await SeedSectionAsync("Previa"), ["7"]);
+        var service = new CommissionImportService(Repository);
+        var lines = new List<string> { "DNI,Apellido,Nombre,Legajo,Teléfono,Correo" };
+        lines.AddRange(Enumerable.Range(0, 450).Select(i => $"{i},Ap{i},Nom{i},L{i},,c{i}@edu.test"));
+        var rows = service.Read(new StringReader(string.Join('\n', lines)));
+        var preview = await service.PreviewAsync(null, rows);
+        var progress = new RecordingProgress();
+
+        var section = await service.CreateFromPreviewAsync("Grande", preview, DateTime.Today, progress);
+
+        Assert.Single(preview.Conflicts);
+        Assert.Equal(449, await CountAsync(section.Id));
+        Assert.Contains(progress.Values, value => value.Stage == ImportStage.Saving && value.Done == 449 && value.Total == 449);
+        Assert.Equal(ImportStage.Finishing, progress.Values[^1].Stage);
+        await using var db = _fixture.CreateContext();
+        Assert.Equal(0, await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.student_import_staging").SingleAsync());
+    }
+
+    // Progress<T> publica en otro hilo; este guarda los avisos en orden y en el acto.
+    private sealed class RecordingProgress : IProgress<ImportProgress>
+    {
+        public List<ImportProgress> Values { get; } = [];
+
+        public void Report(ImportProgress value) => Values.Add(value);
+    }
+
     private static Student Copy(Student student, string dni, string number) => new()
     {
         Dni = dni,

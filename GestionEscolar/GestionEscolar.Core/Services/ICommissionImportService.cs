@@ -7,10 +7,11 @@ namespace GestionEscolar.Core.Services;
 public interface ICommissionImportService
 {
     Task<IReadOnlyList<Section>> GetSectionsAsync(CancellationToken cancellationToken = default);
-    IReadOnlyList<RosterCsvRow> Read(TextReader reader);
+    IReadOnlyList<RosterCsvRow> Read(TextReader reader, IProgress<ImportProgress>? progress = null);
     Task<ImportPreview> PreviewAsync(int? sectionId, IReadOnlyList<RosterCsvRow> rows, CancellationToken cancellationToken = default);
     Task<Section> CreateAsync(string? name, IReadOnlyList<RosterCsvRow> rows, DateTime today, CancellationToken cancellationToken = default);
+    Task<Section> CreateFromPreviewAsync(string? name, ImportPreview preview, DateTime today, IProgress<ImportProgress>? progress = null, CancellationToken cancellationToken = default);
     Task ApplyAsync(int sectionId, ImportPreview preview, IReadOnlyList<ImportDecision> decisions, DateTime today, CancellationToken cancellationToken = default);
 
-    Task<ImportResult> ApplyWithReportAsync(int sectionId, ImportPreview preview, IReadOnlyList<ImportDecision> decisions, DateTime today, CancellationToken cancellationToken = default);
+    Task<ImportResult> ApplyWithReportAsync(int sectionId, ImportPreview preview, IReadOnlyList<ImportDecision> decisions, DateTime today, IProgress<ImportProgress>? progress = null, CancellationToken cancellationToken = default);
 }

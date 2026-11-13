@@ -32,6 +32,7 @@ namespace UI
 
             // Costuras de UI: fecha, selector de CSV y navegación
             builder.Services.AddSingleton<IClock, SystemClock>();
+            builder.Services.AddSingleton<ImportJobTracker>();
             builder.Services.AddSingleton<ICsvFileSource, DeviceCsvFileSource>();
             builder.Services.AddSingleton<IAppNavigation, ShellAppNavigation>();
 

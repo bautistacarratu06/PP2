@@ -36,7 +36,11 @@ public sealed class FakeCommissionImportRepository : ICommissionImportRepository
     public Task<IReadOnlyList<Student>> GetStudentsAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<Student>>(_students.Select(Copy).ToList());
 
-    public Task<Section> CreateSectionAsync(string name, IReadOnlyList<Student> students, CancellationToken cancellationToken = default)
+    public Task<Section> CreateSectionAsync(
+        string name,
+        IReadOnlyList<Student> students,
+        IProgress<ImportProgress>? progress = null,
+        CancellationToken cancellationToken = default)
     {
         var section = new Section(_nextSectionId++, name);
         _sections.Add(section);
@@ -86,6 +90,7 @@ public sealed class FakeCommissionImportRepository : ICommissionImportRepository
         int sectionId,
         IReadOnlyList<NumberedStudent> inserts,
         IReadOnlyList<StudentContactChange> updates,
+        IProgress<ImportProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
         ApplyWithReportCalls++;
@@ -96,6 +101,7 @@ public sealed class FakeCommissionImportRepository : ICommissionImportRepository
         int sectionId,
         IReadOnlyList<NumberedStudent> inserts,
         IReadOnlyList<StudentContactChange> updates,
+        IProgress<ImportProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
         BulkApplyCalls++;

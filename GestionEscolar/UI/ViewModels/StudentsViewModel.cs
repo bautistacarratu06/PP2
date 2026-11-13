@@ -31,8 +31,10 @@ public partial class StudentsViewModel : BusyStateViewModel
         ISubmissionService submissions,
         SectionSelection selection,
         CommissionImportViewModel import,
-        IClock clock)
+        IClock clock,
+        ImportJobTracker jobs)
     {
+        Jobs = jobs;
         _query = query;
         _selection = selection;
         Import = import;
@@ -46,6 +48,9 @@ public partial class StudentsViewModel : BusyStateViewModel
     }
 
     public CommissionImportViewModel Import { get; }
+
+    // Importación en segundo plano (aviso con el avance).
+    public ImportJobTracker Jobs { get; }
 
     public StudentsFiltersViewModel Filters { get; }
 
@@ -68,6 +73,10 @@ public partial class StudentsViewModel : BusyStateViewModel
     [ObservableProperty]
     public partial int TotalMatching { get; set; }
 
+    // True hasta que llega la primera página de la comisión actual: no se muestran conteos viejos.
+    [ObservableProperty]
+    public partial bool IsCountUnknown { get; set; } = true;
+
     [ObservableProperty]
     public partial bool IsLoadingMore { get; set; }
 
@@ -81,7 +90,8 @@ public partial class StudentsViewModel : BusyStateViewModel
     public int FilteredCount => FilteredStudents.Count;
     public bool HasMore => FilteredStudents.Count < TotalMatching;
     public bool HasLoadMoreError => !string.IsNullOrEmpty(LoadMoreError);
-    public string LoadedText => $"Cargados: {FilteredStudents.Count} de {TotalMatching}";
+    public string LoadedText => IsCountUnknown ? "Cargando…" : $"Cargados: {FilteredStudents.Count:N0} de {TotalMatching:N0}";
+    public string CountText => IsCountUnknown ? "Cargando…" : $"{TotalMatching:N0} estudiantes";
 
     public bool HasNoResults => !IsBusy && FilteredStudents.Count == 0 && string.IsNullOrEmpty(ErrorMessage);
     public bool ShowEmptyRoster => HasNoResults && !Filters.HasActiveFilters && string.IsNullOrWhiteSpace(SearchText);
@@ -95,6 +105,8 @@ public partial class StudentsViewModel : BusyStateViewModel
     partial void OnSearchTextChanged(string value) => _ = ReloadQuietAsync();
 
     partial void OnTotalMatchingChanged(int value) => NotifyListState();
+
+    partial void OnIsCountUnknownChanged(bool value) => NotifyListState();
 
     partial void OnLoadMoreErrorChanged(string value) => OnPropertyChanged(nameof(HasLoadMoreError));
 
@@ -132,6 +144,7 @@ public partial class StudentsViewModel : BusyStateViewModel
             Selection.Reset();
             _boundSectionId = null;
             ClearRows();
+            IsCountUnknown = false;
             return;
         }
 
@@ -139,6 +152,8 @@ public partial class StudentsViewModel : BusyStateViewModel
         {
             Selection.Reset();
             _boundSectionId = section.Id;
+            ClearRows();
+            IsCountUnknown = true;
         }
 
         var result = await _query.QueryAsync(section.Id, Filters.Build(SearchText, 1, PageSize));
@@ -149,6 +164,7 @@ public partial class StudentsViewModel : BusyStateViewModel
         _loadedPage = 1;
         Selection.ReplaceRows(result.Students.Select(student => new StudentRow(student, 0)));
         TotalMatching = result.TotalCount;
+        IsCountUnknown = false;
         NotifyListState();
     }
 
@@ -221,6 +237,7 @@ public partial class StudentsViewModel : BusyStateViewModel
         OnPropertyChanged(nameof(FilteredCount));
         OnPropertyChanged(nameof(HasMore));
         OnPropertyChanged(nameof(LoadedText));
+        OnPropertyChanged(nameof(CountText));
         OnPropertyChanged(nameof(HasNoResults));
         OnPropertyChanged(nameof(ShowEmptyRoster));
         OnPropertyChanged(nameof(ShowSearchEmpty));
